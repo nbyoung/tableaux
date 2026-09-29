@@ -31,7 +31,7 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
 |-------------------------------|-----------------------------------------------------------------------------|
 | `.tableaux/`                  | Fixed; one per repository                                                   |
 | `version.yaml`, `gates.yaml`  | Fixed                                                                       |
-| `tasks/<id>.yaml`             | `<id>` is the task id: four lowercase hexadecimal digits, `^[0-9a-f]{4}$`   |
+| `tasks/<id>.yaml`             | `<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$` |
 | `status/<id>.yaml`            | `<id>` is the id of a leaf task                                             |
 
 History has no file: a tool derives it from the Git log (see [History](#history)).
@@ -185,6 +185,8 @@ reasons:
 ## `tasks/<id>.yaml`
 
 A task file defines one task and its junctions. The file name carries the task's id; the file holds no `id` field.
+
+An id is four lowercase hexadecimal digits chosen at random when the task is created. Wherever a file names an id, in `parent`, `requires` or `subproject`, it writes the id as a quoted string, because YAML reads an id such as `1000` as an integer and `1e10` as a float. A tool takes an id as a string whatever scalar YAML yields, and a validator warns of an unquoted id.
 
 ### Schema
 
@@ -350,7 +352,7 @@ references:
 junctions:
   performance: { references: [{ url: docs/sensor-board.md#power-budget, text: Power budget }] }
   validate:    { reviewer: ben@example.org }
-parent: { id: 4e2b, order: 1 }
+parent: { id: "4e2b", order: 1 }
 ```
 
 ```yaml
@@ -359,12 +361,12 @@ title: Node firmware
 description: Reads the sensors, sleeps between readings and publishes to the gateway.
 assignee: ben@example.org
 requires:
-  - { id: 9f31, from: design, to: implementation, text: Pin map and sensor bus }
+  - { id: "9f31", from: design, to: implementation, text: Pin map and sensor bus }
 junctions:
   reliability:    { applies: false }
-  implementation: { subproject: { url: firmware, id: f1a0 } }
+  implementation: { subproject: { url: firmware, id: "f1a0" } }
   unit:           { contributor: opus@example.org, model: claude-opus-5-5 }
-parent: { id: 4e2b, order: 2 }
+parent: { id: "4e2b", order: 2 }
 ```
 
 ## `status/<id>.yaml`
@@ -454,7 +456,7 @@ items:
 | `date`   | Yes      | The commit's author date                                                         |
 | `commit` | Yes      | The commit's abbreviated or full hash                                            |
 | `by`     | Yes      | The commit's author email address                                                |
-| `task`   | Yes      | The task the event concerns                                                      |
+| `task`   | Yes      | The task the event concerns, as a quoted string                                  |
 | `event`  | Yes      | What the commit did to the task (see the table below)                            |
 | `gate`   | No       | For `status`, the gate recorded; for `reviewed`, the gate accepted               |
 | `state`, `reason`, `note` | No | For `status`, the values recorded                                        |
@@ -470,12 +472,12 @@ items:
 ### Example
 
 ```yaml
-- { date: 2026-09-18, commit: 3e1f0a2, by: ada@example.org, task: 9f31, event: task }
-- { date: 2026-09-19, commit: 8c44b7d, by: ada@example.org, task: 9f31, event: authorised }
-- { date: 2026-09-22, commit: b02e9c1, by: ada@example.org, task: 9f31, event: status, gate: mockup, state: nominal }
-- { date: 2026-09-24, commit: 5d7a3f8, by: ben@example.org, task: 9f31, event: reviewed, gate: mockup }
-- { date: 2026-09-25, commit: e91c604, by: ada@example.org, task: 9f31, event: status, gate: function, state: stalled, reason: blocked, note: Barometer ICs on 14-week backorder }
-- { date: 2026-09-28, commit: 71bd2e5, by: ada@example.org, task: 9f31, event: reaffirmed }
+- { date: 2026-09-18, commit: 3e1f0a2, by: ada@example.org, task: "9f31", event: task }
+- { date: 2026-09-19, commit: 8c44b7d, by: ada@example.org, task: "9f31", event: authorised }
+- { date: 2026-09-22, commit: b02e9c1, by: ada@example.org, task: "9f31", event: status, gate: mockup, state: nominal }
+- { date: 2026-09-24, commit: 5d7a3f8, by: ben@example.org, task: "9f31", event: reviewed, gate: mockup }
+- { date: 2026-09-25, commit: e91c604, by: ada@example.org, task: "9f31", event: status, gate: function, state: stalled, reason: blocked, note: Barometer ICs on 14-week backorder }
+- { date: 2026-09-28, commit: 71bd2e5, by: ada@example.org, task: "9f31", event: reaffirmed }
 ```
 
 ## Commit trailers

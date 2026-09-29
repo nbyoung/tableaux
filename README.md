@@ -37,6 +37,8 @@ A tool accepts a project whose major version equals its own and whose minor vers
 
 Each task is one file, `tasks/<id>.yaml`, whose name is the task's id. Git then attributes the task's history, blame and conflicts to that file alone, and a contributor creates or revises a task with an ordinary commit.
 
+An id is four hexadecimal digits chosen at random, not assigned in sequence. Contributors on separate branches then create tasks without coordinating and without colliding, and no id implies a rank: the tree and `order` give the order. A file writes an id as a quoted string, since YAML reads some ids as numbers ([SYNTAX.md](SYNTAX.md#tasksidyaml)).
+
 Tasks form a tree:
 
 - Exactly one task file has no `parent`; it is the **root**, and its title names the project.
