@@ -1,0 +1,45 @@
+# expected.yaml : this repository as a corpus entry. Nothing builds it: `source`
+# names the repository and the ref a conforming tool reads, so the corpus checks
+# the plan the method dog-foods. The expectations hold at the commit named;
+# a later commit that changes them updates `ref` and the facts together.
+entry: tableaux-tooling
+language: 0.1.0
+source: { repository: ../../.., ref: c764f8a }
+valid: true
+findings: []
+
+owner: nbyoung@nbyoung.com
+root: "437e"
+count: { tasks: 37, leaves: 32 }
+
+tasks:
+  "437e":
+    parent: null
+    authorities: []
+    authorisation: { state: authorised, by: nbyoung@nbyoung.com }
+    status: { gate: undefined, state: undefined, derived: true }    # no leaf has a status file at this ref
+  "fcec":
+    parent: "bc63"
+    authorities: [nbyoung@nbyoung.com, nbyoung@nbyoung.com]
+    authorisation: { state: authorised, by: nbyoung@nbyoung.com }  # the owner committed the plan on main
+    junctions:
+      default:        { kind: plain, contributor: noreply@anthropic.com }
+      defined:        { kind: plain, contributor: noreply@anthropic.com, model: claude-fable-5-1,
+                        reviewer: noreply@anthropic.com, source: "437e" }   # the agent reviews itself; see F2 and F8
+      mockup:         { kind: not_applicable, source: "fcec" }
+      function:       { kind: not_applicable, source: "fcec" }
+      design:         { kind: plain, contributor: noreply@anthropic.com, model: claude-fable-5-1,
+                        reviewer: nbyoung@nbyoung.com, source: "437e" }
+      release:        { kind: plain, contributor: nbyoung@nbyoung.com, source: "437e" }
+    applicable: [undefined, defined, design, implementation, unit, integrate, validate, release]
+    requires:
+      - { id: "e3cb", from: implementation, to: implementation, met: false, due: false, condition: pending }
+    status: { gate: undefined, state: undefined, date: 2026-09-29 }
+  "77b2":
+    parent: "437e"
+    authorities: [nbyoung@nbyoung.com]
+    junctions:
+      default: { kind: plain, contributor: noreply@anthropic.com }
+      design:  { kind: recursive, subproject: { url: subprojects/tablo }, source: "77b2" }   # id defaults to that project's root
+    subproject: { url: subprojects/tablo, pin: dc669dd1cbd5eca2c6e5c352caf9887945ad88b4 }
+    status: { gate: undefined, state: undefined }

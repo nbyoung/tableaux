@@ -1,0 +1,8 @@
+# tasks/a1c0.yaml : the root task, as in SYNTAX.md
+title: Weather station
+description: >
+  A solar-powered sensor node, a gateway that stores its readings,
+  and a dashboard, mounted on a mast at the allotment.
+assignee: ada@example.org
+references:
+  - { url: docs/overview.md, text: Project overview }

@@ -1,0 +1,3 @@
+# Sensor board
+
+## Power budget
