@@ -1,0 +1,9 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: tableaux/version.schema.yaml
+type: object
+required: [tableaux]
+additionalProperties: false
+properties:
+  tableaux:
+    type: string
+    pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"

@@ -1,0 +1,87 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: tableaux/task.schema.yaml
+type: object
+required: [title, description, assignee]
+additionalProperties: false
+$defs:
+  id:
+    type: string
+    pattern: "^[0-9a-f]{4}$"
+  key:
+    type: string
+    pattern: "^[a-z][a-z0-9_-]*$"
+  email:
+    type: string
+    format: email
+  url:
+    type: string
+    format: uri-reference
+    minLength: 1
+  references:
+    type: array
+    items:
+      type: object
+      required: [url]
+      additionalProperties: false
+      properties:
+        url:  { $ref: "#/$defs/url" }
+        text: { type: string, minLength: 1 }
+  junction:
+    oneOf:
+      - $ref: "#/$defs/plain"
+      - $ref: "#/$defs/recursive"
+      - $ref: "#/$defs/not_applicable"
+  plain:
+    type: object
+    additionalProperties: false
+    dependentRequired: { model: [contributor] }
+    properties:
+      contributor: { $ref: "#/$defs/email" }
+      model:       { type: string, minLength: 1 }
+      reviewer:    { $ref: "#/$defs/email" }
+      references:  { $ref: "#/$defs/references" }
+  recursive:
+    type: object
+    required: [subproject]
+    additionalProperties: false
+    properties:
+      subproject:
+        type: object
+        required: [url]
+        additionalProperties: false
+        properties:
+          url: { $ref: "#/$defs/url" }
+          id:  { $ref: "#/$defs/id" }
+  not_applicable:
+    type: object
+    required: [applies]
+    additionalProperties: false
+    properties:
+      applies: { const: false }
+properties:
+  title:       { type: string, minLength: 1 }
+  description: { type: string, minLength: 1 }
+  assignee:    { $ref: "#/$defs/email" }
+  references:  { $ref: "#/$defs/references" }
+  requires:
+    type: array
+    items:
+      type: object
+      required: [id]
+      additionalProperties: false
+      properties:
+        id:   { $ref: "#/$defs/id" }
+        from: { $ref: "#/$defs/key" }
+        to:   { $ref: "#/$defs/key" }
+        text: { type: string, minLength: 1 }
+  junctions:
+    type: object
+    propertyNames: { $ref: "#/$defs/key" }
+    additionalProperties: { $ref: "#/$defs/junction" }
+  parent:
+    type: object
+    required: [id]
+    additionalProperties: false
+    properties:
+      id:    { $ref: "#/$defs/id" }
+      order: { type: integer }
