@@ -484,7 +484,7 @@ A commit message may carry the trailers below, one task per line, among its othe
 
 | Trailer                  | Meaning                                                              |
 |--------------------------|----------------------------------------------------------------------|
-| `Authorised: <id>`       | The committer accepts the task as it stands                          |
+| `Authorised: <id>`       | The committer, as one of the task's authorities, accepts it as it stands |
 | `Reviewed: <id> <gate>`  | The committer accepts the task's work at the gate                    |
 | `Reaffirmed: <id>`       | The committer confirms the task's status as it stands, on this date  |
 

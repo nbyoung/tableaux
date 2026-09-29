@@ -43,11 +43,11 @@ Tasks form a tree:
 - Every other task names its parent by id. Every parent chain ends at the root.
 - Siblings sort by `order`, ascending, then by id. Siblings without `order` follow those with one.
 
-The **assignee** is the person responsible for the task, identified by the email address they commit with, so `git log --author` connects a person's commits to their tasks. The root task's assignee is the project **owner**.
+The **assignee** is the person responsible for the task, identified by the email address they commit with, so `git log --author` connects a person's commits to their tasks. The root task's assignee is the project **owner**. A task's **authorities** are the assignees of its ancestors, nearest first; the root's authority is the owner. Assigning a task therefore delegates authority over its subtree, and the owner, as every task's ancestor, keeps authority over all of it.
 
 **References** link the task to the documents that expand it: a specification, an issue, a datasheet. A view shows each reference's `text`, or its `url` when `text` is absent.
 
-**Requires** names the tasks whose results this task needs, each with an optional `text` summarising what passes. The relation crosses the tree freely but forms no cycle, and a task never requires itself, an ancestor or a descendant. Each entry is an edge between two junctions, stated in the terminating task's file: `from` is the gate the originating task must have completed, defaulting to its last applicable gate, and `to` is the gate of this task whose work needs the result, defaulting to its first applicable gate after `undefined`. A validator checks that each gate applies to its task.
+The **requires** relationship names the tasks whose results this task needs, each with an optional `text` field summarising what passes. The relation crosses the tree freely but forms no cycle, and a task never requires itself, an ancestor or a descendant. Each entry is an edge between two junctions, stated in the terminating task's file: `from` is the gate the originating task must have completed, defaulting to its last applicable gate, and `to` is the gate of this task whose work needs the result, defaulting to its first applicable gate after `undefined`. A validator checks that each gate applies to its task.
 
 The status dimension gives a requirement a derived condition. It is **met** when the originating task's gate is at or past `from`, **due** when the terminating task's next gate is `to` or later, and **unmet** when due and not met. A validator warns of an unmet requirement and a view marks the terminating junction, but the recorded state stands; the contributor records a `blocked` reason when the wait matters.
 
@@ -59,17 +59,19 @@ A **junction** is the meeting of a task and a gate. Every task has a junction at
 - A **recursive** junction hands the work to another Tableaux project. Its `url` locates that project's repository, typically a submodule path, and its `id` names the task there, defaulting to that project's root. Ids are unique within a project, not across projects. A view shows 🪆. The status dimension takes the junction's status from that task.
 - A **not-applicable** junction exempts the task from the gate; a view shows `—`. The `undefined` gate always applies.
 
+A parent has no status of its own, so its junctions describe **defaults its children inherit** rather than work of its own. A task's junction at a gate resolves from the task's own entry, then its ancestors' entries nearest first, then the plain default. A plain entry inherits field by field, so a child restates only what differs, for example an agent contributor under a parent's reviewer. A not-applicable entry exempts the whole subtree until a descendant states its own entry. A recursive junction names one task's work and does not inherit, so a validator rejects one on a parent.
+
 A validator checks that every junction key names a gate in `gates.yaml`. Junctions sit in the task file, so the authorisation below covers them.
 
 ## Proposed and authorised tasks
 
-Any contributor may create or change a task, so the project distinguishes a **proposed** task, which states the contributor's intent, from an **authorised** task, which the owner has accepted. Git records the acceptance on the trunk (the repository's default branch):
+Any contributor may create or change a task, so the project distinguishes a **proposed** task, which states the contributor's intent, from an **authorised** task, which one of its authorities has accepted. Git records the acceptance on the trunk (the repository's default branch):
 
 - The **deciding commit** of a task is the newest commit in the trunk's first-parent history that changed the task's file or carries an `Authorised:` trailer naming the task.
-- The task is authorised when the deciding commit's author or committer is the owner, and proposed otherwise.
+- The task is authorised when the deciding commit's author or committer is one of its authorities, and proposed otherwise. The authorities are read from the tree as it stands at that commit, so a move to a new parent is accepted by the new parent's chain.
 - Off the trunk, every task is proposed.
 
-The owner therefore authorises a task in any of three ways, and a contributor's later change to the file returns it to proposed:
+This mirrors the maintainer hierarchy of large Git projects: a contributor proposes under someone else's task and that person merges, while a person plans their own subtree with commits that are proposal and acceptance at once. The sensor node's assignee therefore authorises the sensor board in any of three ways, and a contributor's later change to the file returns it to proposed:
 
 ```
 git commit .tableaux/tasks/9f31.yaml                          # write or revise the task
@@ -81,7 +83,9 @@ git commit --allow-empty --trailer 'Authorised: 9f31' \
            -m 'Accept the sensor board and node firmware tasks'   # accept several at once
 ```
 
-The scheme is audit-only. It reads authorisation from the trunk's history and does not prevent a commit that misrepresents it; Tableaux takes commit identities and trailers at face value, as Git does. A project that needs enforcement adds it outside the scheme: signed commits with a trusted key, protection of the trunk and `.tableaux/tasks/` on the hosting service, or a server-side hook that applies the rule.
+The owner alone authorises the root, including a change of its assignee that transfers ownership.
+
+The scheme is audit-only. It reads authorisation from the trunk's history and does not prevent a commit that misrepresents it; Tableaux takes commit identities and trailers at face value, as Git does. A project that needs enforcement adds it outside the scheme: signed commits with a trusted key, protection of the trunk on the hosting service, or a server-side hook that applies the rule. Path-based ownership such as `CODEOWNERS` cannot follow the tree, since `tasks/` is flat, so it can guard the directory for the owner but not a subtree for its authority.
 
 ## Status
 
