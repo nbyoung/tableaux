@@ -193,6 +193,7 @@ The umbrella project rendered as the global tableau. Every task stands at the un
 | `6103` | &nbsp;&nbsp;tabloio: command line and Markdown | ⚪ | 🤖👀 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
 | `c6e8` | &nbsp;&nbsp;tablotui: terminal user interface | ⚪ | 🤖👀 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
 | `595e` | &nbsp;&nbsp;tableaud: local daemon and HTML | ⚪ | 🤖👀 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
+
 Each subproject's plan sits in its own repository and follows the same shape: a bootstrap task, then the components in dependency order, with the view work split into structural, status and temporal groups.
 
 | Subproject | Tasks | Leaves | The first leaf with no unmet requirement |
