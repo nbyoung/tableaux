@@ -1,0 +1,24 @@
+title: "tabloio: command line, output and input"
+description: >
+  The command-line front end, in two sides. The output side renders every view for static media, as Markdown by default for a STATUS.md that CI regenerates, an attachment to email or chat, or a brief pasted into an agent's prompt, or as a Unicode drawing for a terminal or a log with no Markdown viewer; no output changes project state, and scripts take the view data from tablo. The input side wraps the Git operations the method prescribes, to propose, record, review, reaffirm and authorise, as commands that compose the right files and trailers, so every change is a commit.
+  Its plan lives in its own repository, which this repository pins as the
+  submodule subprojects/tabloio; this task tracks that project's root
+  task through recursive junctions from the mockup gate onward.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: subprojects/tabloio, text: The submodule }
+  - { url: https://github.com/nbyoung/tabloio, text: The repository }
+  - { url: PLAN.md#subprojects, text: The charter }
+requires:
+  - { id: "77b2", from: implementation, to: implementation, text: The library and plumbing it calls }
+  - { id: "bc86", from: mockup, to: design, text: The Markdown mockups it reproduces }
+junctions:
+  mockup:         { subproject: { url: subprojects/tabloio } }
+  function:       { subproject: { url: subprojects/tabloio } }
+  design:         { subproject: { url: subprojects/tabloio } }
+  implementation: { subproject: { url: subprojects/tabloio } }
+  unit:           { subproject: { url: subprojects/tabloio } }
+  integrate:      { subproject: { url: subprojects/tabloio } }
+  validate:       { subproject: { url: subprojects/tabloio } }
+  release:        { subproject: { url: subprojects/tabloio } }
+parent: { id: "437e", order: 3 }

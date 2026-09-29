@@ -1,0 +1,10 @@
+title: Global tableau view in Html
+description: >
+  The project as the grid that names the method: tasks in tree order down, gates across, the state symbol in each task's current gate cell, derived rows for parents, and the marks for reviewers, agents, subprojects and inapplicable gates. It serves the owner and observers.
+  The mockup, docs/mockups/tableau.html, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/tableau.html, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "5fe3", order: 7 }

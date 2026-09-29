@@ -1,0 +1,10 @@
+title: History view in Html
+description: >
+  The events of one task or of the whole project between two refs, in author-time order, with the status after each event and the actors. It serves every role.
+  The mockup, docs/mockups/history.html, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/history.html, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "5fe3", order: 9 }

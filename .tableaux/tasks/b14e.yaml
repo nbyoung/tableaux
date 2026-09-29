@@ -1,0 +1,10 @@
+title: Audit view in Markdown
+description: >
+  The validator's findings and the discrepancies between files and history: proposed tasks, statuses past unreviewed junctions, unmet requirements, stale statuses, unresolved subprojects. It serves the owner and authorities.
+  The mockup, docs/mockups/audit.md, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/audit.md, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "bc86", order: 10 }

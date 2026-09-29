@@ -1,0 +1,17 @@
+title: Conformance corpus
+description: >
+  Example projects under corpus/, each a small Git repository built by a script
+  so that history exists: the weather station from README.md, a project with
+  every junction kind, a project with a submodule subproject, and invalid
+  projects that exercise each validator rule. Each carries the findings and
+  views a conforming tool derives from it. This project is itself a corpus
+  entry.
+assignee: noreply@anthropic.com
+references:
+  - { url: README.md, text: The examples the corpus starts from }
+requires:
+  - { id: "e3cb", from: implementation, to: implementation, text: The schema files the corpus validates against }
+junctions:
+  mockup:   { applies: false }
+  function: { applies: false }
+parent: { id: "bc63", order: 4 }

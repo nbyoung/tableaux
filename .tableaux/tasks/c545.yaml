@@ -1,0 +1,10 @@
+title: Contextual tableau view in Markdown
+description: >
+  The tableau focused on one task or one person: the subtree under a task, or the parents and siblings of a person's assigned tasks, with a window of gate columns around the next gates of the tasks in view, a few columns either side by default, and the columns outside it folded to a count. The viewer shows or hides any column, and the choice persists; no role policy decides the columns. It serves assignees and contributors.
+  The mockup, docs/mockups/context.md, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/context.md, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "bc86", order: 8 }

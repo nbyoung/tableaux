@@ -1,0 +1,16 @@
+title: Roles
+description: >
+  A section of README.md that names the roles a project derives from its files
+  and its history: owner, authority, assignee, contributor, agent, reviewer and
+  observer. Each role states who holds it, what it may do and which views serve
+  it. Nothing declares a role; a person or agent holds it wherever their email
+  appears in that position.
+assignee: noreply@anthropic.com
+references:
+  - { url: PLAN.md#roles, text: Proposed roles }
+junctions:
+  mockup:    { applies: false }
+  function:  { applies: false }
+  unit:      { applies: false }
+  integrate: { applies: false }
+parent: { id: "bc63", order: 1 }

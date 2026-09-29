@@ -1,0 +1,10 @@
+title: Task assignment view in Html
+description: >
+  The project by person: for each email the tasks assigned, the junctions contributed, the junctions reviewed, and the models of agents. It serves the owner, authorities and assignees.
+  The mockup, docs/mockups/assignment.html, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/assignment.html, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "5fe3", order: 4 }

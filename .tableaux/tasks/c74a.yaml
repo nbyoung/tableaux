@@ -1,0 +1,10 @@
+title: Contributor work queue view in Markdown
+description: >
+  For one contributor, the junctions where they act next: work at a gate whose requirements are met, reviews they owe, authorisations they owe, and statuses they last reaffirmed longest ago. Each item carries the gate criteria, the junction references and the requirement texts, so an agent can start from the queue alone. It serves contributors, reviewers and authorities.
+  The mockup, docs/mockups/queue.md, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/queue.md, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "bc86", order: 5 }

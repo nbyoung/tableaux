@@ -1,0 +1,15 @@
+title: HTML views
+description: >
+  Hand-made HTML mockups of every view, one self-contained file each under docs/mockups/, depicting this project. HTML is the interactive medium: a page that a local daemon serves from the checked-out repository, with progressive disclosure per role. A mockup shows its disclosure levels, for example with details elements, and needs no server. The defined gate agrees what the view shows in HTML; the mockup gate delivers the file; later gates belong to the tableaud subproject.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/, text: The mockups }
+junctions:
+  function:       { applies: false }
+  design:         { applies: false }
+  implementation: { applies: false }
+  unit:           { applies: false }
+  integrate:      { applies: false }
+  validate:       { applies: false }
+  release:        { applies: false }
+parent: { id: "2034", order: 3 }

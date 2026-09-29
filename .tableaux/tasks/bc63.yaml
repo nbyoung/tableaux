@@ -1,0 +1,13 @@
+# tasks/bc63.yaml — the method branch
+title: Method
+description: >
+  The Tableaux language and its refinement. Specification work reads the gates
+  as follows: defined fixes the scope, design produces an outline with examples,
+  implementation puts the text on the trunk, validate shows that the tools and
+  the corpus follow the text, and release raises the language version. Mockup,
+  function, unit and integrate apply only where a task states them.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: README.md, text: The Tableaux method }
+  - { url: SYNTAX.md, text: The Tableaux syntax }
+parent: { id: "437e", order: 1 }

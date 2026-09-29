@@ -1,0 +1,17 @@
+title: Productivity evidence
+description: >
+  The measure of the aim. A script over the Git history of every repository in
+  the effort reports, per task and per gate, the agent commits, the human
+  review and authorisation commits, and the elapsed time between them. The
+  validate gate reads the numbers against the aim: human attention goes to
+  strategic junctions and agents carry the rest. The report feeds the next
+  refinement of the method.
+assignee: noreply@anthropic.com
+references:
+  - { url: PLAN.md#review-policy, text: The review policy under test }
+junctions:
+  mockup:    { applies: false }
+  function:  { applies: false }
+  unit:      { applies: false }
+  integrate: { applies: false }
+parent: { id: "bc63", order: 7 }

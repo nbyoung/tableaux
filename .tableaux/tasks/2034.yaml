@@ -1,0 +1,11 @@
+# tasks/2034.yaml — views: the abstract definitions and their mockups
+title: Views
+description: >
+  The views a Tableaux tool presents, defined once in the abstract and then
+  mocked up by hand in each visual format. Every mockup depicts this project,
+  the Tableaux tooling plan, so that the owner reviews the design against work
+  they know. The front-end subprojects implement the views from these mockups.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: PLAN.md#views, text: Proposed views }
+parent: { id: "bc63", order: 2 }

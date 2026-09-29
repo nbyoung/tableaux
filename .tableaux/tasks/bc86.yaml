@@ -1,0 +1,15 @@
+title: Markdown views
+description: >
+  Hand-made Markdown mockups of every view, one file each under docs/mockups/, depicting this project. Markdown is the static medium: a STATUS.md that CI regenerates, an attachment to email or chat, a brief pasted into an agent's prompt. A mockup fits in a single file and reads well in a plain Markdown renderer. The defined gate agrees what the view shows in Markdown; the mockup gate delivers the file; later gates belong to the tabloio subproject.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/, text: The mockups }
+junctions:
+  function:       { applies: false }
+  design:         { applies: false }
+  implementation: { applies: false }
+  unit:           { applies: false }
+  integrate:      { applies: false }
+  validate:       { applies: false }
+  release:        { applies: false }
+parent: { id: "2034", order: 2 }

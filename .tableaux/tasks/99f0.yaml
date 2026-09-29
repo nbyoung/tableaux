@@ -1,0 +1,10 @@
+title: Gate definition view in Markdown
+description: >
+  The legend: the gates in order with their symbols, names and criteria, the states with their severities, and the reasons. Every other view refers to it. It serves every role.
+  The mockup, docs/mockups/gates.md, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/gates.md, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "bc86", order: 1 }

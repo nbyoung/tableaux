@@ -1,0 +1,14 @@
+title: Schema files
+description: >
+  The JSON schemas that SYNTAX.md embeds, extracted to schemas/ as files that
+  tools load, with a test that the files and the document agree. The files
+  carry the language version so a tool can check a project's version.yaml
+  against them.
+assignee: noreply@anthropic.com
+references:
+  - { url: SYNTAX.md, text: The schemas in place }
+junctions:
+  mockup:    { applies: false }
+  function:  { applies: false }
+  integrate: { applies: false }
+parent: { id: "bc63", order: 3 }

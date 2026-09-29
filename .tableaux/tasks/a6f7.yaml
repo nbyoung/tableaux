@@ -1,0 +1,10 @@
+title: Gate definition view in Html
+description: >
+  The legend: the gates in order with their symbols, names and criteria, the states with their severities, and the reasons. Every other view refers to it. It serves every role.
+  The mockup, docs/mockups/gates.html, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/gates.html, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "5fe3", order: 1 }

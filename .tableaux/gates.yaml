@@ -1,0 +1,27 @@
+# gates.yaml — the gating structure for the Tableaux tooling
+#
+# The software gate set from SYNTAX.md without the performance and reliability
+# gates: a planning tool has no performance target that a prototype must prove.
+gates:
+  - { key: undefined,      symbol: ❔, name: Undefined,            criteria: No one has started work on the definition }
+  - { key: defined,        symbol: 📝, name: Defined,              criteria: "Title, description, assignee and references exist" }
+  - { key: mockup,         symbol: 📌, name: Mockup,               criteria: A non-technical mockup of the outcome exists }
+  - { key: function,       symbol: ⚙️, name: Functional prototype, criteria: A technical demonstration of function exists }
+  - { key: design,         symbol: 📐, name: Design,               criteria: A model and sufficient tests exist }
+  - { key: implementation, symbol: 🛠️, name: Implementation,       criteria: "Artifacts suffice for unit, integration and validation tests" }
+  - { key: unit,           symbol: 🧩, name: Unit test,            criteria: All prescribed tests pass }
+  - { key: integrate,      symbol: 🖼️, name: Integration,          criteria: Assembled with neighbouring components }
+  - { key: validate,       symbol: 🌍, name: Validation,           criteria: Passes user and field tests }
+  - { key: release,        symbol: 🚀, name: Release,              criteria: All variants documented and approved }
+
+states:
+  - { key: undefined, symbol: ⚪, severity: 0, synopsis: The work has not yet been defined }
+  - { key: nominal,   symbol: 🟢, severity: 1, synopsis: The work is proceeding as expected }
+  - { key: at_risk,   symbol: 🟡, severity: 2, synopsis: The work is at risk of stalling }
+  - { key: stalled,   symbol: 🔴, severity: 3, synopsis: Practically all progress has stalled }
+  - { key: complete,  symbol: ✅, severity: 0, synopsis: All deliverables satisfy their requirements }
+
+reasons:
+  - { key: overloaded, symbol: 🪫, synopsis: The assigned resource is overloaded }
+  - { key: blocked,    symbol: ⛔, synopsis: An external resource is unavailable }
+  - { key: review,     symbol: 👀, synopsis: The work waits for its reviewer }

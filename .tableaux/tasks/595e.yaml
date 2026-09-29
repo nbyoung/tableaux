@@ -1,0 +1,24 @@
+title: "tableaud: local daemon and HTML"
+description: >
+  The graphical front end. A daemon that a participant runs from the checked-out repository and that serves every view as HTML with role-specific progressive disclosure: the owner explores top-down through the task hierarchy, a contributor starts at the parents of their tasks with a gate window around their next gates. The viewer shows and hides columns and the choice persists; the server holds no column policy of its own. It also exports a static bundle for hosting without a daemon.
+  Its plan lives in its own repository, which this repository pins as the
+  submodule subprojects/tableaud; this task tracks that project's root
+  task through recursive junctions from the mockup gate onward.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: subprojects/tableaud, text: The submodule }
+  - { url: https://github.com/nbyoung/tableaud, text: The repository }
+  - { url: PLAN.md#subprojects, text: The charter }
+requires:
+  - { id: "77b2", from: implementation, to: implementation, text: The library it embeds }
+  - { id: "5fe3", from: mockup, to: design, text: The HTML mockups it reproduces }
+junctions:
+  mockup:         { subproject: { url: subprojects/tableaud } }
+  function:       { subproject: { url: subprojects/tableaud } }
+  design:         { subproject: { url: subprojects/tableaud } }
+  implementation: { subproject: { url: subprojects/tableaud } }
+  unit:           { subproject: { url: subprojects/tableaud } }
+  integrate:      { subproject: { url: subprojects/tableaud } }
+  validate:       { subproject: { url: subprojects/tableaud } }
+  release:        { subproject: { url: subprojects/tableaud } }
+parent: { id: "437e", order: 5 }

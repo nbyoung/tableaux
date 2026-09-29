@@ -1,0 +1,25 @@
+title: "tablo: backend library and plumbing"
+description: >
+  The backend. A Go library that loads a project from a worktree or any Git ref, validates it against the schemas and the rules in README.md, derives junctions, requirement conditions, authorisation, review, roll-up and history, audits the result and produces every abstract view as data. A plumbing command exposes the library as JSON for scripts and for the front ends, as Git's plumbing serves its porcelain.
+  Its plan lives in its own repository, which this repository pins as the
+  submodule subprojects/tablo; this task tracks that project's root
+  task through recursive junctions from the mockup gate onward.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: subprojects/tablo, text: The submodule }
+  - { url: https://github.com/nbyoung/tablo, text: The repository }
+  - { url: PLAN.md#subprojects, text: The charter }
+requires:
+  - { id: "e3cb", from: implementation, to: implementation, text: The schema files it embeds }
+  - { id: "e9c6", from: implementation, to: design, text: The abstract views it derives }
+  - { id: "fcec", from: implementation, to: unit, text: The corpus it conforms to }
+junctions:
+  mockup:         { subproject: { url: subprojects/tablo } }
+  function:       { subproject: { url: subprojects/tablo } }
+  design:         { subproject: { url: subprojects/tablo } }
+  implementation: { subproject: { url: subprojects/tablo } }
+  unit:           { subproject: { url: subprojects/tablo } }
+  integrate:      { subproject: { url: subprojects/tablo } }
+  validate:       { subproject: { url: subprojects/tablo } }
+  release:        { subproject: { url: subprojects/tablo } }
+parent: { id: "437e", order: 2 }

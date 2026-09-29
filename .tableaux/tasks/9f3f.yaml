@@ -1,0 +1,17 @@
+title: Subproject linkage
+description: >
+  How a recursive junction finds its subproject. The method reads the
+  subproject at the commit a submodule pins, but a sibling repository named by
+  URL has no pin and no local path. This task decides the rule: an optional
+  commit field, a tool-side mapping from URL to local checkout, or both. It
+  also considers a task-level subproject field that delegates every gate after
+  defined, and whether requirements may cross projects.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: PLAN.md#findings, text: Findings F3 to F5 }
+junctions:
+  mockup:    { applies: false }
+  function:  { applies: false }
+  unit:      { applies: false }
+  integrate: { applies: false }
+parent: { id: "bc63", order: 6 }

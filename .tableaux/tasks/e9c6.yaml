@@ -1,0 +1,20 @@
+title: Abstract views
+description: >
+  VIEWS.md defines each view independently of any format: its question, the
+  roles it serves, the data it draws from the project and the history, the
+  parameters that focus it (a task, a person, a gate window or a list of columns, a ref) and its
+  progressive-disclosure levels. The views are the gate definition, the task
+  definition, authority delegation, task assignment, the contributor work
+  queue, the work-blockage tree, the global tableau, the contextual tableau,
+  the history and the audit.
+assignee: noreply@anthropic.com
+references:
+  - { url: PLAN.md#views, text: Proposed views }
+requires:
+  - { id: "c2ad", from: design, to: design, text: The role names the views refer to }
+junctions:
+  mockup:    { applies: false }
+  function:  { applies: false }
+  unit:      { applies: false }
+  integrate: { applies: false }
+parent: { id: "2034", order: 1 }

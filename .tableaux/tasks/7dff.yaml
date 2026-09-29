@@ -1,0 +1,10 @@
+title: Task definition view in Html
+description: >
+  One task in full: title, description, assignee, references, requirements with their derived conditions, every junction resolved with the ancestor that supplied each field, parent and order, authorisation state with its deciding commit, current status with date and recorder, and recent events. It serves every role.
+  The mockup, docs/mockups/task.html, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/task.html, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "5fe3", order: 2 }

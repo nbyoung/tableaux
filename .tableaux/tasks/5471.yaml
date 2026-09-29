@@ -1,0 +1,10 @@
+title: Work-blockage tree view in Html
+description: >
+  The tasks whose progress waits on something, rooted at the causes: unmet requirements and their originating tasks, blocked and overloaded reasons, reviews and authorisations outstanding. It shows what one action would unblock. It serves the owner, authorities and contributors.
+  The mockup, docs/mockups/blockage.html, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/blockage.html, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "5fe3", order: 6 }

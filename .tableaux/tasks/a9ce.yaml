@@ -1,0 +1,10 @@
+title: Authority delegation view in Markdown
+description: >
+  The tree of assignees: who holds authority over which subtree, the chain of authorities above each task, and which tasks stand proposed against which authorised, with the deciding commit of each. It serves the owner and authorities.
+  The mockup, docs/mockups/authority.md, depicts this project.
+assignee: noreply@anthropic.com
+references:
+  - { url: docs/mockups/authority.md, text: The mockup }
+requires:
+  - { id: "e9c6", from: design, to: mockup, text: The abstract definition of the view }
+parent: { id: "bc86", order: 3 }

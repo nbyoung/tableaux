@@ -1,0 +1,25 @@
+title: "tablotui: terminal user interface"
+description: >
+  The terminal front end. A full-screen tableau with expand and collapse over the task tree, a gate window with per-viewer column hiding that persists, and panes for the task, the queue, the blockage tree and the history, refreshed when the repository changes. It serves a participant working in a shell beside their editor and their agent.
+  Its plan lives in its own repository, which this repository pins as the
+  submodule subprojects/tablotui; this task tracks that project's root
+  task through recursive junctions from the mockup gate onward.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: subprojects/tablotui, text: The submodule }
+  - { url: https://github.com/nbyoung/tablotui, text: The repository }
+  - { url: PLAN.md#subprojects, text: The charter }
+requires:
+  - { id: "77b2", from: implementation, to: implementation, text: The library it embeds }
+  - { id: "bc86", from: mockup, to: design, text: The Markdown mockups that fix the textual layout }
+  - { id: "5fe3", from: mockup, to: design, text: The HTML mockups that fix the disclosure levels }
+junctions:
+  mockup:         { subproject: { url: subprojects/tablotui } }
+  function:       { subproject: { url: subprojects/tablotui } }
+  design:         { subproject: { url: subprojects/tablotui } }
+  implementation: { subproject: { url: subprojects/tablotui } }
+  unit:           { subproject: { url: subprojects/tablotui } }
+  integrate:      { subproject: { url: subprojects/tablotui } }
+  validate:       { subproject: { url: subprojects/tablotui } }
+  release:        { subproject: { url: subprojects/tablotui } }
+parent: { id: "437e", order: 4 }

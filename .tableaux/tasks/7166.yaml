@@ -1,0 +1,16 @@
+title: Language clarifications
+description: >
+  The syntax and semantics questions that writing this plan raised: field
+  inheritance across an ancestor's not-applicable entry, the overlap between authorising a task and
+  reviewing its defined gate, and the absence of any state before the defined
+  gate. Each resolves into a sentence in README.md or SYNTAX.md, a validator
+  rule, or both, and raises the patch or minor version.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: PLAN.md#findings, text: Findings F7 to F9 }
+junctions:
+  mockup:    { applies: false }
+  function:  { applies: false }
+  unit:      { applies: false }
+  integrate: { applies: false }
+parent: { id: "bc63", order: 8 }

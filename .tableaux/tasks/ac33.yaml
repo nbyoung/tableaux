@@ -1,0 +1,18 @@
+title: Agent identity
+description: >
+  How an agent appears in Git. The method identifies every participant by
+  commit email, but an agent that runs inside a person's session commits under
+  that person's identity with a Co-Authored-By trailer, so the history
+  attributes its work to the person and the audit cannot see it. This task
+  decides the rule: an agent commits with its own identity, or the method reads
+  the trailer, or both. It also decides who reviews an agent by default when
+  the assignee is itself an agent.
+assignee: nbyoung@nbyoung.com
+references:
+  - { url: PLAN.md#findings, text: "Findings F1, F2 and F10" }
+junctions:
+  mockup:    { applies: false }
+  function:  { applies: false }
+  unit:      { applies: false }
+  integrate: { applies: false }
+parent: { id: "bc63", order: 5 }
