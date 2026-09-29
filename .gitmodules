@@ -1,0 +1,12 @@
+[submodule "subprojects/tablo"]
+	path = subprojects/tablo
+	url = ../tablo
+[submodule "subprojects/tabloio"]
+	path = subprojects/tabloio
+	url = ../tabloio
+[submodule "subprojects/tablotui"]
+	path = subprojects/tablotui
+	url = ../tablotui
+[submodule "subprojects/tableaud"]
+	path = subprojects/tableaud
+	url = ../tableaud
