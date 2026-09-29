@@ -228,17 +228,18 @@ Writing the plan in Tableaux found the following about the method. Each names th
    git commit -m 'Plan the Tableaux tooling'
    ```
 
-3. Create the four repositories from the skeletons beside this one, commit each, push, and pin them here as submodules with a Go workspace. The skeletons stay where they are:
+3. Create the four repositories from the skeletons beside this one, commit each, push, and pin them here as submodules. The skeletons stay where they are, and the loop runs from inside this repository:
 
    ```
+   cd tableaux
    for p in tablo tabloio tablotui tableaud; do
      git -C ../$p add -A && git -C ../$p commit -m "Charter and plan for $p"
      gh repo create nbyoung/$p --public --source ../$p --push
      git submodule add ../$p subprojects/$p
    done
-   go work init ./subprojects/tablo ./subprojects/tabloio ./subprojects/tablotui ./subprojects/tableaud
-   git add .gitmodules subprojects go.work
-   git commit -m 'Pin the subprojects and build them as one workspace'
+   git add .gitmodules subprojects
+   git commit -m 'Pin the subprojects'
+   git push
    ```
 
    The relative submodule URL resolves against this repository's origin, so `.gitmodules` names `github.com/nbyoung/<name>` whether a clone uses SSH or HTTPS.
@@ -251,7 +252,7 @@ Writing the plan in Tableaux found the following about the method. Each names th
    git commit -m 'Advance tablo to its implementation gate'
    ```
 
-   The committed `go.work` builds the family against the pinned commits. For day-to-day work across the siblings, keep a personal `go.work` in the directory above this repository that points at `./tablo` and the others, and leave it uncommitted.
+   The Go workspace comes later. Once the `tablo` bootstrap task lands a `go.mod`, run `go work init ./subprojects/tablo` here, add each other module as its bootstrap lands, and commit `go.work`; it then builds the family against the pinned commits. For day-to-day work across the siblings, keep a personal `go.work` in the directory above this repository that points at `./tablo` and the others, and leave it uncommitted.
 
 4. Start the agents. Under the review policy the queue for the agent begins with the tasks whose requirements are met: `c2ad` Roles, `e3cb` Schema files, and then `e9c6` Abstract views once `c2ad` reaches design. A brief for each holds the task file, the gate's criteria and the commit the agent makes when done.
 5. Review at the first strategic junctions: `e9c6` at design, then each mockup as it lands. The mockups fix what every front end builds.
