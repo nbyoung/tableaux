@@ -40,13 +40,14 @@ tasks:
     junctions:
       default: { kind: plain, contributor: ben@example.org }
       mockup:  { kind: plain, contributor: ben@example.org, reviewer: ben@example.org, source: "4e2b" }
-    status:                                               # derived: earliest gate is design, c07d is the child at it
-      gate: design
-      state: nominal
-      note: Sleep scheduler in progress
-      date: 2026-09-17
+    status:                                               # derived: 9f31 and c07d both count; the earliest gate is function, held by 9f31
+      gate: function
+      state: stalled
+      reason: blocked
+      note: Barometer ICs on 14-week backorder
+      date: 2026-09-17                                    # the oldest of the children considered, c07d's
       derived: true
-      from: "c07d"
+      from: "9f31"
   "9f31":
     parent: "4e2b"
     authorities: [ben@example.org, ada@example.org]
