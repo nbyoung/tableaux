@@ -1,6 +1,6 @@
 # expected.yaml : A reference has text and no url.
 entry: task-reference-without-url
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: T5, severity: error, task: "b2c9", file: tasks/b2c9.yaml }

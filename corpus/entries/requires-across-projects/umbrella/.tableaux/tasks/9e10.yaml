@@ -1,0 +1,5 @@
+# tasks/9e10.yaml : the umbrella's leaf that the entry's b2c9 requires upward
+title: Board
+description: The board whose pin map the subproject's leaf needs.
+assignee: ben@example.org
+parent: { id: "9e00", order: 1 }

@@ -1,6 +1,6 @@
 # expected.yaml : version.yaml names an empty trunk.
 entry: version-trunk-empty
-language: 0.2.1
+language: 0.3.0
 trunk: { caller: main }              # the caller names main, since version.yaml states no trunk
 valid: false
 findings:

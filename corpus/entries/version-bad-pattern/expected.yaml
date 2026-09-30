@@ -1,6 +1,6 @@
 # expected.yaml : version.yaml states a version that is not major.minor.patch.
 entry: version-bad-pattern
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: P3, severity: error, file: version.yaml }

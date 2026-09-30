@@ -67,7 +67,7 @@ properties:
 ### Example
 
 ```yaml
-tableaux: 0.2.1
+tableaux: 0.3.0
 trunk: main
 ```
 
@@ -218,6 +218,17 @@ $defs:
     type: string
     format: uri-reference
     minLength: 1
+  commit:
+    type: string
+    pattern: "^[0-9a-f]{40}$"
+  subproject:
+    type: object
+    required: [url]
+    additionalProperties: false
+    properties:
+      url:    { $ref: "#/$defs/url" }
+      id:     { $ref: "#/$defs/id" }
+      commit: { $ref: "#/$defs/commit" }
   references:
     type: array
     items:
@@ -246,13 +257,7 @@ $defs:
     required: [subproject]
     additionalProperties: false
     properties:
-      subproject:
-        type: object
-        required: [url]
-        additionalProperties: false
-        properties:
-          url: { $ref: "#/$defs/url" }
-          id:  { $ref: "#/$defs/id" }
+      subproject: { $ref: "#/$defs/subproject" }
   not_applicable:
     type: object
     required: [applies]
@@ -268,10 +273,16 @@ properties:
     type: array
     items:
       type: object
-      required: [id]
+      oneOf:
+        - required: [id]
+        - required: [subproject]
       additionalProperties: false
       properties:
         id:   { $ref: "#/$defs/id" }
+        subproject:
+          allOf:
+            - $ref: "#/$defs/subproject"
+            - required: [id]
         from: { $ref: "#/$defs/key" }
         to:   { $ref: "#/$defs/key" }
         text: { type: string, minLength: 1 }
@@ -312,12 +323,13 @@ properties:
 
 `requires[]`
 
-| Field  | Required | Meaning                                                                          |
-|--------|----------|----------------------------------------------------------------------------------|
-| `id`   | Yes      | The id of the originating task, whose result this task needs                    |
-| `from` | No       | The originating gate: the gate the originating task must have completed; defaults to its last applicable gate |
-| `to`   | No       | The terminating gate: the gate of this task whose work needs the result; defaults to its first applicable gate after `undefined` |
-| `text` | No       | A summary of what passes from the originating task to this one                   |
+| Field        | Required               | Meaning                                                                          |
+|--------------|------------------------|----------------------------------------------------------------------------------|
+| `id`         | One of `id`, `subproject` | The id of the originating task, whose result this task needs, in this project |
+| `subproject` | One of `id`, `subproject` | The originating task in another Tableaux project, in the form below with `id` required, since a requirement names one task's result |
+| `from`       | No                     | The originating gate: the gate the originating task must have completed, in its own project's `gates.yaml`; defaults to its last applicable gate |
+| `to`         | No                     | The terminating gate: the gate of this task whose work needs the result; defaults to its first applicable gate after `undefined` |
+| `text`       | No                     | A summary of what passes from the originating task to this one                   |
 
 `junctions.<gate>` is one of three kinds, told apart by its fields.
 
@@ -327,8 +339,16 @@ properties:
 |                | `model`       | No       | The model the contributor should run, when the contributor is an agent: an identifier or a prefix of one; stated together with `contributor`, never alone, since a model names no one |
 |                | `reviewer`    | No       | The email address of the person who accepts the work at this gate          |
 |                | `references`  | No       | Links that expand the gate's criteria for this task; same form as the task's |
-| Recursive      | `subproject`  | Yes      | The project that does the work: `url` locates its repository, an absolute URL or a path relative to this repository's root; `id` names its task, defaulting to that project's root |
+| Recursive      | `subproject`  | Yes      | The project that does the work and the task there, in the form below; `id` defaults to that project's root |
 | Not applicable | `applies`     | Yes      | Always `false`; the entry's presence exempts the gate, and `true` would restate the default the file omits |
+
+`subproject`, on a recursive junction or a cross-project requirement. Its `url` fixes the commit the other project is read at ([README.md](README.md#junctions)).
+
+| Field    | Required            | Meaning                                                                          |
+|----------|---------------------|----------------------------------------------------------------------------------|
+| `url`    | Yes                 | The other project's repository: a path relative to this repository's root, which is a submodule read at its pin or a directory of this repository read at the same commit, or an absolute URL |
+| `id`     | On a requirement    | The task in that project; on a junction, defaults to that project's root         |
+| `commit` | On an absolute URL  | The full hash of the commit the project is read at; on a submodule path it restates the pin and must equal it; on a same-repository path it is an error |
 
 `parent`
 
@@ -375,9 +395,26 @@ requires:
   - { id: "9f31", from: design, to: implementation, text: Pin map and sensor bus }
 junctions:
   reliability:    { applies: false }
-  implementation: { subproject: { url: firmware, id: "f1a0" } }
+  implementation: { subproject: { url: firmware, id: "f1a0" } }   # a submodule path, read at the commit it pins
   unit:           { contributor: opus@example.org, model: claude-opus-5-5 }
 parent: { id: "4e2b", order: 2 }
+```
+
+```yaml
+# firmware/.tableaux/tasks/f1a0.yaml — the subproject's task, which requires tasks in two other projects
+title: Weather node image
+description: >
+  The image for the sensor node: a sensor read loop, a sleep scheduler
+  and a LoRa publisher.
+assignee: ben@example.org
+requires:
+  # a shared library the firmware does not vendor, read at the commit named; advancing it is the pin change
+  - { subproject: { url: https://example.org/lora-lib.git, id: "d2a7", commit: 4c1f7e9b2a6d0f3e8b5c9a1d7e2f4b6c8d0a3e5f },
+      from: release, to: implementation, text: The LoRa driver }
+  # the parent project, upward: a subproject cannot pin its parent, so it names the parent by URL and commit
+  - { subproject: { url: https://example.org/weather-station.git, id: "9f31", commit: 9b3e2d1c0a7f6e5d4c3b2a1908f7e6d5c4b3a291 },
+      from: design, to: design, text: Pin map and sensor bus }
+parent: { id: "b7d2", order: 1 }
 ```
 
 ## `status/<id>.yaml`
@@ -453,11 +490,14 @@ items:
     commit: { type: string, pattern: "^[0-9a-f]{7,40}$" }
     by:     { type: string, format: email }
     task:   { type: string, pattern: "^[0-9a-f]{4}$" }
-    event:  { enum: [task, authorised, status, reaffirmed, reviewed] }
+    event:  { enum: [task, authorised, status, reaffirmed, reviewed, pin] }
     gate:   { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
     state:  { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
     reason: { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
     note:   { type: string, minLength: 1 }
+    url:    { type: string, minLength: 1 }
+    old:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
+    new:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
 ```
 
 ### Fields
@@ -471,6 +511,8 @@ items:
 | `event`  | Yes      | What the commit did to the task (see the table below)                            |
 | `gate`   | No       | For `status`, the gate recorded; for `reviewed`, the gate accepted               |
 | `state`, `reason`, `note` | No | For `status`, the values recorded                                        |
+| `url`    | For `pin` | The `url` of the junction or requirement whose commit moved                     |
+| `old`, `new` | For `pin` | The commit the linkage read before and reads now; `old` is absent when the linkage first appears |
 
 | Event        | Source in the commit                                     |
 |--------------|----------------------------------------------------------|
@@ -479,6 +521,7 @@ items:
 | `status`     | A change to `status/<id>.yaml`                           |
 | `reaffirmed` | A `Reaffirmed: <id>` trailer                             |
 | `reviewed`   | A `Reviewed: <id> <gate>` trailer                        |
+| `pin`        | A change to the commit a linkage reads: a submodule pin moved at the path a junction or requirement of the task names, or a `commit` field changed in `tasks/<id>.yaml`, which is a `task` event too |
 
 ### Example
 
@@ -488,6 +531,8 @@ items:
 - { date: 2026-09-22, commit: b02e9c1, by: ada@example.org, task: "9f31", event: status, gate: mockup, state: nominal }
 - { date: 2026-09-24, commit: 5d7a3f8, by: ben@example.org, task: "9f31", event: reviewed, gate: mockup }
 - { date: 2026-09-25, commit: e91c604, by: ada@example.org, task: "9f31", event: status, gate: function, state: stalled, reason: blocked, note: Barometer ICs on 14-week backorder }
+- { date: 2026-09-26, commit: 4a9d1e7, by: ben@example.org, task: "c07d", event: status, gate: design }
+- { date: 2026-09-26, commit: 4a9d1e7, by: ben@example.org, task: "c07d", event: pin, url: firmware, new: c3b7e12 }
 - { date: 2026-09-28, commit: 71bd2e5, by: ada@example.org, task: "9f31", event: reaffirmed }
 ```
 

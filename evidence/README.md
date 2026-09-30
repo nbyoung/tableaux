@@ -31,7 +31,7 @@ A review or an authorisation counts only when a `human` commit carries it. A com
 
 ### Events
 
-A commit yields zero or more events, each with a kind, a task and a gate. The first five kinds are the history events of [SYNTAX.md](../SYNTAX.md#history); the last two are this measure's own.
+A commit yields zero or more events, each with a kind, a task and a gate. The first five kinds and `pin` are the history events of [SYNTAX.md](../SYNTAX.md#history), with `pin` read here per task and gate; `work` is this measure's own.
 
 | Kind         | Source in the commit                                                                    | Task            | Gate                                                    |
 |--------------|-----------------------------------------------------------------------------------------|-----------------|---------------------------------------------------------|

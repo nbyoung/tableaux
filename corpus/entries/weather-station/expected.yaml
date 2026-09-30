@@ -2,7 +2,7 @@
 # from the weather station at the trunk's tip. Commits are named by the labels
 # history.sh records; build/weather-station.labels.txt maps them to hashes.
 entry: weather-station
-language: 0.2.1
+language: 0.3.0
 trunk: { stated: main }
 ref: main
 valid: true
@@ -109,8 +109,9 @@ tasks:
       - { date: 2026-09-10, commit: F1,  by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: defined, state: nominal }
       - { date: 2026-09-16, commit: W2,  by: ben@example.org, task: "c07d", event: task }
       - { date: 2026-09-17, commit: F2,  by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: design, state: nominal, note: Sleep scheduler in progress }
-      - { date: 2026-09-26, commit: W11, by: ben@example.org, task: "c07d", event: status, gate: design }   # also the pin; see the note in README.md
+      - { date: 2026-09-26, commit: W11, by: ben@example.org, task: "c07d", event: status, gate: design }
       - { date: 2026-09-26, commit: W11, by: ben@example.org, task: "c07d", event: reviewed, gate: mockup }
+      - { date: 2026-09-26, commit: W11, by: ben@example.org, task: "c07d", event: pin, url: firmware, new: F2 }   # the first pin of the firmware: no old commit
   "7b2e":
     parent: "a1c0"
     authorities: [ada@example.org]

@@ -1,7 +1,7 @@
 # expected.yaml : a valid project with one unquoted id (T7, a warning). A tool takes the id as the string
 # "1000" before it validates against the schema (F16), so the parent below is a string.
 entry: unquoted-id
-language: 0.2.1
+language: 0.3.0
 valid: true
 
 findings:

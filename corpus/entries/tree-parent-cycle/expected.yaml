@@ -1,6 +1,6 @@
 # expected.yaml : Two tasks name each other as parent, apart from the root.
 entry: tree-parent-cycle
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: T10, severity: error, task: "c3d7", file: tasks/c3d7.yaml }

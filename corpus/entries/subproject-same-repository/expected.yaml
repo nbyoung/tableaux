@@ -1,0 +1,32 @@
+# expected.yaml : b2c9 hands its design to a project in a directory of the same repository, lib, read at
+# the same commit as the parent. Nothing pins it, the junction states no commit, and no pin event exists.
+entry: subproject-same-repository
+language: 0.3.0
+valid: true
+findings: []
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 2, leaves: 1 }
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: recursive, subproject: { url: lib }, source: "b2c9" }
+    subproject: { url: lib, task: "5a00" }       # no pin: the same commit as the parent
+    status:                                      # the gate is the file's; the rest is 5a00's at this commit
+      gate: defined
+      state: nominal
+      note: Shares the parent's commit
+      date: 2026-09-01
+      recorder: olive@example.org
+      commit: only
+    events:                                      # one commit holds both projects
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: status, gate: defined }
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: task, subproject: "5a00" }
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: status, subproject: "5a00", gate: design, state: nominal, note: Shares the parent's commit }

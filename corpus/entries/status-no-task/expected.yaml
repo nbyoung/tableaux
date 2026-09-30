@@ -1,6 +1,6 @@
 # expected.yaml : A status file names no task.
 entry: status-no-task
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: S1, severity: error, task: "0c99", file: status/0c99.yaml }
