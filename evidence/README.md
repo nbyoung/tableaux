@@ -88,6 +88,8 @@ A commit that changes thirty-seven task files counts once in each of thirty-seve
 
 The totals section gives distinct commits and events per kind for each role across all repositories, and the three elapsed measures with count, median and longest.
 
+The cost section follows the totals (finding F20). It has one row per gate and one column per model in the `Model:` trailers, plus `unstated` for an agent or co-authored commit with no trailer, and a total of distinct commits. A commit counts once in each gate where it has an event, across all repositories. A second table lists each commit whose model falls outside the `model` its junction states, by identifier or prefix; it reads `none` when every commit fits. The cost is a commit count, since the Git log holds no tokens or time per model.
+
 ## Running it
 
 From the umbrella repository, with the submodules checked out or the sibling clones beside it:
@@ -101,10 +103,10 @@ python3 evidence/report.py --now 2026-10-01T09:00:00+00:00
 
 With no repository argument the script takes the current directory and every submodule in its `.gitmodules`. It uses the checkout under the submodule path when that path is a repository, and otherwise resolves a relative url such as `../tablo` against the main worktree, which is where the sibling clones stand in this effort. It skips a submodule it cannot reach and says so on standard error.
 
-The tests build a synthetic repository in a temporary directory with a plan commit, a hand-off, a review, a resumption, a reaffirmation, an authorisation trailer, a merged task branch and a pending hand-off, and check every event, both elapsed measures and the rendered tables:
+The tests build a synthetic repository in a temporary directory with a plan commit, a hand-off, a review, a resumption, a reaffirmation, an authorisation trailer, a merged task branch, a pending hand-off and `Model:` trailers, one of them outside its junction. They also build a second repository and a submodule checkout. They check every event, both elapsed measures, the cost per gate by model, the mismatch table and the rendered tables:
 
 ```
-cd evidence && python3 -m unittest
+python3 -m pytest evidence
 ```
 
 The script needs python3 and git only.
@@ -114,7 +116,7 @@ The script needs python3 and git only.
 - **Authorisation ignores the trunk rule.** The method decides authorisation on the trunk's first-parent history. The script counts an authority's task-file change wherever it stands, so a proposal on a branch by an authority counts as authorised before the merge.
 - **The reader is not a YAML parser.** The script reads the Tableaux files with regular expressions over the flow style this effort writes: `key: value` scalars, `- { key: ... }` gate entries and `gate: { ... }` junction entries. A block-style junction or a quoted key with a colon escapes it. `tablo` replaces this reader.
 - **Reviewer identity is not checked.** A `Reviewed:` trailer counts when a `human` authored the commit; the script does not confirm that the person is the junction's reviewer. That check is the validator's, in `tablo`.
-- **Only one agent.** The agent identity is one email or a list of emails; the script does not read `model` from junctions to tell agents apart. Finding F10 and task `ac33` decide how agents identify themselves.
+- **Only one agent identity.** The agent identity is one email or a list of emails; the script tells models apart by the `Model:` trailer alone (F20), and trusts the trailer as written. Finding F10 and task `ac33` decide how agents identify themselves.
 - **Merge commits carry only trailers.** A merge shows no changed files, so a squash merge or a merge that rewrites files produces no `task`, `status` or `work` event of its own.
 - **The gate of unattributed work is unknown.** Work in the `(none)` row has no task and so no gate.
 - **Snapshots, not sessions.** The intervals measure commit to commit. Time an agent spends before its first commit, or a person spends reading before the review commit, is invisible.

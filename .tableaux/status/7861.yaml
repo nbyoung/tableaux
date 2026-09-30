@@ -1,3 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-note: The report prototype and tests are on the trunk
+note: The full report, its 23 tests and an example over five repositories are on the trunk
