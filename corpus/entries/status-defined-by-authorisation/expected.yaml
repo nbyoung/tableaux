@@ -1,0 +1,21 @@
+# expected.yaml : b2c9 stands at defined, where a reviewer is stated, and no Reviewed commit exists.
+# The authorisation stands as the review of defined, so S11 stays silent.
+entry: status-defined-by-authorisation
+language: 0.2.1
+valid: true
+findings: []
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      defined: { kind: plain, contributor: pat@example.org, reviewer: olive@example.org, source: "b2c9" }
+    reviews:
+      - { gate: defined, reviewer: olive@example.org, commit: only }    # the authorisation commit; no Reviewed trailer exists
+    status: { gate: defined, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: only }

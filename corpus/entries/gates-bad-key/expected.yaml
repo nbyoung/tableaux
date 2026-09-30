@@ -1,0 +1,6 @@
+# expected.yaml : A gate key starts with a capital letter.
+entry: gates-bad-key
+language: 0.2.1
+valid: false
+findings:
+  - { rule: G5, severity: error, file: gates.yaml, gate: Design }

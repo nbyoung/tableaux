@@ -1,0 +1,7 @@
+# tasks/a400.yaml : a recursive junction that names its task
+title: Recursive with an id
+description: A leaf that hands its implementation to one leaf of the subproject.
+assignee: ben@example.org
+junctions:
+  implementation: { subproject: { url: sub, id: "5b00" } }
+parent: { id: "a000", order: 4 }

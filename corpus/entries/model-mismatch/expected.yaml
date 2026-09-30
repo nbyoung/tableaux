@@ -1,0 +1,30 @@
+# expected.yaml : a junction states model claude-fable. M2 records the model claude-sonnet-5 and draws one H3
+# warning; M4 records claude-fable-5-1, which the stated prefix matches.
+entry: model-mismatch
+language: 0.2.1
+valid: true
+
+findings:
+  - { rule: H3, severity: warning, task: "b2c9", gate: design, commit: M2,
+      message: "Model claude-sonnet-5 is outside the stated model claude-fable" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: M1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org, source: "b2c9" }   # an agent with no stated reviewer takes the assignee
+    reviews:
+      - { gate: design, reviewer: pat@example.org, commit: M3 }         # M2 recorded design first; the status is valid at the tip (F15)
+    status: { gate: design, state: stalled, reason: blocked, note: Waits for the schema files, date: 2026-09-04, recorder: bot@example.org, commit: M4 }
+    events:
+      - { date: 2026-09-01, commit: M1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: M1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: M2, by: bot@example.org, task: "b2c9", event: status, gate: design, state: nominal }
+      - { date: 2026-09-03, commit: M3, by: pat@example.org, task: "b2c9", event: reviewed, gate: design }
+      - { date: 2026-09-04, commit: M4, by: bot@example.org, task: "b2c9", event: status, gate: design, state: stalled, reason: blocked, note: Waits for the schema files }

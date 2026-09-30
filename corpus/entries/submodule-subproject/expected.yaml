@@ -1,0 +1,61 @@
+# expected.yaml : c100 delegates every gate after defined to the root of the subproject at sub.
+# The pin starts at S1 and advances twice, to S2 and S3; the subproject's tip, S4, lies beyond it.
+entry: submodule-subproject
+language: 0.2.1
+valid: true
+findings: []
+
+owner: olive@example.org
+root: "c000"
+count: { tasks: 2, leaves: 1 }
+order: ["c000", "c100"]
+
+tasks:
+  "c000":
+    parent: null
+    authorities: []
+    authorisation: { state: authorised, commit: U1, by: olive@example.org }
+    status:                                      # derived from the only child, whose note rolls up
+      gate: function
+      state: nominal
+      note: Prototype runs on the bench
+      date: 2026-09-16
+      derived: true
+      from: "c100"
+  "c100":
+    parent: "c000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: U1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: ben@example.org }
+      mockup:        { kind: recursive, subproject: { url: sub }, source: "c100" }
+      function:      { kind: recursive, subproject: { url: sub }, source: "c100" }
+      performance:   { kind: recursive, subproject: { url: sub }, source: "c100" }
+      reliability:   { kind: recursive, subproject: { url: sub }, source: "c100" }
+      design:        { kind: recursive, subproject: { url: sub }, source: "c100" }
+      implementation: { kind: recursive, subproject: { url: sub }, source: "c100" }
+      unit:          { kind: recursive, subproject: { url: sub }, source: "c100" }
+      integrate:     { kind: recursive, subproject: { url: sub }, source: "c100" }
+      validate:      { kind: recursive, subproject: { url: sub }, source: "c100" }
+      release:       { kind: recursive, subproject: { url: sub }, source: "c100" }
+    applicable: [undefined, defined, mockup, function, performance, reliability, design, implementation, unit, integrate, validate, release]
+    subproject:
+      url: sub
+      pin: S3                                    # a label in the subproject's labels; its tip is S4
+      task: "5a00"                               # the subproject's root
+    status:                                      # the gate is the file's; the rest is 5a00's at the pin
+      gate: function
+      state: nominal
+      note: Prototype runs on the bench
+      date: 2026-09-16
+      recorder: ben@example.org
+      commit: S3
+    events:                                      # each pin change (U2, U3, U4) also changes the status file, so it is a status event; F12 stays open
+      - { date: 2026-09-01, commit: U1, by: olive@example.org, task: "c100", event: task }
+      - { date: 2026-09-02, commit: S1, by: ben@example.org, task: "c100", event: task, subproject: "5a00" }
+      - { date: 2026-09-02, commit: S1, by: ben@example.org, task: "c100", event: status, subproject: "5a00", gate: defined, state: nominal }
+      - { date: 2026-09-03, commit: U2, by: ben@example.org, task: "c100", event: status, gate: defined }
+      - { date: 2026-09-09, commit: S2, by: ben@example.org, task: "c100", event: status, subproject: "5a00", gate: mockup, state: nominal, note: Mockup shown to the client }
+      - { date: 2026-09-10, commit: U3, by: ben@example.org, task: "c100", event: status, gate: mockup }
+      - { date: 2026-09-16, commit: S3, by: ben@example.org, task: "c100", event: status, subproject: "5a00", gate: function, state: nominal, note: Prototype runs on the bench }
+      - { date: 2026-09-17, commit: U4, by: ben@example.org, task: "c100", event: status, gate: function }

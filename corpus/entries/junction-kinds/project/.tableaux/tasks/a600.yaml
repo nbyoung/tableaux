@@ -1,0 +1,8 @@
+# tasks/a600.yaml : not-applicable junctions
+title: Not applicable
+description: A leaf that skips the mockup and the functional prototype.
+assignee: ben@example.org
+junctions:
+  mockup:   { applies: false }
+  function: { applies: false }
+parent: { id: "a000", order: 6 }

@@ -1,0 +1,9 @@
+# tasks/a110.yaml : plain entries with every field, a model matched by prefix, and inheritance
+title: Plain junctions
+description: A leaf with a contributor, a reviewer and references at function, an agent at design and an agent at unit.
+assignee: ben@example.org
+junctions:
+  function: { contributor: pat@example.org, reviewer: ben@example.org, references: [{ url: docs/kinds.md#function, text: Function demo }] }
+  design:   { contributor: bot@example.org, model: claude-fable }
+  unit:     { contributor: bot@example.org, model: claude-sonnet }
+parent: { id: "a100", order: 1 }

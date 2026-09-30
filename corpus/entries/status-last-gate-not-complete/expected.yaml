@@ -1,0 +1,6 @@
+# expected.yaml : A status at the last applicable gate has the state nominal.
+entry: status-last-gate-not-complete
+language: 0.2.1
+valid: false
+findings:
+  - { rule: S8, severity: error, task: "b2c9", file: status/b2c9.yaml, gate: release }

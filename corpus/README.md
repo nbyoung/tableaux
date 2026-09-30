@@ -19,7 +19,8 @@ The corpus is the set of example projects that a conforming Tableaux tool reads 
 corpus/
 ├── README.md               # this model
 ├── RULES.md                # every validator rule, its sentence, its file and its entry
-├── build.sh                # builds every entry under build/ (sketch until the implementation gate)
+├── build.sh                # builds every entry under build/
+├── check.py                # checks the corpus against schemas/ and against itself
 ├── lib.sh                  # the functions an entry's history.sh uses: identities, dates, commits, merges, pins
 ├── base/                   # the smallest valid project; every invalid entry starts from it
 │   └── .tableaux/…
@@ -54,10 +55,14 @@ Reproducibility rests on `lib.sh`:
 
 - `who <name>` sets `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL` to one of the corpus's named identities: `ada`, `ben`, `dan` and the agent `opus` from the weather station; `olive`, `pat` and the agent `bot` from the base. Nothing commits as the host's user. `committed_by <name>` sets the committer alone, for an entry that separates author from committer.
 - `on <date>` sets `GIT_AUTHOR_DATE` and `GIT_COMMITTER_DATE` to noon UTC on that date, so dates in `expected.yaml` are dates and not instants.
-- `commit <label> <subject> [--trailer …]` stages everything and commits, allowing an empty commit, so a trailer-only acceptance or reaffirmation works as README.md shows. `merge <label> <branch> <subject> [trailer …]` merges with `--no-ff`. `pin <path> <url> <commit>` adds a submodule by a relative URL and checks out the pinned commit.
+- `commit <label> <subject> [--trailer …]` stages everything and commits, allowing an empty commit, so a trailer-only acceptance or reaffirmation works as README.md shows. `merge <label> <branch> <subject> [trailer …]` merges with `--no-ff`. `pin <path> <url> <commit>` adds a submodule by a relative URL and checks out the pinned commit, and `repin <path> <commit>` advances that pin. `plan` lays down the entry's starting tree: `base/` without its `.tableaux`, then `project/`, so a deviation may delete a file the base holds.
 - Every message, identity and date is fixed in the script, and `init` turns signing off, so two builds on two hosts give the same hashes. `expected.yaml` never names a hash; it names labels, and the labels file supplies the hashes after a build.
 
 The test in the scratchpad built the weather station twice and got the same thirteen hashes both times.
+
+`python3 corpus/check.py` (needs `pyyaml` and `jsonschema`) reads the corpus once it is built. It validates every valid entry's `.tableaux` against `schemas/`, taking each id as a string; applies the rules a project tree alone decides and compares its findings with each `expected.yaml`; compares the facts Git supplies (authorisation, status date and recorder, events, pins) with the built repositories; and checks that every rule in RULES.md has an entry and every entry it names exists. It is a small reference reading, not a conforming tool. Rules that need history (P5, S11, J13, H1 to H3) it only checks that an entry states.
+
+Two conventions in `expected.yaml` go beyond the table below. `trunk` states how the trunk resolves: `stated`, `inferred`, `caller` (the caller names the branch) or `undetermined` (the caller names none); a tool passes a branch name only when the file says `caller`. A finding about a commit (H1 to H3) also carries `commit`, a label, and H1 carries `trailer`, the text that names nothing. A source list, `source: ["a110", "a100"]`, marks a resolved junction whose fields come from several tasks, nearest first.
 
 ## Expected results
 

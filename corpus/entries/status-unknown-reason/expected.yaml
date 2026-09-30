@@ -1,0 +1,6 @@
+# expected.yaml : A status names a reason that gates.yaml lacks.
+entry: status-unknown-reason
+language: 0.2.1
+valid: false
+findings:
+  - { rule: S6, severity: error, task: "b2c9", file: status/b2c9.yaml }

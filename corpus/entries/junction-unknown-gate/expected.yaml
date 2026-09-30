@@ -1,0 +1,6 @@
+# expected.yaml : A junction names a gate that gates.yaml lacks.
+entry: junction-unknown-gate
+language: 0.2.1
+valid: false
+findings:
+  - { rule: J1, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: nonesuch }

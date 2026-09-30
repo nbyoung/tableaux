@@ -1,0 +1,9 @@
+# tasks/b2c9.yaml : one leaf; pat does the work
+title: Leaf
+description: A leaf task with a status.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  release: { subproject: { id: "5a00" } }
+parent: { id: "e4a1", order: 1 }

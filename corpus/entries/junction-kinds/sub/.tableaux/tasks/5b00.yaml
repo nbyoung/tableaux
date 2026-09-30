@@ -1,0 +1,5 @@
+# tasks/5b00.yaml : the task a400 names
+title: Bus driver
+description: The driver for the sensor bus.
+assignee: pat@example.org
+parent: { id: "5a00", order: 1 }

@@ -1,0 +1,5 @@
+# tasks/5c00.yaml : a sibling that only the root's roll-up reaches
+title: Radio stack
+description: The radio stack.
+assignee: pat@example.org
+parent: { id: "5a00", order: 2 }

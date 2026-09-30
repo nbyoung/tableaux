@@ -1,0 +1,6 @@
+# expected.yaml : A recursive junction's id names no task in the subproject.
+entry: subproject-task-missing
+language: 0.2.1
+valid: false
+findings:
+  - { rule: J9, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: release }

@@ -1,0 +1,13 @@
+# expected.yaml : two siblings at order 1 (T12, a warning); the tree sorts them by id.
+entry: siblings-same-order
+language: 0.2.1
+valid: true
+
+findings:
+  - { rule: T12, severity: warning, task: "e4a1", file: tasks/e4a1.yaml,
+      message: "b2c9 and c3d7 share order 1 under e4a1" }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 3, leaves: 2 }
+order: ["e4a1", "b2c9", "c3d7"]                # the tie at order 1 breaks by id

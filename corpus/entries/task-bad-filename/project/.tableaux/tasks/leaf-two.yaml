@@ -1,0 +1,5 @@
+# tasks/leaf-two.yaml : a second leaf that the deviation needs
+title: Second leaf
+description: A leaf task that no one has started.
+assignee: olive@example.org
+parent: { id: "e4a1", order: 2 }

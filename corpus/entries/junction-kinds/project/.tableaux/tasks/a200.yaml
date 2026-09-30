@@ -1,0 +1,7 @@
+# tasks/a200.yaml : a parent that exempts its whole subtree from release
+title: Exempt parent
+description: A parent whose not-applicable entry at release exempts its children until one states its own.
+assignee: pat@example.org
+junctions:
+  release: { applies: false }
+parent: { id: "a000", order: 2 }

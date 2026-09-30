@@ -1,0 +1,7 @@
+# tasks/a500.yaml : a recursive junction that names no task, so the subproject's root
+title: Recursive at the root
+description: A leaf that hands its unit tests to the subproject as a whole.
+assignee: ben@example.org
+junctions:
+  unit: { subproject: { url: sub } }
+parent: { id: "a000", order: 5 }
