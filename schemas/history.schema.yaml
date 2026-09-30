@@ -1,0 +1,17 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: tableaux/history.schema.yaml
+type: array
+items:
+  type: object
+  required: [date, commit, by, task, event]
+  additionalProperties: false
+  properties:
+    date:   { type: string, format: date }
+    commit: { type: string, pattern: "^[0-9a-f]{7,40}$" }
+    by:     { type: string, format: email }
+    task:   { type: string, pattern: "^[0-9a-f]{4}$" }
+    event:  { enum: [task, authorised, status, reaffirmed, reviewed] }
+    gate:   { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
+    state:  { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
+    reason: { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
+    note:   { type: string, minLength: 1 }

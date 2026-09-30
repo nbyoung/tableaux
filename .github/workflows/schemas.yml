@@ -1,0 +1,27 @@
+name: Schemas
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  agree:
+    name: Files agree with SYNTAX.md
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sh schemas/check.sh
+
+  load:
+    name: Files load as JSON Schema 2020-12
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: pip install pyyaml jsonschema
+      - run: python3 schemas/load.py

@@ -1,0 +1,19 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: tableaux/status.schema.yaml
+type: object
+required: [gate]
+additionalProperties: false
+$defs:
+  key:
+    type: string
+    pattern: "^[a-z][a-z0-9_-]*$"
+properties:
+  gate:   { $ref: "#/$defs/key" }
+  state:  { $ref: "#/$defs/key" }
+  reason: { $ref: "#/$defs/key" }
+  note:   { type: string, minLength: 1 }
+allOf:
+  - if:   { properties: { gate: { const: undefined } } }
+    then: { required: [state], properties: { state: { const: undefined } } }
+  - if:   { required: [state], properties: { state: { const: undefined } } }
+    then: { properties: { gate: { const: undefined } } }
