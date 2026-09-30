@@ -1,0 +1,4 @@
+gate: defined
+state: nominal
+reason: review
+note: The evidence model, report.py prototype and tests await design review on branch task/7861
