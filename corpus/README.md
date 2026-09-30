@@ -152,11 +152,11 @@ Invalid entries, one per rule in [RULES.md](RULES.md), 70 in all. Each is `base/
 | W8    | 09-22 | dan | Records `3c5d` at `defined`, `nominal`                                                        |
 | W9    | 09-24 | ben | An empty commit with `Reviewed: 9f31 mockup`; ben is the reviewer `4e2b` states               |
 | W10   | 09-25 | ada | Records `9f31` at `function`, `stalled`, `blocked`                                            |
-| W11   | 09-26 | ben | Pins `firmware` at F2 and records `c07d` at `design` with no state                            |
+| W11   | 09-26 | ben | Pins `firmware` at F2, records `c07d` at `design` with no state, and carries `Reviewed: c07d mockup` |
 | W12   | 09-27 | dan | Revises `3c5d`; the change returns it to proposed                                             |
 | W13   | 09-28 | ada | An empty commit with `Reaffirmed: 9f31`                                                       |
 
-`expected.yaml` then fixes what follows: `9f31` is authorised by the merge on the first-parent line, dated 09-28 by the reaffirmation, and its `mockup` review is W9; `3c5d` is proposed again after W12; `c07d` shows `design` from its own file and `nominal`, its note and its 09-17 date from `f1a0` at the pin, with one unmet requirement on `9f31`; `7b2e` is undefined and dated by W1; `4e2b` rolls up to `design`, `nominal` from `c07d`, since roll-up takes the child at the earliest gate; the root rolls up to `defined`, `nominal` from `3c5d`; and on the branch `sensor-board` every task is proposed.
+`expected.yaml` then fixes what follows: `9f31` is authorised by the merge on the first-parent line, dated 09-28 by the reaffirmation, and its `mockup` review is W9; `3c5d` is proposed again after W12; `c07d` shows `design` from its own file and `nominal`, its note and its 09-17 date from `f1a0` at the pin, with one unmet requirement on `9f31` and its `mockup` review at W11, since ben is contributor and reviewer and the commit that records the status carries the trailer; `7b2e` is undefined and dated by W1; `4e2b` rolls up to `design`, `nominal` from `c07d`, since roll-up takes the child at the earliest gate; the root rolls up to `defined`, `nominal` from `3c5d`; and on the branch `sensor-board` every task is proposed.
 
 ## This project as an entry
 

@@ -28,5 +28,4 @@ refs:
     commit: T3
     tasks:
       "e4a1": { authorisation: { state: proposed } }
-      "b2c9": { authorisation: { state: proposed } }
       "c3d7": { authorisation: { state: proposed } }

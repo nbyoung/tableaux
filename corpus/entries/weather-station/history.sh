@@ -80,7 +80,7 @@ commit W10 'Record the sensor board function prototype'
 who ben; on 2026-09-26
 pin firmware ../weather-station.firmware "$PIN"
 cp "$ENTRY/project/.tableaux/status/c07d.yaml" "$REPO/.tableaux/status/"
-commit W11 'Pin the firmware at its design'
+commit W11 'Pin the firmware at its design' --trailer 'Reviewed: c07d mockup'
 who dan; on 2026-09-27                                      # a later change returns 3c5d to proposed
 cp "$ENTRY/project/.tableaux/tasks/3c5d.yaml" "$REPO/.tableaux/tasks/"
 commit W12 'Revise the dashboard scope'
