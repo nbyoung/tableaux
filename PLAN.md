@@ -25,6 +25,7 @@ The plan proposes; the owner decides. Each decision that goes the other way chan
 | D5 | Authorise the plan         | Commit `.tableaux/` and this document on `main`                                             | Every task turns from proposed to authorised      |
 | D7 | Model per gate             | A model family per junction, stated by prefix (F20): `claude-haiku` records `defined`, `claude-sonnet` builds and tests, `claude-opus` designs and draws mockups, `claude-fable` designs the language; see [Review policy](#review-policy) | The root tasks' junctions here and in each subproject, `bc63`, and three `tablo` leaves |
 | D6 | Defer the findings         | The [findings](#findings) resolve through tasks `ac33`, `9f3f` and `7166` (F19 joined `7166` and F20 joined `ac33` on 2026-09-30), not before D5    | Those tasks' design gates, which the owner reviews |
+| D8 | Task-file edits as `defined` work | The evidence report counts every change to a task file as work at `defined`, since the definition is that gate's deliverable; a model outside the `defined` junction's model is a mismatch whatever gate the task's status stands at | [evidence/README.md](evidence/README.md) and `evidence/report.py` |
 
 ## Language
 
