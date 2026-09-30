@@ -5,20 +5,21 @@ description: >
   a backend that parses, validates, audits and derives views from a project, and
   one front end per mode of use. The effort dog-foods the method to refine and
   validate it as a means to maximise human productivity through agentic
-  assistance. Agents contribute at every gate; people review at the strategic
-  junctions this task states, and every task inherits them.
+  assistance. Agents contribute at every gate, each on the model the junction
+  names; people review at the strategic junctions this task states, and every
+  task inherits them.
 assignee: nbyoung@nbyoung.com
 references:
   - { url: PLAN.md, text: Plan and proposals }
   - { url: README.md, text: The Tableaux method }
   - { url: SYNTAX.md, text: The Tableaux syntax }
 junctions:
-  defined:        { contributor: noreply@anthropic.com, model: claude-fable-5-1 }
-  mockup:         { contributor: noreply@anthropic.com, model: claude-fable-5-1, reviewer: nbyoung@nbyoung.com }
-  function:       { contributor: noreply@anthropic.com, model: claude-fable-5-1 }
-  design:         { contributor: noreply@anthropic.com, model: claude-fable-5-1, reviewer: nbyoung@nbyoung.com }
-  implementation: { contributor: noreply@anthropic.com, model: claude-fable-5-1 }
-  unit:           { contributor: noreply@anthropic.com, model: claude-fable-5-1 }
-  integrate:      { contributor: noreply@anthropic.com, model: claude-fable-5-1 }
-  validate:       { contributor: noreply@anthropic.com, model: claude-fable-5-1, reviewer: nbyoung@nbyoung.com }
+  defined:        { contributor: noreply@anthropic.com, model: claude-haiku }
+  mockup:         { contributor: noreply@anthropic.com, model: claude-opus, reviewer: nbyoung@nbyoung.com }
+  function:       { contributor: noreply@anthropic.com, model: claude-sonnet }
+  design:         { contributor: noreply@anthropic.com, model: claude-opus, reviewer: nbyoung@nbyoung.com }
+  implementation: { contributor: noreply@anthropic.com, model: claude-sonnet }
+  unit:           { contributor: noreply@anthropic.com, model: claude-sonnet }
+  integrate:      { contributor: noreply@anthropic.com, model: claude-sonnet }
+  validate:       { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: nbyoung@nbyoung.com }
   release:        { contributor: nbyoung@nbyoung.com }
