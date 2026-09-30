@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: The schema files match SYNTAX.md on the trunk; the unit gate runs the drift test in CI
+note: schemas/check.sh (files agree with SYNTAX.md, version 0.2.1) and schemas/load.py (files load as JSON Schema 2020-12) pass; every .tableaux file validates
