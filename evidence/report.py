@@ -36,6 +36,7 @@ BRANCH_TASK = re.compile(rf"task/({ID})\b")
 KINDS = ("task", "authorised", "status", "reaffirmed", "reviewed", "work", "pin")
 ROLES = ("agent", "co-authored", "human")
 NONE = "(none)"
+UNSTATED = "unstated"
 
 
 # --- Git ------------------------------------------------------------------
@@ -65,6 +66,14 @@ class Commit:
     @property
     def short(self) -> str:
         return self.hash[:7]
+
+    @property
+    def model(self) -> str | None:
+        """The model named by the first Model trailer (F20), or None."""
+        for key, value in self.trailers:
+            if key == "model" and value:
+                return value
+        return None
 
 
 LOG_FORMAT = "\x1e%H\x1f%P\x1f%ae\x1f%an\x1f%ce\x1f%aI\x1f%cI\x1f%s\x1f%(trailers:only,unfold)\x1f"
@@ -223,6 +232,15 @@ class Project:
                 return "applies: false" not in entry
         return True
 
+    def stated_model(self, tid: str, gate: str) -> str | None:
+        """The model the nearest junction entry for GATE states, if any."""
+        for t in self.chain(tid):
+            entry = junctions(self.task(t)).get(gate)
+            if entry is not None:
+                m = re.search(r"\bmodel:\s*[\"']?([^\s\"',}]+)", entry)
+                return m.group(1) if m else None
+        return None
+
     def next_gate(self, tid: str, status: dict[str, str] | None) -> str | None:
         """The gate the task works towards after STATUS, or None when complete."""
         gates = self.gates()
@@ -263,6 +281,11 @@ def role(commit: Commit, agents: tuple[str, ...]) -> str:
     return "human"
 
 
+def within(ran: str, stated: str) -> bool:
+    """True when the model that ran is the stated identifier or extends its prefix."""
+    return ran.lower().startswith(stated.lower())
+
+
 @dataclass
 class Event:
     repo: str
@@ -272,6 +295,16 @@ class Event:
     task: str
     gate: str
     detail: str = ""
+    stated: str | None = None  # the model the junction states for this gate
+
+    @property
+    def model(self) -> str | None:
+        return self.commit.model
+
+    @property
+    def mismatch(self) -> bool:
+        """True when the commit ran a model outside the junction's statement."""
+        return bool(self.stated and self.model and not within(self.model, self.stated))
 
     @property
     def date(self) -> datetime:
@@ -367,7 +400,10 @@ def analyse(path: str, ref: str = "HEAD", agents: tuple[str, ...] = AGENT_EMAILS
                 found.append(("work", tid, gate, f"{len(work)} files"))
 
         for kind, tid, gate, detail in found:
-            events.append(Event(name, c, r, kind, tid, gate, detail))
+            stated = None
+            if r != "human" and tid != NONE and gate != NONE:
+                stated = here.stated_model(tid, gate)
+            events.append(Event(name, c, r, kind, tid, gate, detail, stated))
 
     titles = {t: scalar(project.task(t), "title") or "" for t in project.task_ids()}
     return Repository(name, path, ref, head, commits, events, project.gates(), titles)
@@ -417,6 +453,42 @@ def rows(repo: Repository, now: datetime) -> list[Row]:
     order = {g: i for i, g in enumerate(repo.gates)}
     return sorted(table.values(),
                   key=lambda r: (r.task == NONE, r.task, order.get(r.gate, len(order)), r.gate))
+
+
+def costs(repos: list[Repository]) -> tuple[list[str], list[str], dict[str, dict[str, set]]]:
+    """Agent commits per gate and model, across repositories (F20).
+
+    Returns the gates in order, the models seen, and gate -> model -> the set
+    of (repository, commit) pairs. Both agent and co-authored commits count;
+    a commit with no Model trailer counts under UNSTATED.
+    """
+    gates: list[str] = []
+    for r in repos:
+        gates += [g for g in r.gates if g not in gates]
+    table: dict[str, dict[str, set]] = defaultdict(lambda: defaultdict(set))
+    for r in repos:
+        for e in r.events:
+            if e.role != "human":
+                table[e.gate][e.model or UNSTATED].add((r.name, e.commit.hash))
+    models = sorted({m for by in table.values() for m in by if m != UNSTATED})
+    if any(UNSTATED in by for by in table.values()):
+        models.append(UNSTATED)
+    ordered = [g for g in gates if g in table] + sorted(g for g in table if g not in gates and g != NONE)
+    if NONE in table:
+        ordered.append(NONE)
+    return ordered, models, table
+
+
+def mismatches(repos: list[Repository]) -> list[Event]:
+    """One event per commit, task and gate whose Model falls outside the junction's."""
+    seen, out = set(), []
+    for r in repos:
+        for e in r.events:
+            key = (r.name, e.commit.hash, e.task, e.gate)
+            if e.mismatch and key not in seen:
+                seen.add(key)
+                out.append(e)
+    return out
 
 
 def fmt_elapsed(td: timedelta) -> str:
@@ -497,6 +569,34 @@ def render(repos: list[Repository], now: datetime, agents: tuple[str, ...]) -> s
         else:
             out.append(f"| {label} | 0 | | |")
     out.append("")
+    gates, models, table = costs(repos)
+    out.append("## Cost per gate by model")
+    out.append("")
+    out.append("Agent and co-authored commits with at least one event at the gate, "
+               "by the `Model:` trailer (F20).")
+    out.append("")
+    if not gates:
+        out.append("No agent commits.")
+        out.append("")
+    else:
+        out.append("| Gate | " + " | ".join(models) + " | Total |")
+        out.append("|---|" + "---:|" * (len(models) + 1))
+        for g in gates:
+            by = table[g]
+            total = set().union(*by.values())
+            out.append(f"| {g} | " + " | ".join(str(len(by.get(m, ()))) for m in models)
+                       + f" | {len(total)} |")
+        out.append("")
+    bad = mismatches(repos)
+    out.append("Commits whose `Model:` falls outside the model the junction states:")
+    out.append("")
+    out.append("| Repository | Commit | Id | Gate | Ran | Stated |")
+    out.append("|---|---|---|---|---|---|")
+    for e in bad:
+        out.append(f"| {e.repo} | {e.commit.short} | `{e.task}` | {e.gate} | {e.model} | {e.stated} |")
+    if not bad:
+        out.append("| none | | | | | |")
+    out.append("")
     return "\n".join(out)
 
 
@@ -517,12 +617,12 @@ def is_repo(path: str) -> bool:
 
 def discover(root: str) -> list[tuple[str, str]]:
     """The root and every submodule of .gitmodules that git can read."""
-    found = [(os.path.basename(os.path.abspath(root)), root)]
+    common = git(root, "rev-parse", "--git-common-dir").strip()
+    main = os.path.dirname(os.path.abspath(os.path.join(root, common)))
+    found = [(os.path.basename(main), root)]  # a linked worktree takes the main name
     modules = os.path.join(root, ".gitmodules")
     if not os.path.exists(modules):
         return found
-    common = git(root, "rev-parse", "--git-common-dir").strip()
-    main = os.path.dirname(os.path.abspath(os.path.join(root, common)))
     text = open(modules, encoding="utf-8").read()
     for section in re.split(r"^\[submodule ", text, flags=re.M)[1:]:
         path = scalar_cfg(section, "path")

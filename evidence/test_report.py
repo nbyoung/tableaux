@@ -83,19 +83,19 @@ def build(repo):
         ".tableaux/tasks/b1b1.yaml": CHILD,
         ".tableaux/tasks/c2c2.yaml": OTHER,
         "PLAN.md": "# Plan\n",
-    }, trailers=[f"Co-Authored-By: Agent <{AGENT}>"])
+    }, trailers=[f"Model: test-model-2", f"Co-Authored-By: Agent <{AGENT}>"])
     h["defined"] = commit(repo, AGENT, "2026-01-01T10:00:00+00:00", "Record defined", {
         ".tableaux/status/b1b1.yaml": "gate: defined\nstate: nominal\n",
         "docs/model.md": "# Model\n",
     })
     h["handoff"] = commit(repo, AGENT, "2026-01-01T11:00:00+00:00", "Hand off the design", {
         ".tableaux/status/b1b1.yaml": "gate: defined\nstate: nominal\nreason: review\n",
-    })
+    }, trailers=["Model: test-model-1"])
     h["review"] = commit(repo, OWNER, "2026-01-01T13:00:00+00:00", "Accept the design",
                          trailers=["Reviewed: b1b1 design"])
     h["design"] = commit(repo, AGENT, "2026-01-01T13:30:00+00:00", "Record design", {
         ".tableaux/status/b1b1.yaml": "gate: design\nstate: nominal\n",
-    })
+    }, trailers=["Model: wrong-model"])
     h["reaffirm"] = commit(repo, OWNER, "2026-01-01T14:00:00+00:00", "Weekly review",
                            trailers=["Reaffirmed: b1b1", "Authorised: c2c2"])
     run(repo, "checkout", "-q", "-b", "task/c2c2")
@@ -107,11 +107,26 @@ def build(repo):
                         merge="task/c2c2")
     h["pending"] = commit(repo, AGENT, "2026-01-01T17:00:00+00:00", "Hand off the release", {
         ".tableaux/status/b1b1.yaml": "gate: design\nstate: nominal\nreason: review\n",
-    })
+    }, trailers=["Model: test-model-1"])
     return h
 
 
 class PureFunctions(unittest.TestCase):
+    def test_model_trailer(self):
+        def mk(trailers):
+            return report.Commit("h", [], AGENT, "n", AGENT, datetime.now(timezone.utc),
+                                 datetime.now(timezone.utc), "s", trailers, [])
+        self.assertEqual(mk([("model", "claude-sonnet-5-5")]).model, "claude-sonnet-5-5")
+        self.assertIsNone(mk([]).model)
+        self.assertEqual(mk([("model", "a"), ("model", "b")]).model, "a")
+
+    def test_within(self):
+        self.assertTrue(report.within("claude-sonnet-5-5", "claude-sonnet"))
+        self.assertTrue(report.within("claude-sonnet-5-5", "claude-sonnet-5-5"))
+        self.assertTrue(report.within("Claude-Sonnet-5-5", "claude-sonnet"))
+        self.assertFalse(report.within("claude-opus-5-5", "claude-sonnet"))
+        self.assertFalse(report.within("claude-sonnet", "claude-sonnet-5-5"))
+
     def test_parse_log(self):
         text = ("\x1eabc123\x1fdef456\x1fada@example.org\x1fAda\x1fada@example.org"
                 "\x1f2026-01-01T09:00:00+00:00\x1f2026-01-01T09:00:00+00:00\x1fPlan"
@@ -180,6 +195,9 @@ class PureFunctions(unittest.TestCase):
         self.assertEqual(p.next_gate("b1b1", {"gate": "defined", "state": "nominal"}), "design")
         self.assertEqual(p.next_gate("c2c2", {"gate": "defined"}), "mockup")
         self.assertIsNone(p.next_gate("b1b1", {"gate": "release", "state": "complete"}))
+        self.assertEqual(p.stated_model("b1b1", "design"), "test-model")
+        self.assertIsNone(p.stated_model("b1b1", "release"))
+        self.assertIsNone(p.stated_model("c2c2", "design"))
         self.assertEqual(p.pins(), {"subprojects/other": {"c2c2"}})
 
 
@@ -267,6 +285,79 @@ class SyntheticRepository(unittest.TestCase):
         self.assertIn("| co-authored | 1 |", text)
         self.assertIn("| Hand-off to review | 1 | 2h 00m | 2h 00m |", text)
         self.assertIn("| Awaiting review | 1 | 24h 00m | 24h 00m |", text)
+
+    def test_model_and_mismatch_on_events(self):
+        design = self.events(kind="status", task="b1b1", gate="design")
+        self.assertEqual([(e.model, e.stated, e.mismatch) for e in design], [
+            ("test-model-1", "test-model", False),
+            ("wrong-model", "test-model", True),
+        ])
+        self.assertTrue(all(e.stated is None and not e.mismatch
+                            for e in self.events(role="human")))
+        plan = self.events(kind="task")
+        self.assertTrue(all(e.model == "test-model-2" for e in plan))
+        self.assertIsNone(self.events(kind="status", gate="defined")[0].model)
+
+    def test_costs_by_gate_and_model(self):
+        gates, models, table = report.costs([self.result])
+        self.assertEqual(gates, ["defined", "design", "release", report.NONE])
+        self.assertEqual(models, ["test-model-1", "test-model-2", "wrong-model", "unstated"])
+        count = lambda g, m: len(table[g].get(m, ()))
+        self.assertEqual([count("defined", m) for m in models], [0, 1, 0, 1])
+        self.assertEqual([count("design", m) for m in models], [1, 0, 1, 1])
+        self.assertEqual([count("release", m) for m in models], [1, 0, 0, 0])
+        self.assertEqual([count(report.NONE, m) for m in models], [0, 1, 0, 0])
+
+    def test_costs_count_each_commit_once_per_gate_and_span_repositories(self):
+        with tempfile.TemporaryDirectory() as second:
+            build(second)
+            other = report.analyse(second, "HEAD", AGENTS, name="second")
+            _, _, table = report.costs([self.result, other])
+            self.assertEqual(len(table["design"]["test-model-1"]), 2)
+            self.assertEqual(len(table["design"]["wrong-model"]), 2)
+            self.assertEqual(len(mismatches := report.mismatches([self.result, other])), 2)
+            self.assertEqual({e.repo for e in mismatches}, {"synthetic", "second"})
+
+    def test_mismatches(self):
+        bad = report.mismatches([self.result])
+        self.assertEqual([(e.commit.hash, e.task, e.gate, e.model, e.stated) for e in bad],
+                         [(self.hashes["design"], "b1b1", "design", "wrong-model", "test-model")])
+
+    def test_render_cost_section(self):
+        text = report.render([self.result], self.now, AGENTS)
+        self.assertIn("## Cost per gate by model", text)
+        self.assertIn("| Gate | test-model-1 | test-model-2 | wrong-model | unstated | Total |", text)
+        self.assertIn("| defined | 0 | 1 | 0 | 1 | 2 |", text)
+        self.assertIn("| design | 1 | 0 | 1 | 1 | 3 |", text)
+        self.assertIn("| release | 1 | 0 | 0 | 0 | 1 |", text)
+        self.assertIn(f"| synthetic | {self.hashes['design'][:7]} | `b1b1` | design "
+                      "| wrong-model | test-model |", text)
+
+    def test_render_without_agent_commits(self):
+        with tempfile.TemporaryDirectory() as repo:
+            run(repo, "init", "-q", "-b", "main")
+            commit(repo, OWNER, "2026-01-01T09:00:00+00:00", "Plan", {"README.md": "x\n"})
+            result = report.analyse(repo, "HEAD", AGENTS, name="plain")
+            text = report.render([result], self.now, AGENTS)
+            self.assertIn("No agent commits.", text)
+            self.assertIn("| none | | | | | |", text)
+
+    def test_discover_submodule_checkout(self):
+        with tempfile.TemporaryDirectory() as root:
+            run(root, "init", "-q", "-b", "main")
+            sub = os.path.join(root, "subprojects", "leaf")
+            os.makedirs(sub)
+            run(sub, "init", "-q", "-b", "main")
+            commit(sub, AGENT, "2026-01-01T09:00:00+00:00", "Leaf work", {"a.txt": "a\n"},
+                   trailers=["Model: test-model-1"])
+            commit(root, OWNER, "2026-01-01T09:00:00+00:00", "Root", {
+                ".gitmodules": '[submodule "subprojects/leaf"]\n\tpath = subprojects/leaf\n'
+                               "\turl = ../leaf\n"})
+            found = report.discover(root)
+            self.assertEqual([n for n, _ in found], [os.path.basename(root), "leaf"])
+            repos = [report.analyse(p, "HEAD", AGENTS, name=n) for n, p in found]
+            _, _, table = report.costs(repos)
+            self.assertEqual(len(table[report.NONE]["test-model-1"]), 1)
 
     def test_discover_root_only(self):
         found = report.discover(self.repo)
