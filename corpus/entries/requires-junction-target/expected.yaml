@@ -2,7 +2,7 @@
 # names the same task: one R12 warning, since the junction already carries that task's status. The
 # requirement still resolves: 5a00 at S1 stands at defined, so it is met.
 entry: requires-junction-target
-language: 0.3.0
+language: 0.3.1
 valid: true
 
 findings:

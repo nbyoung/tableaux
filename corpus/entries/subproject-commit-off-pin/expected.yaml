@@ -1,7 +1,7 @@
 # expected.yaml : A commit field on a submodule path names S2 while the submodule pins S1. The file and the
 # tree state one fact two ways, so the validator rejects it. Only the built repository decides the rule.
 entry: subproject-commit-off-pin
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: J17, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: design }

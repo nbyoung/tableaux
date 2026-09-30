@@ -1,6 +1,6 @@
 # expected.yaml : A task file is named leaf-two.yaml, not by four hexadecimal digits.
 entry: task-bad-filename
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: T1, severity: error, task: "leaf-two", file: tasks/leaf-two.yaml }

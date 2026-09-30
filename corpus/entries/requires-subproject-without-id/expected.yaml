@@ -1,7 +1,7 @@
 # expected.yaml : A cross-project requirement's subproject has a url and no id. The project at lib resolves,
 # but a requirement names one task's result, so its id is required.
 entry: requires-subproject-without-id
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: R11, severity: error, task: "b2c9", file: tasks/b2c9.yaml }

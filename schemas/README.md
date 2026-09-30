@@ -24,7 +24,7 @@ A compiled tool embeds this directory and ships it inside its binary; a scripted
 `version.yaml` states the version of the Tableaux language that the schemas beside it define. It has the same form as a project's `.tableaux/version.yaml`, so `version.schema.yaml` validates it:
 
 ```yaml
-tableaux: 0.3.0
+tableaux: 0.3.1
 ```
 
 A tool reads this file when it loads the schemas and compares it with the project's `.tableaux/version.yaml` by the rule in [README.md](../README.md#version): the tool accepts the project when the major versions are equal and the project's minor version does not exceed the schemas' minor version. The patch version does not affect acceptance.

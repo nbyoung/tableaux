@@ -1,0 +1,31 @@
+# expected.yaml : two leaves under the root stand at the same gate in the same state, so roll-up
+# ties. The first in display order wins (README Status, step 3; finding F21), and the root shows
+# its note.
+entry: roll-up-tie
+language: 0.3.1
+valid: true
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 3, leaves: 2 }
+order: ["e4a1", "b2c9", "7c3a"]
+
+tasks:
+  "e4a1":
+    parent: null
+    authorities: []
+    status:                                  # derived: both children count, both at defined and nominal; b2c9 comes first
+      gate: defined
+      state: nominal
+      note: First in display order
+      date: 2026-09-01
+      derived: true
+      from: "b2c9"
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    status: { gate: defined, state: nominal, note: First in display order, date: 2026-09-01, recorder: olive@example.org, commit: only }
+  "7c3a":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    status: { gate: defined, state: nominal, note: Second in display order, date: 2026-09-01, recorder: olive@example.org, commit: only }

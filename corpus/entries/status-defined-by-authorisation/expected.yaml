@@ -1,7 +1,7 @@
 # expected.yaml : b2c9 stands at defined, where a reviewer is stated, and no Reviewed commit exists.
 # The authorisation stands as the review of defined, so S11 stays silent.
 entry: status-defined-by-authorisation
-language: 0.3.0
+language: 0.3.1
 valid: true
 findings: []
 

@@ -1,0 +1,29 @@
+# expected.yaml : the design junction states model claude-fable with bot as contributor. bot's M2
+# carries no Model: trailer at language 0.2.0 and is exempt; bot's M4 carries none at 0.3.1 and
+# draws one H6 warning. olive's M3 changes version.yaml alone and is no event of the task.
+entry: model-trailer-missing
+language: 0.3.1
+valid: true
+
+findings:
+  - { rule: H6, severity: warning, task: "b2c9", gate: design, commit: M4,
+      message: "The contributor's commit at the design junction carries no Model: trailer; the junction states claude-fable" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: M1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org, source: "b2c9" }   # an agent with no stated reviewer takes the assignee
+    reviews: []
+    status: { gate: defined, state: nominal, note: Drafting the design, date: 2026-09-04, recorder: bot@example.org, commit: M4 }
+    events:
+      - { date: 2026-09-01, commit: M1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: M1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: M2, by: bot@example.org, task: "b2c9", event: status, gate: defined, state: nominal, note: Reading the brief }
+      - { date: 2026-09-04, commit: M4, by: bot@example.org, task: "b2c9", event: status, gate: defined, state: nominal, note: Drafting the design }

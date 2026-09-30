@@ -1,7 +1,7 @@
 # expected.yaml : c100 delegates every gate after defined to the root of the subproject at sub.
 # The pin starts at S1 and advances twice, to S2 and S3; the subproject's tip, S4, lies beyond it.
 entry: submodule-subproject
-language: 0.3.0
+language: 0.3.1
 valid: true
 findings: []
 

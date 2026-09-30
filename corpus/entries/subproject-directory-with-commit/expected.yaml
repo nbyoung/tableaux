@@ -1,7 +1,7 @@
 # expected.yaml : A recursive junction names a directory of the same repository, lib, and states a commit.
 # Nothing pins a same-repository project, so the field is an error.
 entry: subproject-directory-with-commit
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: J16, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: design }

@@ -1,6 +1,6 @@
 # expected.yaml : two siblings at order 1 (T12, a warning); the tree sorts them by id.
 entry: siblings-same-order
-language: 0.3.0
+language: 0.3.1
 valid: true
 
 findings:

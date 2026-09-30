@@ -1,7 +1,7 @@
 # expected.yaml : the pinned commit S2 is on the branch side, not on the subproject's trunk, main (J13, a warning).
 # The pinned task still reads at S2.
 entry: subproject-pin-off-trunk
-language: 0.3.0
+language: 0.3.1
 valid: true
 
 findings:

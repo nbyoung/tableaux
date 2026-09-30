@@ -1,3 +1,4 @@
 gate: defined
 state: nominal
-note: Design waits for Roles (c2ad) at design
+reason: review
+note: The revised VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's acceptance at the design gate

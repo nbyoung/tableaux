@@ -1,6 +1,6 @@
 # expected.yaml : A status at the undefined gate has the state nominal.
 entry: status-undefined-gate-nominal-state
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: S4, severity: error, task: "b2c9", file: status/b2c9.yaml }

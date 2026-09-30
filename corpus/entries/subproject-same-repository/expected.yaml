@@ -1,7 +1,7 @@
 # expected.yaml : b2c9 hands its design to a project in a directory of the same repository, lib, read at
 # the same commit as the parent. Nothing pins it, the junction states no commit, and no pin event exists.
 entry: subproject-same-repository
-language: 0.3.0
+language: 0.3.1
 valid: true
 findings: []
 

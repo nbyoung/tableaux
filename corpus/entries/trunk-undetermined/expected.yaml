@@ -1,7 +1,7 @@
 # expected.yaml : no trunk in version.yaml, no remote, and the caller names no branch.
 # The tool runs without a branch name for this entry. It warns (P5) and reads every task as proposed.
 entry: trunk-undetermined
-language: 0.3.0
+language: 0.3.1
 trunk: { undetermined: true }
 valid: true
 

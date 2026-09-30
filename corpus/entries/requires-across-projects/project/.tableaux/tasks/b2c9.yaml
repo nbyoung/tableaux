@@ -5,6 +5,6 @@ assignee: pat@example.org
 references:
   - { url: README.md }
 requires:
-  - { subproject: { url: https://example.org/umbrella.git, id: "9e10", commit: eb41f2018ba641e51afe4a60731e104e36b80ab2 },
+  - { subproject: { url: https://example.org/umbrella.git, id: "9e10", commit: 9b649f37b11f80421861febabd4dc30bc50cf81a },
       from: design, to: release, text: The board's pin map }
 parent: { id: "e4a1", order: 1 }

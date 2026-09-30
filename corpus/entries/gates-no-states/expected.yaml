@@ -1,6 +1,6 @@
 # expected.yaml : gates.yaml has no states list. The entry drops the status file, since no status could name a state.
 entry: gates-no-states
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: G7, severity: error, file: gates.yaml }

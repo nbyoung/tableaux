@@ -8,7 +8,7 @@
 #   an agent with no reviewer, under a person and an agent : a110 design (ben reviews) and a300 design (the agent reviews itself); F2
 # A resolved entry's source is the task whose entry supplies it, or a list, nearest first, when fields come from several.
 entry: junction-kinds
-language: 0.3.0
+language: 0.3.1
 valid: true
 
 findings:

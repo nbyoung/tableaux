@@ -1,6 +1,6 @@
 # expected.yaml : a valid project with one unmet requirement (R9, a warning) and one pending requirement.
 entry: unmet-requirement
-language: 0.3.0
+language: 0.3.1
 valid: true
 
 findings:

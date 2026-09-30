@@ -1,6 +1,6 @@
 # expected.yaml : no trunk in version.yaml; the clone records origin/HEAD, which names main.
 entry: trunk-inferred
-language: 0.3.0
+language: 0.3.1
 trunk: { inferred: main }
 valid: true
 findings: []

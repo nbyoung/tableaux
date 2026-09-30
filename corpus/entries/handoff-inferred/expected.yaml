@@ -1,0 +1,28 @@
+# expected.yaml : b2c9's next junction, design, names olive as reviewer. The newest event on the task
+# is pat's status commit I2, and the status states no `review` reason, so the audit reports the
+# hand-off the history implies (H4), as information: nothing is wrong, and the work may be in progress.
+entry: handoff-inferred
+language: 0.3.1
+valid: true
+
+findings:
+  - { rule: H4, severity: information, task: "b2c9", gate: design, commit: I2,
+      message: "The newest event is the contributor's and the status states no review; olive may have a design to review" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: I1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: pat@example.org, reviewer: olive@example.org, source: "b2c9" }
+    reviews: []
+    status: { gate: defined, state: nominal, note: The design is drafted, date: 2026-09-02, recorder: pat@example.org, commit: I2 }
+    events:
+      - { date: 2026-09-01, commit: I1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: I1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: I2, by: pat@example.org, task: "b2c9", event: status, gate: defined, state: nominal, note: The design is drafted }

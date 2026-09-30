@@ -1,7 +1,7 @@
 # expected.yaml : A recursive junction names its subproject by absolute URL and states no commit.
 # Nothing fixes the commit to read, so the validator stops at the field and does not resolve the URL.
 entry: subproject-url-without-commit
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: J15, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: design }

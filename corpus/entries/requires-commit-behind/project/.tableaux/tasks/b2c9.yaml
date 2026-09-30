@@ -5,6 +5,6 @@ assignee: pat@example.org
 references:
   - { url: README.md }
 requires:
-  - { subproject: { url: https://example.org/lib.git, id: "5a00", commit: 7f00a1f81289e9078cee911dccc23a7af9851f59 },
+  - { subproject: { url: https://example.org/lib.git, id: "5a00", commit: 736ef257523e4865da1cb99cbaffc5122e6c5781 },
       from: design, to: release, text: The library's design }
 parent: { id: "e4a1", order: 1 }

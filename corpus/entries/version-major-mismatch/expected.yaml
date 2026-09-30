@@ -1,6 +1,6 @@
 # expected.yaml : The project's major version, 1, differs from the tool's, 0.
 entry: version-major-mismatch
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: P4, severity: error, file: version.yaml }
