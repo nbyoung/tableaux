@@ -76,7 +76,10 @@ properties:
         text: { type: string, minLength: 1 }
   junctions:
     type: object
-    propertyNames: { $ref: "#/$defs/key" }
+    propertyNames:
+      allOf:
+        - $ref: "#/$defs/key"
+        - not: { const: undefined }
     additionalProperties: { $ref: "#/$defs/junction" }
   parent:
     type: object
@@ -84,4 +87,4 @@ properties:
     additionalProperties: false
     properties:
       id:    { $ref: "#/$defs/id" }
-      order: { type: integer }
+      order: { type: integer, minimum: 1 }
