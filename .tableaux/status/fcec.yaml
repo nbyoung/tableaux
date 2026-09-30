@@ -1,4 +1,3 @@
-gate: defined
+gate: design
 state: nominal
-reason: review
-note: The corpus model, rules and worked example under corpus/ await design review on task/fcec
+note: Implementation waits for the schema files (e3cb) at implementation
