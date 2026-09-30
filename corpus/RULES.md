@@ -104,10 +104,12 @@ The design review kept S11 an error (question Q1 in [README.md](README.md#questi
 
 | Id  | Severity | Rule                                                                       | Source                                                                                     | Entry                          |
 |-----|----------|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|--------------------------------|
-| H1  | warning  | A trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task | SYNTAX Commit trailers: "a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it." | `unknown-trailer` |
+| H1  | warning  | A task trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; `Model:` names no task | SYNTAX Commit trailers: "a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it." | `unknown-trailer` |
 | H2  | warning  | A `Reviewed:` commit by someone other than the junction's reviewer has no effect, and the audit reports it | README Status: "A `Reviewed:` commit from anyone other than the junction's reviewer has no effect, and the audit reports it." | `review-by-non-reviewer` |
 
-Both are warnings: a trailer is history, and history cannot make the files invalid after the fact.
+| H3  | warning  | A commit at a junction carries a `Model:` trailer that names a model outside the junction's stated `model`, read as an identifier or a prefix | README Junctions: "the audit reports a commit at the junction whose trailer names a model outside the one stated" | `model-mismatch`; also `junction-kinds` |
+
+All three are warnings: a trailer is history, and history cannot make the files invalid after the fact.
 
 ## Derived facts, not rules
 

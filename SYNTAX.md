@@ -67,7 +67,7 @@ properties:
 ### Example
 
 ```yaml
-tableaux: 0.2.0
+tableaux: 0.2.1
 trunk: main
 ```
 
@@ -324,7 +324,7 @@ properties:
 | Kind           | Field         | Required | Meaning                                                                    |
 |----------------|---------------|----------|----------------------------------------------------------------------------|
 | Plain          | `contributor` | No       | The email address of who does the work at this gate; defaults to `assignee` |
-|                | `model`       | No       | The model identifier when the contributor is an agent; stated together with `contributor`, never alone, since a model names no one |
+|                | `model`       | No       | The model the contributor should run, when the contributor is an agent: an identifier or a prefix of one; stated together with `contributor`, never alone, since a model names no one |
 |                | `reviewer`    | No       | The email address of the person who accepts the work at this gate          |
 |                | `references`  | No       | Links that expand the gate's criteria for this task; same form as the task's |
 | Recursive      | `subproject`  | Yes      | The project that does the work: `url` locates its repository, an absolute URL or a path relative to this repository's root; `id` names its task, defaulting to that project's root |
@@ -493,13 +493,14 @@ items:
 
 ## Commit trailers
 
-A commit message may carry the trailers below, one task per line, among its other trailers. A trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it.
+A commit message may carry the trailers below, one task per line, among its other trailers. A task trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it. `Model:` names no task: it records what ran, beside the `Co-Authored-By:` trailer an agent leaves when it commits under a person's identity, and a tool reads the two together to see agent work whoever the author is.
 
 | Trailer                  | Meaning                                                              |
 |--------------------------|----------------------------------------------------------------------|
 | `Authorised: <id>`       | The committer, as one of the task's authorities, accepts it as it stands |
 | `Reviewed: <id> <gate>`  | The committer accepts the task's work at the gate                    |
 | `Reaffirmed: <id>`       | The committer confirms the task's status as it stands, on this date  |
+| `Model: <identifier>`    | The model the agent that made this commit ran, as the harness reports it; it names no task |
 
 Example:
 
@@ -509,4 +510,12 @@ Accept the sensor board and node firmware tasks
 Authorised: 9f31
 Authorised: c07d
 Reviewed: 9f31 design
+```
+
+```
+Record the node firmware at its unit gate
+
+Reviewed: c07d unit
+Model: claude-fable-5-1
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 ```

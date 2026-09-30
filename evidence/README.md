@@ -23,6 +23,8 @@ A commit takes one role from its author and its trailers.
 | `co-authored` | The author is a person and a `Co-Authored-By:` trailer names an agent identity           |
 | `human`       | Neither                                                                                  |
 
+A `Model:` trailer names the model the agent ran (finding F20). The report groups `agent` and `co-authored` commits by that model, so a gate's cost reads per model, and it lists under `unstated` a commit of either role that carries no trailer. Where the junction states a `model`, the report marks a commit whose trailer falls outside it, since that is the audit finding the method describes.
+
 The method identifies a contributor by author email alone, so it sees a `co-authored` commit as the person's work. Finding F1 says this hides agent contribution from the audit. The report keeps the two apart so the owner sees both readings: the `agent` column is what the method attributes to the agent today, and the `co-authored` column is the agent work that the method attributes to a person. The plan commit `6b6c99a` is the first example: the owner authored it with the agent as co-author, so the method records the owner as the planner.
 
 A review or an authorisation counts only when a `human` commit carries it. A commit a person authored with an agent co-author still counts, since the person signed it, and the report shows it under `co-authored`.
