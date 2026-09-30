@@ -1,4 +1,3 @@
-gate: defined
+gate: design
 state: nominal
-reason: review
-note: The trunk clarification (F19) awaits design review on branch task/7166; F7 and F9 remain
+note: The trunk clarification (F19) is on the trunk; F7 and F9 remain for design
