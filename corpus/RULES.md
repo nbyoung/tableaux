@@ -93,10 +93,10 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | S8  | error            | A task at its last applicable gate has the state `complete`                | README Status: "A task at its last applicable gate has the state `complete`."              | `status-last-gate-not-complete`                                     |
 | S9  | error            | When the next junction is recursive, the file holds only the gate          | README Status: "When the next junction is recursive, the file holds only the gate."        | `status-state-with-recursive`                                       |
 | S10 | error            | When the next junction is plain, `state` exists                            | SYNTAX status fields: `state` "absent only when the next junction is recursive"            | `status-no-state-plain`                                             |
-| S11 | error            | A gate that passes a reviewed junction has a `Reviewed: <id> <gate>` commit by the reviewer in the branch's history | README Status: "A validator rejects a status whose gate passes a reviewed junction that has no such commit." | `status-unreviewed-gate` |
+| S11 | error            | A gate that passes a reviewed junction other than `defined` has a `Reviewed: <id> <gate>` commit by the reviewer in the branch's history; at `defined` the task's authorisation stands as the review | README Status: "A validator rejects a status whose gate passes a reviewed junction that has no such commit." "The `defined` junction is the exception: … the authorisation stands as the review of `defined`" | `status-unreviewed-gate`, `status-defined-by-authorisation` |
 | S12 | error            | The state `complete` appears only at the last applicable gate              | README Status: "A task at its last applicable gate has the state `complete`, and only there." | `status-complete-early`  |
 
-The task brief for this corpus calls S11 a warning; the text says the validator rejects. RULES.md follows the text, and the review decides (question Q1 in [README.md](README.md#questions-for-review)).
+The design review kept S11 an error (question Q1 in [README.md](README.md#questions-for-review)). An agent that reviews itself carries the `Reviewed:` trailer on the commit that records the status, so a status and its review land together.
 
 ## Commit trailers
 

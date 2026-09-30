@@ -102,6 +102,7 @@ Valid entries, each for what it shows:
 | `submodule-subproject` | A task that delegates every gate after `defined` to a subproject root; the pin advanced twice; the subproject's tip beyond the pin; the subproject task's events up to the pin and the pin changes in the parent's history | `history.sh` |
 | `unmet-requirement`    | A valid project with one R9 warning and one pending requirement                                                                         | default      |
 | `unquoted-id`          | A valid project with `parent: { id: 1000 }`, one T7 warning, and the tree that a tool derives once it takes the id as a string           | default      |
+| `status-defined-by-authorisation` | A valid project whose leaf stands at `defined` with a reviewer stated there and no `Reviewed:` commit; the authorisation is the review, and S11 stays silent | default      |
 | `siblings-same-order`  | A valid project with two siblings at `order: 1` and one T12 warning; the tree sorts them by id                                           | default      |
 | `unknown-trailer`      | A valid project whose history carries `Authorised: zzzz` and `Reviewed: 9f31 nowhere`, two H1 warnings, and no effect on any derived fact | `history.sh` |
 | `review-by-non-reviewer` | A valid project where a `Reviewed:` commit comes from someone other than the junction's reviewer: one H2 warning, and the gate stays unreviewed | `history.sh` |
@@ -151,7 +152,7 @@ Invalid entries, one per rule in [RULES.md](RULES.md), 69 in all. Each is `base/
 
 `entries/tableaux-tooling/expected.yaml` names this repository (`source: { repository: ../../.., ref: c764f8a }`) and states facts about it: thirty-seven tasks, the owner, every task authorised because the owner committed the plan on `main`, the resolved junctions of `fcec` under the root's review policy, its pending requirement on `e3cb`, and `77b2`'s recursive junction to `subprojects/tablo` at the pinned commit. The build skips it. When a commit on `main` changes those facts, the entry's `ref` and facts move together, so the corpus always describes one fixed commit of this repository and never its tip.
 
-The entry records that at `fcec`'s `defined` gate the agent is its own reviewer by the method's default, so every status the agent records past `defined` needs a `Reviewed:` commit by the agent, or rule S11 fires. See Q2.
+The entry records that at `fcec`'s gates after `defined` the agent is its own reviewer by the method's default, so the commit that records each such status carries `Reviewed: fcec <gate>` by the agent, or rule S11 fires. At `defined`, the owner's authorisation stands as the review. See Q1 and Q2.
 
 ## How a tool consumes the corpus
 
@@ -159,8 +160,8 @@ The entry records that at `fcec`'s `defined` gate the agent is its own reviewer 
 
 ## Questions for review
 
-- **Q1 S11 severity.** README.md says the validator rejects a status that passes an unreviewed junction; the brief for this task calls it a warning. RULES.md follows README.md. Which stands? An error makes every agent-recorded status in this repository invalid until a `Reviewed:` commit follows (Q2).
-- **Q2 The agent as its own reviewer.** Under D4, an agent-assigned task has the agent as reviewer at every gate the root leaves unstated, so each status it records needs a `Reviewed: <id> <gate>` commit by the agent. The status commits on `task/defined` and `task/fcec` carry none. Either the agent adds the trailer, or F2's proposal (nearest human authority, with explicit waiver) or F8's (authorisation implies the review of `defined`) lands first.
+- **Q1 S11 severity.** Decided at design review: the validator rejects a status that passes an unreviewed junction, as README.md says. The consequence for this repository, every agent-recorded status invalid, resolves through Q2.
+- **Q2 The agent as its own reviewer.** Decided at design review, in two parts. First, F8 resolves: authorising a task stands as the review of its `defined` gate, so no status at `defined` needs a `Reviewed:` commit, and every status this repository holds today is valid. Second, at every later gate where the agent is its own reviewer, the commit that records the status carries `Reviewed: <id> <gate>`, authored by the agent, so status and review land together. README.md states both. F2's proposal of a human default reviewer stays open in task `ac33`.
 - **Q3 Implicit rules.** J8, J9 and S7 have no sentence. Keep them as rules with a sentence added to README.md, or drop their entries?
 - **Q4 Candidate rules.** Decided at design review: all eight candidates become rules, and README.md and SYNTAX.md now state them (RULES.md, "Candidate rules, resolved").
 - **Q5 Entry granularity.** One entry per rule gives 69 invalid entries of five files each. The alternative is one entry per file with several findings each, about twelve entries. The build cost is the same; the difference is how a failing test reads.
