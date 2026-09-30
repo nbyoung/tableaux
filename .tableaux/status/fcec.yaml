@@ -1,3 +1,3 @@
 gate: implementation
 state: nominal
-note: The corpus builds and checks clean, with 85 entries on the trunk; the W11 review and the trunk-stated fix from the tablo prototypes are in, and the 4e2b roll-up waits on the owner; the unit gate runs the tablo conformance test against it
+note: The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it
