@@ -1,4 +1,3 @@
-gate: defined
+gate: design
 state: nominal
-reason: review
-note: The model plan-and-record proposal (F20) awaits design review on branch task/ac33; F1, F2 and F10 remain
+note: The model plan-and-record rule (F20) is on the trunk; F1, F2 and F10 remain for design
