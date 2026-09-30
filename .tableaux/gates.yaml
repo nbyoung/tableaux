@@ -24,4 +24,4 @@ states:
 reasons:
   - { key: overloaded, symbol: 🪫, synopsis: The assigned resource is overloaded }
   - { key: blocked,    symbol: ⛔, synopsis: An external resource is unavailable }
-  - { key: review,     symbol: 👀, synopsis: The work waits for its reviewer }
+  - { key: review,     symbol: 👓, synopsis: The work waits for its reviewer }

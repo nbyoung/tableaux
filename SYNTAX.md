@@ -67,7 +67,7 @@ properties:
 ### Example
 
 ```yaml
-tableaux: 0.3.0
+tableaux: 0.3.1
 trunk: main
 ```
 
@@ -160,6 +160,8 @@ properties:
 | `symbol`   | Yes      | The emoji a view shows beside the state symbol                   |
 | `synopsis` | Yes      | A one-line description of the reason                             |
 
+The key `review` is reserved. A project need not define it, but one that does gives it the meaning [README.md](README.md#gates) fixes: the contributor has handed the next junction's work to its reviewer. Its symbol is 👓 by convention.
+
 ### Example
 
 ```yaml
@@ -188,6 +190,7 @@ states:
 reasons:
   - { key: overloaded, symbol: 🪫, synopsis: The assigned resource is overloaded }
   - { key: blocked,    symbol: ⛔, synopsis: An external resource is unavailable }
+  - { key: review,     symbol: 👓, synopsis: The work waits for its reviewer }
 ```
 
 ## `tasks/<id>.yaml`
