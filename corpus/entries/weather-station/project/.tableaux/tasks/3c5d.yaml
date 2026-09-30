@@ -1,0 +1,11 @@
+# tasks/3c5d.yaml : a leaf that a contributor proposed and then revised, so it stands proposed
+title: Dashboard
+description: >
+  A web page on the gateway that charts the last week of readings
+  and the current values, with the battery state alongside.
+assignee: dan@example.org
+references:
+  - { url: docs/overview.md#dashboard, text: Dashboard overview }
+requires:
+  - { id: "7b2e", from: function, to: integrate, text: Readings API }
+parent: { id: "a1c0" }

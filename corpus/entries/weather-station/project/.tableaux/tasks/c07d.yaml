@@ -1,0 +1,11 @@
+# tasks/c07d.yaml : a leaf task that requires another and shows every junction kind, as in SYNTAX.md
+title: Node firmware
+description: Reads the sensors, sleeps between readings and publishes to the gateway.
+assignee: ben@example.org
+requires:
+  - { id: "9f31", from: design, to: implementation, text: Pin map and sensor bus }
+junctions:
+  reliability:    { applies: false }
+  implementation: { subproject: { url: firmware, id: "f1a0" } }
+  unit:           { contributor: opus@example.org, model: claude-opus-5-5 }
+parent: { id: "4e2b", order: 2 }

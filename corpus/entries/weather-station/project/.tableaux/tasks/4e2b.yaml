@@ -1,0 +1,11 @@
+# tasks/4e2b.yaml : the sensor node, a parent whose junction defaults its children inherit
+title: Sensor node
+description: >
+  The mast-mounted node: a sensor board and the firmware that reads it,
+  sleeps between readings and publishes to the gateway.
+assignee: ben@example.org
+references:
+  - { url: docs/overview.md#sensor-node, text: Node overview }
+junctions:
+  mockup: { reviewer: ben@example.org }
+parent: { id: "a1c0", order: 1 }

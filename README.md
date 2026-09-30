@@ -31,7 +31,7 @@ A tool accepts a project whose major version equals its own and whose minor vers
 
 ## Gates
 
-`gates.yaml` defines the ordered gates every task passes through, the states a task takes with respect to its current gate, and the reasons that explain a state. The first gate is always `undefined`. The status dimension records which gate and state a task occupies.
+`gates.yaml` defines the ordered gates every task passes through, the states a task takes with respect to its current gate, and the reasons that explain a state. The first gate is always `undefined`. The states always include `undefined`, the state of a task at the `undefined` gate, and `complete`, the state of a task at its last applicable gate, both with severity 0 so that roll-up sets them aside. The status dimension records which gate and state a task occupies.
 
 ## Tasks
 
@@ -43,13 +43,13 @@ Tasks form a tree:
 
 - Exactly one task file has no `parent`; it is the **root**, and its title names the project.
 - Every other task names its parent by id. Every parent chain ends at the root.
-- Siblings sort by `order`, ascending, then by id. Siblings without `order` follow those with one.
+- Siblings sort by `order`, a strictly positive integer, ascending, then by id. Siblings without `order` follow those with one. A tool warns of two siblings with the same `order`, since only the id then decides.
 
 The **assignee** is the person responsible for the task, identified by the email address they commit with, so `git log --author` connects a person's commits to their tasks. The root task's assignee is the project **owner**. A task's **authorities** are the assignees of its ancestors, nearest first; the root's authority is the owner. Assigning a task therefore delegates authority over its subtree, and the owner, as every task's ancestor, keeps authority over all of it.
 
 **References** link the task to the documents that expand it: a specification, an issue, a datasheet. A view shows each reference's `text`, or its `url` when `text` is absent.
 
-The **requires** relationship names the tasks whose results this task needs, each with an optional `text` field summarising what passes. The relation crosses the tree freely but forms no cycle, and a task never requires itself, an ancestor or a descendant. Each entry is an edge between two junctions, stated in the terminating task's file: `from` is the gate the originating task must have completed, defaulting to its last applicable gate, and `to` is the gate of this task whose work needs the result, defaulting to its first applicable gate after `undefined`. A validator checks that each gate applies to its task.
+The **requires** relationship names the tasks whose results this task needs, each with an optional `text` field summarising what passes. The relation crosses the tree freely but forms no cycle, and a task never requires itself, an ancestor or a descendant. Each entry is an edge between two junctions, stated in the terminating task's file: `from` is the gate the originating task must have completed, defaulting to its last applicable gate, and `to` is the gate of this task whose work needs the result, defaulting to its first applicable gate after `undefined`. `to` is never `undefined`, since no work needs a result before definition. A validator checks that each gate applies to its task.
 
 The status dimension gives a requirement a derived condition. It is **met** when the originating task's gate is at or past `from`, **due** when the terminating task's next gate is `to` or later, and **unmet** when due and not met. A validator warns of an unmet requirement and a view marks the terminating junction, but the recorded state stands; the contributor records a `blocked` reason when the wait matters.
 
@@ -57,9 +57,9 @@ The status dimension gives a requirement a derived condition. It is **met** when
 
 A **junction** is the meeting of a task and a gate. Every task has a junction at every gate in `gates.yaml`, and its file states only the junctions that depart from the **plain default**: the assignee does the work, nobody reviews it, and the gate's own criteria apply. A junction is one of three kinds:
 
-- A **plain** junction is the task's own work at the gate. The **contributor** does it and is identified like the assignee, by commit email. A `model` marks the contributor as an agent running that model; a view shows 🤖. The **reviewer** is the person who accepts the work at the gate; a view shows 👀. An agent contributor with no stated reviewer takes the assignee as reviewer. Its **references** expand the gate's criteria for this task.
-- A **recursive** junction hands the work to another Tableaux project. Its `url` locates that project's repository, typically a submodule path, and its `id` names the task there, defaulting to that project's root. Ids are unique within a project, not across projects. A view shows 🪆. The status dimension takes the junction's status from that task.
-- A **not-applicable** junction exempts the task from the gate; a view shows `—`. The `undefined` gate always applies.
+- A **plain** junction is the task's own work at the gate. The **contributor** does it and is identified like the assignee, by commit email. A `model` marks the contributor as an agent running that model; a view shows 🤖. A model names no one, so an entry that states a `model` states its `contributor` beside it rather than inheriting one. The **reviewer** is the person who accepts the work at the gate; a view shows 👀. An agent contributor with no stated reviewer takes the assignee as reviewer. Its **references** expand the gate's criteria for this task.
+- A **recursive** junction hands the work to another Tableaux project. Its `url` locates that project's repository, typically a submodule path, and its `id` names the task there, defaulting to that project's root. Ids are unique within a project, not across projects. A validator rejects a `url` that does not resolve to a Tableaux project it can read, and an `id` that names no task in that project. A view shows 🪆. The status dimension takes the junction's status from that task.
+- A **not-applicable** junction exempts the task from the gate; a view shows `—`. Its only field, `applies`, takes only the value `false`: the entry's presence exempts the gate, and `applies: true` would restate the default the file omits. The `undefined` gate always applies and has no work of its own, so a file states no entry of any kind at `undefined`. At least one gate after `undefined` applies to every task, so every task has a first applicable gate after `undefined` and a last applicable gate later than it.
 
 A parent has no status of its own, so its junctions describe **defaults its children inherit** rather than work of its own. A task's junction at a gate resolves from the task's own entry, then its ancestors' entries nearest first, then the plain default. A plain entry inherits field by field, so a child restates only what differs, for example an agent contributor under a parent's reviewer. A not-applicable entry exempts the whole subtree until a descendant states its own entry. A recursive junction names one task's work and does not inherit, so a validator rejects one on a parent.
 
@@ -95,14 +95,15 @@ Each leaf task's current status is one file, `status/<id>.yaml`. A leaf without 
 
 The file states the **gate** the task has last completed and its **state** towards the next applicable gate, with an optional **reason** from `gates.yaml` and a **note**:
 
+- The gate applies to the task; a validator rejects a status at a gate that a not-applicable junction exempts.
 - The gate is `undefined` exactly when the state is `undefined`.
-- A task at its last applicable gate has the state `complete`.
+- A task at its last applicable gate has the state `complete`, and only there.
 - When the next junction is recursive, the file holds only the gate. The state, reason, note and date come from the subproject's task, read at the commit the submodule pins, so a parent project sees a subproject snapshot that it advances deliberately. When that task completes, the contributor advances the gate.
 
 Git supplies what the file leaves out:
 
 - **Date and recorder.** The deciding commit of a status is the newest commit in the branch's history that changed the file or carries a `Reaffirmed:` trailer naming the task. Its author date is the status's date and its author the recorder. A review that finds no change reaffirms with an empty commit, so a status is never older than its last confirmation.
-- **Review.** A junction with a reviewer completes only when the reviewer says so: a commit in the branch's history, authored or committed by the reviewer, that carries `Reviewed: <id> <gate>`. A validator rejects a status whose gate passes a reviewed junction that has no such commit.
+- **Review.** A junction with a reviewer completes only when the reviewer says so: a commit in the branch's history, authored or committed by the reviewer, that carries `Reviewed: <id> <gate>`. A validator rejects a status whose gate passes a reviewed junction that has no such commit. A `Reviewed:` commit from anyone other than the junction's reviewer has no effect, and the audit reports it. The `defined` junction is the exception: authorising a task accepts its definition, so the authorisation stands as the review of `defined` whoever its reviewer is, and no `Reviewed: <id> defined` commit is needed. A contributor who is also the reviewer, as an agent is at a junction that states none, carries the `Reviewed:` trailer on the commit that records the status.
 - **History.** The log of the file is the task's status history, with every change's date and author.
 
 ```

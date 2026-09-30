@@ -102,7 +102,10 @@ properties:
         criteria: { type: string, minLength: 1 }
   states:
     type: array
-    minItems: 1
+    minItems: 2
+    allOf:
+      - contains: { properties: { key: { const: undefined }, severity: { const: 0 } } }
+      - contains: { properties: { key: { const: complete },  severity: { const: 0 } } }
     items:
       type: object
       required: [key, symbol, severity, synopsis]
@@ -135,7 +138,7 @@ properties:
 | `name`     | Yes      | The gate's human-readable name                                    |
 | `criteria` | Yes      | The conditions a task meets to complete the gate                  |
 
-`states` (required) lists the states a task takes with respect to its current gate.
+`states` (required) lists the states a task takes with respect to its current gate. It always includes `undefined`, the state at the `undefined` gate, and `complete`, the state at the last applicable gate, both with severity `0`.
 
 | Field      | Required | Meaning                                                                          |
 |------------|----------|----------------------------------------------------------------------------------|
@@ -269,7 +272,10 @@ properties:
         text: { type: string, minLength: 1 }
   junctions:
     type: object
-    propertyNames: { $ref: "#/$defs/key" }
+    propertyNames:
+      allOf:
+        - $ref: "#/$defs/key"
+        - not: { const: undefined }
     additionalProperties: { $ref: "#/$defs/junction" }
   parent:
     type: object
@@ -277,7 +283,7 @@ properties:
     additionalProperties: false
     properties:
       id:    { $ref: "#/$defs/id" }
-      order: { type: integer }
+      order: { type: integer, minimum: 1 }
 ```
 
 ### Fields
@@ -289,7 +295,7 @@ properties:
 | `assignee`    | Yes      | The responsible person's email address, as it appears in their Git commits       |
 | `references`  | No       | Links that expand the task                                                       |
 | `requires`    | No       | Tasks whose results this task needs                                              |
-| `junctions`   | No       | Per-gate detail, keyed by gate key; a gate absent here takes the plain default   |
+| `junctions`   | No       | Per-gate detail, keyed by gate key other than `undefined`; a gate absent here takes the plain default |
 | `parent`      | No       | The task's place in the tree; absent only on the root task                       |
 
 `references[]`
@@ -313,18 +319,18 @@ properties:
 | Kind           | Field         | Required | Meaning                                                                    |
 |----------------|---------------|----------|----------------------------------------------------------------------------|
 | Plain          | `contributor` | No       | The email address of who does the work at this gate; defaults to `assignee` |
-|                | `model`       | No       | The model identifier when the contributor is an agent; requires `contributor` |
+|                | `model`       | No       | The model identifier when the contributor is an agent; stated together with `contributor`, never alone, since a model names no one |
 |                | `reviewer`    | No       | The email address of the person who accepts the work at this gate          |
 |                | `references`  | No       | Links that expand the gate's criteria for this task; same form as the task's |
 | Recursive      | `subproject`  | Yes      | The project that does the work: `url` locates its repository, an absolute URL or a path relative to this repository's root; `id` names its task, defaulting to that project's root |
-| Not applicable | `applies`     | Yes      | Always `false`                                                             |
+| Not applicable | `applies`     | Yes      | Always `false`; the entry's presence exempts the gate, and `true` would restate the default the file omits |
 
 `parent`
 
 | Field   | Required | Meaning                                                                          |
 |---------|----------|----------------------------------------------------------------------------------|
 | `id`    | Yes      | The id of the parent task                                                        |
-| `order` | No       | The task's rank among its siblings; lower sorts first                            |
+| `order` | No       | The task's rank among its siblings, a strictly positive integer; lower sorts first |
 
 ### Examples
 
@@ -482,7 +488,7 @@ items:
 
 ## Commit trailers
 
-A commit message may carry the trailers below, one task per line, among its other trailers.
+A commit message may carry the trailers below, one task per line, among its other trailers. A trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it.
 
 | Trailer                  | Meaning                                                              |
 |--------------------------|----------------------------------------------------------------------|

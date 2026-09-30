@@ -1,0 +1,149 @@
+# expected.yaml : what a validator reports and what a conforming tool derives
+# from the weather station at the trunk's tip. Commits are named by the labels
+# history.sh records; build/weather-station.labels.txt maps them to hashes.
+entry: weather-station
+language: 0.1.0
+ref: main
+valid: true
+
+findings:
+  - { rule: R9, severity: warning, task: "c07d", file: tasks/c07d.yaml,
+      message: "Requirement on 9f31 from design is due at implementation and unmet: 9f31 stands at function" }
+
+owner: ada@example.org
+root: "a1c0"
+order:                       # depth first, siblings by order then id; 3c5d has no order and sorts last
+  - "a1c0"
+  - "4e2b"
+  - "9f31"
+  - "c07d"
+  - "7b2e"
+  - "3c5d"
+
+tasks:
+  "a1c0":
+    parent: null
+    authorities: []                                       # the root's authority is the owner
+    authorisation: { state: authorised, commit: W1, by: ada@example.org }
+    junctions: { default: { kind: plain, contributor: ada@example.org } }
+    status:                                               # derived: 4e2b and 3c5d considered, 7b2e set aside
+      gate: defined
+      state: nominal
+      date: 2026-09-17
+      derived: true
+      from: "3c5d"
+  "4e2b":
+    parent: "a1c0"
+    authorities: [ada@example.org]
+    authorisation: { state: authorised, commit: W1, by: ada@example.org }
+    junctions:
+      default: { kind: plain, contributor: ben@example.org }
+      mockup:  { kind: plain, contributor: ben@example.org, reviewer: ben@example.org, source: "4e2b" }
+    status:                                               # derived: earliest gate is design, c07d is the child at it
+      gate: design
+      state: nominal
+      note: Sleep scheduler in progress
+      date: 2026-09-17
+      derived: true
+      from: "c07d"
+  "9f31":
+    parent: "4e2b"
+    authorities: [ben@example.org, ada@example.org]
+    authorisation: { state: authorised, commit: W4, by: ben@example.org }   # the --no-ff merge on the first-parent line
+    junctions:
+      default:     { kind: plain, contributor: ada@example.org }
+      mockup:      { kind: plain, contributor: ada@example.org, reviewer: ben@example.org, source: "4e2b" }
+      performance: { kind: plain, contributor: ada@example.org, source: "9f31",
+                     references: [{ url: docs/sensor-board.md#power-budget, text: Power budget }] }
+      validate:    { kind: plain, contributor: ada@example.org, reviewer: ben@example.org, source: "9f31" }
+    applicable: [undefined, defined, mockup, function, performance, reliability, design, implementation, unit, integrate, validate, release]
+    requires: []
+    reviews:                                              # reviewed junctions the status passes, and the commit that accepts each
+      - { gate: mockup, reviewer: ben@example.org, commit: W9 }
+    status:
+      gate: function
+      state: stalled
+      reason: blocked
+      note: Barometer ICs on 14-week backorder
+      date: 2026-09-28                                    # the Reaffirmed commit, not the last change
+      recorder: ada@example.org
+      commit: W13
+    events:
+      - { date: 2026-09-18, commit: W3,  by: ada@example.org, task: "9f31", event: task }
+      - { date: 2026-09-19, commit: W4,  by: ben@example.org, task: "9f31", event: authorised }
+      - { date: 2026-09-22, commit: W7,  by: ada@example.org, task: "9f31", event: status, gate: mockup, state: nominal }
+      - { date: 2026-09-24, commit: W9,  by: ben@example.org, task: "9f31", event: reviewed, gate: mockup }
+      - { date: 2026-09-25, commit: W10, by: ada@example.org, task: "9f31", event: status, gate: function, state: stalled, reason: blocked, note: Barometer ICs on 14-week backorder }
+      - { date: 2026-09-28, commit: W13, by: ada@example.org, task: "9f31", event: reaffirmed }
+  "c07d":
+    parent: "4e2b"
+    authorities: [ben@example.org, ada@example.org]
+    authorisation: { state: authorised, commit: W2, by: ben@example.org }
+    junctions:
+      default:        { kind: plain, contributor: ben@example.org }
+      mockup:         { kind: plain, contributor: ben@example.org, reviewer: ben@example.org, source: "4e2b" }
+      reliability:    { kind: not_applicable, source: "c07d" }
+      implementation: { kind: recursive, subproject: { url: firmware, id: "f1a0" }, source: "c07d" }
+      unit:           { kind: plain, contributor: opus@example.org, model: claude-opus-5-5,
+                        reviewer: ben@example.org, source: "c07d" }   # an agent with no stated reviewer takes the assignee
+    applicable: [undefined, defined, mockup, function, performance, design, implementation, unit, integrate, validate, release]
+    requires:
+      - { id: "9f31", from: design, to: implementation, met: false, due: true, condition: unmet }
+    subproject:
+      url: firmware
+      pin: F2                                             # a label in the firmware's labels; the firmware's tip is F3
+      task: "f1a0"
+    status:                                               # the gate is the file's; the rest is f1a0's at the pin
+      gate: design
+      state: nominal
+      note: Sleep scheduler in progress
+      date: 2026-09-17
+      recorder: ben@example.org
+      commit: F2
+    events:
+      - { date: 2026-09-10, commit: F1,  by: ben@example.org, task: "c07d", event: task,   subproject: "f1a0" }
+      - { date: 2026-09-10, commit: F1,  by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: defined, state: nominal }
+      - { date: 2026-09-16, commit: W2,  by: ben@example.org, task: "c07d", event: task }
+      - { date: 2026-09-17, commit: F2,  by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: design, state: nominal, note: Sleep scheduler in progress }
+      - { date: 2026-09-26, commit: W11, by: ben@example.org, task: "c07d", event: status, gate: design }   # also the pin; see the note in README.md
+  "7b2e":
+    parent: "a1c0"
+    authorities: [ada@example.org]
+    authorisation: { state: authorised, commit: W1, by: ada@example.org }
+    junctions: { default: { kind: plain, contributor: ada@example.org } }
+    status:                                               # no file: undefined, dated by the task file's newest commit
+      gate: undefined
+      state: undefined
+      date: 2026-09-15
+      commit: W1
+    events:
+      - { date: 2026-09-15, commit: W1, by: ada@example.org, task: "7b2e", event: task }
+  "3c5d":
+    parent: "a1c0"
+    authorities: [ada@example.org]
+    authorisation: { state: proposed, commit: W12, by: dan@example.org }   # dan's revision undid ada's acceptance
+    junctions: { default: { kind: plain, contributor: dan@example.org } }
+    requires:
+      - { id: "7b2e", from: function, to: integrate, met: false, due: false, condition: pending }
+    status:
+      gate: defined
+      state: nominal
+      date: 2026-09-22
+      recorder: dan@example.org
+      commit: W8
+    events:
+      - { date: 2026-09-20, commit: W5,  by: dan@example.org, task: "3c5d", event: task }
+      - { date: 2026-09-21, commit: W6,  by: ada@example.org, task: "3c5d", event: authorised }
+      - { date: 2026-09-22, commit: W8,  by: dan@example.org, task: "3c5d", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-27, commit: W12, by: dan@example.org, task: "3c5d", event: task }
+
+# The same project seen from a branch: off the trunk, every task is proposed.
+refs:
+  sensor-board:
+    commit: W3
+    tasks:
+      "a1c0": { authorisation: { state: proposed } }
+      "4e2b": { authorisation: { state: proposed } }
+      "7b2e": { authorisation: { state: proposed } }
+      "c07d": { authorisation: { state: proposed } }
+      "9f31": { authorisation: { state: proposed } }

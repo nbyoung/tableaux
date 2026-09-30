@@ -1,0 +1,18 @@
+# gates.yaml : a shorter gate set; a subproject's gates are its own
+gates:
+  - { key: undefined,      symbol: ❔, name: Undefined,      criteria: No one has started work on the definition }
+  - { key: defined,        symbol: 📝, name: Defined,        criteria: "Title, description, assignee and references exist" }
+  - { key: design,         symbol: 📐, name: Design,         criteria: A model and sufficient tests exist }
+  - { key: implementation, symbol: 🛠️, name: Implementation, criteria: The firmware builds and flashes }
+  - { key: unit,           symbol: 🧩, name: Unit test,      criteria: All prescribed tests pass }
+  - { key: release,        symbol: 🚀, name: Release,        criteria: A tagged image exists }
+
+states:
+  - { key: undefined, symbol: ⚪, severity: 0, synopsis: The work has not yet been defined }
+  - { key: nominal,   symbol: 🟢, severity: 1, synopsis: The work is proceeding as expected }
+  - { key: at_risk,   symbol: 🟡, severity: 2, synopsis: The work is at risk of stalling }
+  - { key: stalled,   symbol: 🔴, severity: 3, synopsis: Practically all progress has stalled }
+  - { key: complete,  symbol: ✅, severity: 0, synopsis: All deliverables satisfy their requirements }
+
+reasons:
+  - { key: blocked, symbol: ⛔, synopsis: An external resource is unavailable }

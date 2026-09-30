@@ -132,12 +132,12 @@ The root task states junction defaults that every task inherits.
 
 | Gate                                         | Contributor | Reviewer                                    |
 |----------------------------------------------|-------------|---------------------------------------------|
-| defined                                      | Agent       | None stated; authorisation accepts the definition (F8) |
+| defined                                      | Agent       | None stated; the authorisation stands as the review (F8, resolved) |
 | mockup, design, validate                     | Agent       | The owner                                   |
 | function, implementation, unit, integrate    | Agent       | None stated; the compiler, vet, tests and corpus stand in |
 | release                                      | The owner   | —                                           |
 
-The method gives an agent contributor with no stated reviewer the assignee as reviewer. The choice of assignee therefore decides where human review falls at the gates the owner leaves unstated. Owner-assigned tasks, which are the method decisions `ac33`, `9f3f` and `7166` and the four subproject roots, get the owner's review at every gate. Agent-assigned subtrees, which are the roles, views, mockups, schemas, corpus, evidence and every subproject leaf, review themselves at the execution gates. The tableau below shows the result in each cell.
+The method gives an agent contributor with no stated reviewer the assignee as reviewer. The choice of assignee therefore decides where human review falls at the gates the owner leaves unstated. Owner-assigned tasks, which are the method decisions `ac33`, `9f3f` and `7166` and the four subproject roots, get the owner's review at every gate. Agent-assigned subtrees, which are the roles, views, mockups, schemas, corpus, evidence and every subproject leaf, review themselves at the execution gates: the commit that records such a status carries `Reviewed: <id> <gate>`, authored by the agent, so the status passes rule S11 of the corpus without a second commit. The tableau below shows the result in each cell.
 
 | Cell  | Meaning                                       |
 |-------|-----------------------------------------------|
@@ -214,7 +214,7 @@ Writing the plan in Tableaux found the following about the method. Each names th
 - **F5 Requirements stop at the project.** A subproject task cannot require a task in the umbrella, such as the mockups it renders, and falls back to a reference. Proposal: allow `requires` entries with a `subproject`, or accept that references suffice. Task `9f3f`.
 - **F6 Ids that YAML reads as numbers.** An id of four digits, such as `1000`, and an id such as `1e10` parse as numbers unless quoted. Resolved before D5: SYNTAX.md now requires a quoted id and a tool that takes an id as a string whatever YAML yields, README.md states that ids are random, and every id in this plan is a random quoted hexadecimal string. The validator rule falls to `tablo`.
 - **F7 Inheritance across a not-applicable entry.** A plain entry inherits field by field from its ancestors, and a not-applicable entry exempts a subtree until a descendant states its own entry. Whether that descendant's plain entry inherits fields from ancestors above the not-applicable one is unstated. This plan avoids the case. Task `7166`.
-- **F8 Authorisation and the defined gate.** Authorising a task accepts its definition, and reviewing its `defined` gate does the same; a plan of forty tasks would need forty `Reviewed:` trailers. This plan states no reviewer at `defined`. Proposal: authorisation implies the review of `defined`, and `tabloio review` accepts many tasks at once. Task `7166`.
+- **F8 Authorisation and the defined gate.** Authorising a task accepts its definition, and reviewing its `defined` gate does the same; a plan of forty tasks would need forty `Reviewed:` trailers. This plan states no reviewer at `defined`. Resolved at the corpus design review (2026-09-29): authorisation stands as the review of `defined`, and README.md says so; `tabloio review` accepting many tasks at once remains for task `7166`.
 - **F9 No state before defined.** The gate is `undefined` exactly when the state is, so work in progress towards `defined` has no state and no reason. Minor; the queue view shows the work instead. Task `7166`.
 - **F10 An agent as assignee.** Only a junction carries `model`, so an agent assignee looks like a person. Proposal: an optional `model` on the task, or an identities file that maps each email to a name, a kind and a model. Task `ac33`.
 
