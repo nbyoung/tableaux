@@ -1,6 +1,6 @@
 # expected.yaml : A status names a gate that gates.yaml lacks.
 entry: status-unknown-gate
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: S5, severity: error, task: "b2c9", file: status/b2c9.yaml, gate: nonesuch }

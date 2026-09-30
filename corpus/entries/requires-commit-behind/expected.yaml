@@ -1,0 +1,30 @@
+# expected.yaml : b2c9 requires the library's leaf, 5a00, by URL at L1, where it stands at defined, while the
+# library's trunk, main, has reached L2, where it stands at design. The requirement is due and unmet at L1
+# (R9) and would be met at the tip (R13): two warnings. A commit that merely lags the trunk warns of nothing.
+entry: requires-commit-behind
+language: 0.3.0
+valid: true
+replace: { "https://example.org/lib.git": lib }
+
+findings:
+  - { rule: R9, severity: warning, task: "b2c9", file: tasks/b2c9.yaml,
+      message: "Requirement on 5a00 at https://example.org/lib.git from design is due at release and unmet: 5a00 stands at defined" }
+  - { rule: R13, severity: warning, task: "b2c9", file: tasks/b2c9.yaml,
+      message: "The requirement on 5a00 at https://example.org/lib.git is unmet at L1 and met at main in that repository, L2" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    applicable: [undefined, defined, design, release]
+    requires:                                    # b2c9 stands at design, so its next gate, release, is the requirement's to gate
+      - { subproject: { url: https://example.org/lib.git, id: "5a00", pin: L1 }, from: design, to: release, met: false, due: true, condition: unmet }
+    status: { gate: design, state: nominal, date: 2026-09-03, recorder: olive@example.org, commit: only }
+    events:
+      - { date: 2026-09-03, commit: only, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-03, commit: only, by: olive@example.org, task: "b2c9", event: status, gate: design, state: nominal }
+      - { date: 2026-09-03, commit: only, by: olive@example.org, task: "b2c9", event: pin, url: https://example.org/lib.git, new: L1 }

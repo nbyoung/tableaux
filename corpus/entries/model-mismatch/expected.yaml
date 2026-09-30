@@ -1,7 +1,7 @@
 # expected.yaml : a junction states model claude-fable. M2 records the model claude-sonnet-5 and draws one H3
 # warning; M4 records claude-fable-5-1, which the stated prefix matches.
 entry: model-mismatch
-language: 0.2.1
+language: 0.3.0
 valid: true
 
 findings:

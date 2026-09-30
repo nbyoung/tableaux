@@ -1,6 +1,6 @@
 # expected.yaml : version.yaml does not exist.
 entry: version-missing
-language: 0.2.1
+language: 0.3.0
 trunk: { caller: main }              # the caller names main, since version.yaml states no trunk
 valid: false
 findings:

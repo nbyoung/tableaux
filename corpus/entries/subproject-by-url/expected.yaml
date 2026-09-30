@@ -1,0 +1,38 @@
+# expected.yaml : b2c9 hands its design to a library named by absolute URL and read at the commit the
+# junction names: L1 at U1, then L2 at U2. The library's tip, L3, lies beyond. No submodule pins it;
+# `replace` maps the URL to the tree built beside the entry, as a tool's mapping maps it to a clone.
+entry: subproject-by-url
+language: 0.3.0
+valid: true
+findings: []
+replace: { "https://example.org/lib.git": lib }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 2, leaves: 1 }
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: U2, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: recursive, subproject: { url: https://example.org/lib.git, commit: L2 }, source: "b2c9" }
+    subproject: { url: https://example.org/lib.git, pin: L2, task: "5a00" }   # the pin is the commit the field names
+    status:                                      # the gate is the file's; the rest is 5a00's at L2
+      gate: defined
+      state: nominal
+      note: Drafted against the parent's needs
+      date: 2026-09-05
+      recorder: pat@example.org
+      commit: L2
+    events:                                      # each change of the commit field is a pin event beside the task event
+      - { date: 2026-09-01, commit: L1, by: pat@example.org, task: "b2c9", event: task, subproject: "5a00" }
+      - { date: 2026-09-01, commit: L1, by: pat@example.org, task: "b2c9", event: status, subproject: "5a00", gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: U1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-02, commit: U1, by: olive@example.org, task: "b2c9", event: status, gate: defined }
+      - { date: 2026-09-02, commit: U1, by: olive@example.org, task: "b2c9", event: pin, url: https://example.org/lib.git, new: L1 }
+      - { date: 2026-09-05, commit: L2, by: pat@example.org, task: "b2c9", event: status, subproject: "5a00", gate: design, state: nominal, note: Drafted against the parent's needs }
+      - { date: 2026-09-06, commit: U2, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-06, commit: U2, by: olive@example.org, task: "b2c9", event: pin, url: https://example.org/lib.git, old: L1, new: L2 }

@@ -1,6 +1,6 @@
 # expected.yaml : A status has a state and no gate.
 entry: status-missing-gate
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: S3, severity: error, task: "b2c9", file: status/b2c9.yaml }

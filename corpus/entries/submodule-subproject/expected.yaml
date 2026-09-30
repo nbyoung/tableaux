@@ -1,7 +1,7 @@
 # expected.yaml : c100 delegates every gate after defined to the root of the subproject at sub.
 # The pin starts at S1 and advances twice, to S2 and S3; the subproject's tip, S4, lies beyond it.
 entry: submodule-subproject
-language: 0.2.1
+language: 0.3.0
 valid: true
 findings: []
 
@@ -50,12 +50,15 @@ tasks:
       date: 2026-09-16
       recorder: ben@example.org
       commit: S3
-    events:                                      # each pin change (U2, U3, U4) also changes the status file, so it is a status event; F12 stays open
+    events:                                      # each pin change (U2, U3, U4) is a pin event, one per path however many junctions name it, beside the status event of the same commit
       - { date: 2026-09-01, commit: U1, by: olive@example.org, task: "c100", event: task }
       - { date: 2026-09-02, commit: S1, by: ben@example.org, task: "c100", event: task, subproject: "5a00" }
       - { date: 2026-09-02, commit: S1, by: ben@example.org, task: "c100", event: status, subproject: "5a00", gate: defined, state: nominal }
       - { date: 2026-09-03, commit: U2, by: ben@example.org, task: "c100", event: status, gate: defined }
+      - { date: 2026-09-03, commit: U2, by: ben@example.org, task: "c100", event: pin, url: sub, new: S1 }   # the first pin: no old commit
       - { date: 2026-09-09, commit: S2, by: ben@example.org, task: "c100", event: status, subproject: "5a00", gate: mockup, state: nominal, note: Mockup shown to the client }
       - { date: 2026-09-10, commit: U3, by: ben@example.org, task: "c100", event: status, gate: mockup }
+      - { date: 2026-09-10, commit: U3, by: ben@example.org, task: "c100", event: pin, url: sub, old: S1, new: S2 }
       - { date: 2026-09-16, commit: S3, by: ben@example.org, task: "c100", event: status, subproject: "5a00", gate: function, state: nominal, note: Prototype runs on the bench }
       - { date: 2026-09-17, commit: U4, by: ben@example.org, task: "c100", event: status, gate: function }
+      - { date: 2026-09-17, commit: U4, by: ben@example.org, task: "c100", event: pin, url: sub, old: S2, new: S3 }

@@ -1,6 +1,6 @@
 # expected.yaml : The next junction, design, is recursive and the status file holds a state. The subproject resolves.
 entry: status-state-with-recursive
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: S9, severity: error, task: "b2c9", file: status/b2c9.yaml, gate: defined }

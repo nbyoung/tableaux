@@ -1,0 +1,6 @@
+# tasks/9e00.yaml : the umbrella's root
+title: Umbrella
+description: The parent project, which pins the entry's project as a subproject.
+assignee: olive@example.org
+references:
+  - { url: README.md }

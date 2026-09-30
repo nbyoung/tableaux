@@ -1,6 +1,6 @@
 # expected.yaml : The complete state has severity 1.
 entry: gates-complete-nonzero-severity
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: G12, severity: error, file: gates.yaml }

@@ -1,6 +1,6 @@
 # expected.yaml : Two gates share the key design.
 entry: gates-duplicate-gate
-language: 0.2.1
+language: 0.3.0
 valid: false
 findings:
   - { rule: G6, severity: error, file: gates.yaml, gate: design }
