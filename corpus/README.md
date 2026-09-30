@@ -152,11 +152,11 @@ Invalid entries, one per rule in [RULES.md](RULES.md), 70 in all. Each is `base/
 | W8    | 09-22 | dan | Records `3c5d` at `defined`, `nominal`                                                        |
 | W9    | 09-24 | ben | An empty commit with `Reviewed: 9f31 mockup`; ben is the reviewer `4e2b` states               |
 | W10   | 09-25 | ada | Records `9f31` at `function`, `stalled`, `blocked`                                            |
-| W11   | 09-26 | ben | Pins `firmware` at F2 and records `c07d` at `design` with no state                            |
+| W11   | 09-26 | ben | Pins `firmware` at F2, records `c07d` at `design` with no state, and carries `Reviewed: c07d mockup` |
 | W12   | 09-27 | dan | Revises `3c5d`; the change returns it to proposed                                             |
 | W13   | 09-28 | ada | An empty commit with `Reaffirmed: 9f31`                                                       |
 
-`expected.yaml` then fixes what follows: `9f31` is authorised by the merge on the first-parent line, dated 09-28 by the reaffirmation, and its `mockup` review is W9; `3c5d` is proposed again after W12; `c07d` shows `design` from its own file and `nominal`, its note and its 09-17 date from `f1a0` at the pin, with one unmet requirement on `9f31`; `7b2e` is undefined and dated by W1; `4e2b` rolls up to `design`, `nominal` from `c07d`, since roll-up takes the child at the earliest gate; the root rolls up to `defined`, `nominal` from `3c5d`; and on the branch `sensor-board` every task is proposed.
+`expected.yaml` then fixes what follows: `9f31` is authorised by the merge on the first-parent line, dated 09-28 by the reaffirmation, and its `mockup` review is W9; `3c5d` is proposed again after W12; `c07d` shows `design` from its own file and `nominal`, its note and its 09-17 date from `f1a0` at the pin, with one unmet requirement on `9f31` and its `mockup` review at W11, since ben is contributor and reviewer and the commit that records the status carries the trailer; `7b2e` is undefined and dated by W1; `4e2b` rolls up to `function`, `stalled`, `blocked` from `9f31`, since both children have non-zero severity, `function` is the earlier gate and `9f31` is the most severe child there, with the 09-17 date of the oldest child considered; the root rolls up to `defined`, `nominal` from `3c5d`; and on the branch `sensor-board` every task is proposed.
 
 ## This project as an entry
 
@@ -184,7 +184,7 @@ Enumerating the rules found the following. Each is one sentence and names the ta
 - **F11 Deciding commits and events disagree on merges.** The deciding commit reads first-parent history, where a `--no-ff` merge that brings in a task file counts, but the event commands in README.md use the default log, where the same merge does not appear, so a merge that authorises leaves no `authorised` event unless it carries the trailer. Task `7166`.
 - **F12 The pin change has no event kind.** README.md says each change of a submodule pin is an event in the parent's log, but the history schema's `event` enum has no value for it. Task `9f3f`.
 - **F13 A reaffirmation of a recursive junction is moot.** README.md's example reaffirms `c07d`, whose date comes from the subproject at the pin, so the trailer changes nothing a tool derives. Task `9f3f`.
-- **F14 Roll-up hides a severe child at a later gate.** The parent takes the most severe child at the earliest gate, so `4e2b` shows `nominal` while `9f31` stands `stalled` at a later gate; the text may intend this, and a view should say where the stalled child is. Task `7166`.
+- **F14 Roll-up hides a severe child at a later gate. Resolved.** Under the rule the stalled child `9f31` stands at the earliest gate, so `4e2b` shows it; the earlier reading rested on a mistake in the corpus. Task `7166`.
 - **F15 The review may follow the status it validates.** SYNTAX.md's example records `mockup` on 09-22 and reviews it on 09-24; the status is invalid for two days by S11 and valid at the tip, and the text does not say whether a history replay applies S11 at each commit. Task `7166`.
 - **F16 An unquoted id fails the schema before the warning.** SYNTAX.md warns of an unquoted id and says a tool takes any scalar as a string, but the schema types every id as a string, so a tool must coerce before validating or the warning never fires. Task `7166`.
 - **F17 The undefined leaf has a date but no recorder.** A leaf with no status file is dated by its task file's newest commit; whether that commit's author is its recorder is unstated. Task `7166`.

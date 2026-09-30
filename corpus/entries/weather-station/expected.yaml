@@ -40,13 +40,14 @@ tasks:
     junctions:
       default: { kind: plain, contributor: ben@example.org }
       mockup:  { kind: plain, contributor: ben@example.org, reviewer: ben@example.org, source: "4e2b" }
-    status:                                               # derived: earliest gate is design, c07d is the child at it
-      gate: design
-      state: nominal
-      note: Sleep scheduler in progress
-      date: 2026-09-17
+    status:                                               # derived: 9f31 and c07d both count; the earliest gate is function, held by 9f31
+      gate: function
+      state: stalled
+      reason: blocked
+      note: Barometer ICs on 14-week backorder
+      date: 2026-09-17                                    # the oldest of the children considered, c07d's
       derived: true
-      from: "c07d"
+      from: "9f31"
   "9f31":
     parent: "4e2b"
     authorities: [ben@example.org, ada@example.org]
@@ -94,6 +95,8 @@ tasks:
       url: firmware
       pin: F2                                             # a label in the firmware's labels; the firmware's tip is F3
       task: "f1a0"
+    reviews:                                              # ben is contributor and reviewer, so the commit that records the status carries the trailer
+      - { gate: mockup, reviewer: ben@example.org, commit: W11 }
     status:                                               # the gate is the file's; the rest is f1a0's at the pin
       gate: design
       state: nominal
@@ -107,6 +110,7 @@ tasks:
       - { date: 2026-09-16, commit: W2,  by: ben@example.org, task: "c07d", event: task }
       - { date: 2026-09-17, commit: F2,  by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: design, state: nominal, note: Sleep scheduler in progress }
       - { date: 2026-09-26, commit: W11, by: ben@example.org, task: "c07d", event: status, gate: design }   # also the pin; see the note in README.md
+      - { date: 2026-09-26, commit: W11, by: ben@example.org, task: "c07d", event: reviewed, gate: mockup }
   "7b2e":
     parent: "a1c0"
     authorities: [ada@example.org]
