@@ -28,6 +28,7 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | G9  | error    | State keys are unique                                                      | SYNTAX states fields: "A unique identifier that status records use to name the state" | `gates-duplicate-state`   |
 | G10 | error    | Each reason has `key`, `symbol`, `synopsis`; reason keys are unique        | Schema reason item; SYNTAX reasons fields: "A unique identifier"                 | `gates-duplicate-reason`       |
 | G11 | error    | No field other than `gates`, `states`, `reasons`                           | Schema `additionalProperties: false`                                             | `gates-unknown-field`          |
+| G12 | error    | `states` includes `undefined`, the state at the `undefined` gate, and `complete`, the state at the last applicable gate, both with severity 0 | README Gates: "The states always include `undefined` … and `complete` …, both with severity 0 so that roll-up sets them aside." Schema `states: allOf: contains` | `gates-no-undefined-state`, `gates-complete-nonzero-severity` |
 
 ## `tasks/<id>.yaml`
 
@@ -43,7 +44,8 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | T8  | error    | Exactly one task has no `parent`                                           | README Tasks: "Exactly one task file has no `parent`; it is the **root**"                  | `tree-no-root`, `tree-two-roots`   |
 | T9  | error    | Every `parent.id` names a task in the project                              | README Tasks: "Every other task names its parent by id."                                   | `tree-parent-missing`              |
 | T10 | error    | Every parent chain ends at the root                                        | README Tasks: "Every parent chain ends at the root."                                       | `tree-parent-cycle`                |
-| T11 | error    | `parent` has `id`; `order`, when present, is an integer; no other field    | Schema `parent`                                                                            | `task-parent-order-not-integer`    |
+| T11 | error    | `parent` has `id`; `order`, when present, is a strictly positive integer; no other field | README Tasks: "Siblings sort by `order`, a strictly positive integer". Schema `order: { type: integer, minimum: 1 }` | `task-parent-order-not-integer`, `task-parent-order-zero` |
+| T12 | warning  | Two siblings with the same `order`                                         | README Tasks: "A tool warns of two siblings with the same `order`, since only the id then decides." | `siblings-same-order`              |
 
 ## `requires` in a task file
 
@@ -58,6 +60,7 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | R7  | error    | `to` names a gate in `gates.yaml` that applies to this task                | Same sentence                                                                              | `requires-to-not-applicable`                             |
 | R8  | error    | Each entry has `id`; `text`, when present, is non-empty; no other field    | Schema `requires` item                                                                     | `requires-unknown-field`                                 |
 | R9  | warning  | A requirement that is due and not met                                      | README Tasks: "A validator warns of an unmet requirement"                                  | `unmet-requirement`; also `weather-station`              |
+| R10 | error    | `to` is never `undefined`                                                  | README Tasks: "`to` is never `undefined`, since no work needs a result before definition." | `requires-to-undefined`                                  |
 
 ## `junctions` in a task file
 
@@ -67,12 +70,14 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | J2  | error            | No not-applicable entry at `undefined`                                     | README Junctions: "The `undefined` gate always applies."                                   | `junction-undefined-not-applicable`  |
 | J3  | error            | No recursive junction on a parent                                          | README Junctions: "A recursive junction names one task's work and does not inherit, so a validator rejects one on a parent." | `recursive-on-parent` |
 | J4  | error            | An entry is exactly one kind: plain, recursive or not-applicable           | SYNTAX tasks: "`junctions.<gate>` is one of three kinds, told apart by its fields." Schema `oneOf` | `junction-mixed-kind`         |
-| J5  | error            | `model` requires `contributor`                                             | Schema `dependentRequired: { model: [contributor] }`                                       | `junction-model-without-contributor` |
-| J6  | error            | `applies` is `false`                                                       | Schema `applies: { const: false }`                                                         | `junction-applies-true`              |
+| J5  | error            | An entry that states `model` states `contributor` too. A model names no one, so the agent's address sits beside its model in one entry rather than arriving by inheritance from an ancestor | README Junctions: "an entry that states a `model` states its `contributor` beside it rather than inheriting one." Schema `dependentRequired: { model: [contributor] }` | `junction-model-without-contributor` |
+| J6  | error            | `applies` takes only the value `false`. The entry's presence exempts the gate; `applies: true` would restate the plain default, which a file omits, so the schema rejects it | README Junctions: "`applies`, takes only the value `false`: the entry's presence exempts the gate, and `applies: true` would restate the default the file omits." Schema `applies: { const: false }` | `junction-applies-true`              |
 | J7  | error            | A recursive entry's `subproject` has `url`; `id`, when present, is an id; no other field | Schema `recursive`                                                          | `junction-subproject-without-url`    |
 | J8  | error, implicit  | `subproject.url` resolves to a Tableaux project the tool can read          | README Junctions: "Its `url` locates that project's repository, typically a submodule path" | `subproject-path-missing`           |
 | J9  | error, implicit  | `subproject.id`, or that project's root, names a task in the subproject    | README Junctions: "its `id` names the task there, defaulting to that project's root."      | `subproject-task-missing`            |
 | J10 | error            | A plain entry has no field beyond `contributor`, `model`, `reviewer`, `references` | Schema `plain: additionalProperties: false`                                        | `junction-unknown-field`             |
+| J11 | error            | No plain or recursive entry at `undefined`                                 | README Junctions: "The `undefined` gate … has no work of its own, so a file states no entry of any kind at `undefined`." Schema `junctions: propertyNames: not: { const: undefined }` | `junction-undefined-plain`, `junction-undefined-recursive` |
+| J12 | error            | At least one gate after `undefined` applies to every task                  | README Junctions: "At least one gate after `undefined` applies to every task"              | `junction-all-not-applicable`        |
 
 ## `status/<id>.yaml`
 
@@ -89,24 +94,23 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | S9  | error            | When the next junction is recursive, the file holds only the gate          | README Status: "When the next junction is recursive, the file holds only the gate."        | `status-state-with-recursive`                                       |
 | S10 | error            | When the next junction is plain, `state` exists                            | SYNTAX status fields: `state` "absent only when the next junction is recursive"            | `status-no-state-plain`                                             |
 | S11 | error            | A gate that passes a reviewed junction has a `Reviewed: <id> <gate>` commit by the reviewer in the branch's history | README Status: "A validator rejects a status whose gate passes a reviewed junction that has no such commit." | `status-unreviewed-gate` |
+| S12 | error            | The state `complete` appears only at the last applicable gate              | README Status: "A task at its last applicable gate has the state `complete`, and only there." | `status-complete-early`  |
 
 The task brief for this corpus calls S11 a warning; the text says the validator rejects. RULES.md follows the text, and the review decides (question Q1 in [README.md](README.md#questions-for-review)).
+
+## Commit trailers
+
+| Id  | Severity | Rule                                                                       | Source                                                                                     | Entry                          |
+|-----|----------|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|--------------------------------|
+| H1  | warning  | A trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task | SYNTAX Commit trailers: "a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it." | `unknown-trailer` |
+| H2  | warning  | A `Reviewed:` commit by someone other than the junction's reviewer has no effect, and the audit reports it | README Status: "A `Reviewed:` commit from anyone other than the junction's reviewer has no effect, and the audit reports it." | `review-by-non-reviewer` |
+
+Both are warnings: a trailer is history, and history cannot make the files invalid after the fact.
 
 ## Derived facts, not rules
 
 The audit view reports where files and history disagree. A **proposed** task is such a disagreement, but no sentence makes it a validator finding, so `expected.yaml` carries it as the derived fact `authorisation.state` and not as a finding. The corpus treats **requirement conditions**, **resolved junctions**, **status dates and recorders**, **roll-up** and **events** the same way: a conforming tool must agree on them, and a validator says nothing about them.
 
-## Candidate rules the text does not state
+## Candidate rules, resolved
 
-The corpus has no entry for these; the review decides whether the text should state them, and then an entry follows.
-
-| Candidate                                                                                        | Why it matters                                                                                       |
-|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| `states` includes `undefined` and `complete`, both with severity 0                                | S4 and S8 name them; roll-up assumes they "step aside", which only severity 0 gives                   |
-| At least one gate after `undefined` applies to every task                                        | Otherwise a task has no first applicable gate for a default `to` and its last applicable gate is `undefined` |
-| `to` is never `undefined`                                                                         | "defaulting to its first applicable gate after `undefined`" suggests it, and no work needs a result before definition |
-| A plain or recursive entry at `undefined`                                                         | J2 covers not-applicable only; whether a contributor at `undefined` means anything is unstated       |
-| `complete` appears only at the last applicable gate                                              | S8 gives the converse only                                                                           |
-| A trailer names a task and a gate that exist                                                     | `Authorised: zzzz` or `Reviewed: 9f31 nowhere` is silently ignored today                             |
-| A `Reviewed:` commit by someone other than the junction's reviewer                               | Ignored today, as the text implies, but an audit could report it                                     |
-| Two siblings with the same `order`                                                                | Legal, since id breaks the tie; a tool could warn                                                    |
+The first design draft listed eight candidate rules the text did not state. The design review accepted every one, and the text now states them: G12 (`undefined` and `complete` states), J12 (one applicable gate after `undefined`), R10 (`to` never `undefined`), J11 (no plain or recursive entry at `undefined`), S12 (`complete` only at the last applicable gate), H1 (trailers name what exists), H2 (a review from the wrong hand), and T12 (siblings with one `order`). Each has its entry above.
