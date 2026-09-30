@@ -1,4 +1,4 @@
 gate: defined
 state: nominal
 reason: review
-note: The VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's review at the design gate
+note: The revised VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's acceptance at the design gate
