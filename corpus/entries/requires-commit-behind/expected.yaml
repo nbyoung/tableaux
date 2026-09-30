@@ -2,7 +2,7 @@
 # library's trunk, main, has reached L2, where it stands at design. The requirement is due and unmet at L1
 # (R9) and would be met at the tip (R13): two warnings. A commit that merely lags the trunk warns of nothing.
 entry: requires-commit-behind
-language: 0.3.0
+language: 0.3.1
 valid: true
 replace: { "https://example.org/lib.git": lib }
 

@@ -2,7 +2,7 @@
 # from the weather station at the trunk's tip. Commits are named by the labels
 # history.sh records; build/weather-station.labels.txt maps them to hashes.
 entry: weather-station
-language: 0.3.0
+language: 0.3.1
 trunk: { stated: main }
 ref: main
 valid: true

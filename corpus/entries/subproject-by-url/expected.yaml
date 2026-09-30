@@ -2,7 +2,7 @@
 # junction names: L1 at U1, then L2 at U2. The library's tip, L3, lies beyond. No submodule pins it;
 # `replace` maps the URL to the tree built beside the entry, as a tool's mapping maps it to a clone.
 entry: subproject-by-url
-language: 0.3.0
+language: 0.3.1
 valid: true
 findings: []
 replace: { "https://example.org/lib.git": lib }

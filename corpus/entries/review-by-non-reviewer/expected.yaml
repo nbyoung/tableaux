@@ -1,7 +1,7 @@
 # expected.yaml : a Reviewed commit from someone other than the junction's reviewer has no effect (H2, a warning).
 # b2c9 stays at defined, since a status at design would still lack a review (S11).
 entry: review-by-non-reviewer
-language: 0.3.0
+language: 0.3.1
 valid: true
 
 findings:

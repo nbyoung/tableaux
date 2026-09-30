@@ -1,7 +1,7 @@
 # expected.yaml : two trailers name nothing (H1, warnings) and change no derived fact.
 # The Model trailer on U3 names no task by design and draws no finding.
 entry: unknown-trailer
-language: 0.3.0
+language: 0.3.1
 valid: true
 
 findings:

@@ -1,6 +1,6 @@
 # expected.yaml : A requirement's to gate is undefined.
 entry: requires-to-undefined
-language: 0.3.0
+language: 0.3.1
 valid: false
 findings:
   - { rule: R10, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: undefined }

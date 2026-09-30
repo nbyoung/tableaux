@@ -2,7 +2,7 @@
 # by URL and commit (M1 at U1, M2 at U2: a pin event), and the requirement is met at M2. c3d7 requires the
 # submodule's leaf, 5a00, at the pin S1, where it stands at defined, so the requirement is pending.
 entry: requires-across-projects
-language: 0.3.0
+language: 0.3.1
 valid: true
 findings: []
 replace: { "https://example.org/umbrella.git": umbrella }

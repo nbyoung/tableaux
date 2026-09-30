@@ -5,5 +5,5 @@ assignee: pat@example.org
 references:
   - { url: README.md }
 junctions:
-  design: { subproject: { url: sub, commit: 22369f31f63a880e60a9d2e0dccd18bea6e91c87 } }
+  design: { subproject: { url: sub, commit: 7d2a2e749ca6def9fc5ce27ffeb28e5717d9d981 } }
 parent: { id: "e4a1", order: 1 }
