@@ -1,0 +1,30 @@
+# expected.yaml : pat's S2 records the hand-off with the reason `review`; olive's S3 carries
+# `Reviewed: b2c9 design`, yet the status at the tip still states `review` at defined, so the
+# hand-off is stale (H5, a warning). The status does not pass design, so `reviews` stays empty
+# and S11 stays silent; the contributor clears the finding by recording the gate.
+entry: handoff-stale
+language: 0.3.1
+valid: true
+
+findings:
+  - { rule: H5, severity: warning, task: "b2c9", gate: design, commit: S3,
+      message: "The status still states review after olive accepted design in S3" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: S1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: pat@example.org, reviewer: olive@example.org, source: "b2c9" }
+    reviews: []                              # the status stands at defined, so it passes no reviewed junction yet
+    status: { gate: defined, state: nominal, reason: review, note: The design awaits olive's review, date: 2026-09-02, recorder: pat@example.org, commit: S2 }
+    events:
+      - { date: 2026-09-01, commit: S1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: S1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: S2, by: pat@example.org, task: "b2c9", event: status, gate: defined, state: nominal, reason: review, note: The design awaits olive's review }
+      - { date: 2026-09-03, commit: S3, by: olive@example.org, task: "b2c9", event: reviewed, gate: design }

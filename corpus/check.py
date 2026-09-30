@@ -45,12 +45,14 @@ PLAIN = {"contributor", "model", "reviewer", "references"}
 TASK_FIELDS = {"title", "description", "assignee", "references", "requires", "junctions", "parent"}
 REQ_FIELDS = {"id", "subproject", "from", "to", "text"}
 SUB_FIELDS = {"url", "id", "commit"}
-NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3"}
+NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3", "H4", "H5", "H6"}
 BUILT = {"J17"}                    # rules the check reads from the built repositories; with no build, only stated
 # Rules whose violation the schemas alone reject. The rest need more than a schema says.
 SCHEMA_RULES = {"P3", "G2", "G3", "G4", "G5", "G7", "G8", "G11", "G12", "T2", "T3", "T4", "T5", "T6", "T11",
                 "R8", "R11", "J2", "J4", "J5", "J6", "J7", "J10", "J11", "J14", "S3", "S4"}
-WARNINGS = {"P5", "T7", "T12", "R9", "R12", "R13", "J13", "H1", "H2", "H3"}
+WARNINGS = {"P5", "T7", "T12", "R9", "R12", "R13", "J13", "H1", "H2", "H3", "H5", "H6"}
+INFORMATION = {"H4"}               # leaves the project valid and marks nothing wrong
+LENIENT = WARNINGS | INFORMATION   # every rule whose finding is not an error
 
 
 def load(path):
@@ -987,10 +989,10 @@ def check_entry(name, problems):
         problems.append("%s: expected.yaml names entry %s" % (name, exp.get("entry")))
     findings = exp.get("findings") or []
     for f in findings:
-        sev = "warning" if f["rule"] in WARNINGS else "error"
+        sev = "warning" if f["rule"] in WARNINGS else "information" if f["rule"] in INFORMATION else "error"
         if f.get("severity") != sev:
             problems.append("%s: rule %s has severity %s" % (name, f["rule"], f.get("severity")))
-    errors = [f for f in findings if f["rule"] not in WARNINGS]
+    errors = [f for f in findings if f["rule"] not in LENIENT]
     if bool(exp.get("valid")) == bool(errors):
         problems.append("%s: valid is %s with %d errors" % (name, exp.get("valid"), len(errors)))
     if "source" in exp:
@@ -1025,7 +1027,7 @@ def compare(name, exp, proj, built, problems):
     got = sorted(x for x in proj.findings if keep(x[0], x[1]))
     if want != got:
         problems.append("%s: findings differ\n  got  %s\n  want %s" % (name, got, want))
-    errors = [f for f in findings if f["rule"] not in WARNINGS]
+    errors = [f for f in findings if f["rule"] not in LENIENT]
     if not (os.path.isdir(p) and not errors):
         return
     if "root" in exp and proj.root != exp["root"]:

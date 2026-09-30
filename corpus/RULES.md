@@ -2,7 +2,7 @@
 
 Every rule a validator applies to a Tableaux project, read from [README.md](../README.md) and [SYNTAX.md](../SYNTAX.md). Each rule gives the sentence or schema constraint it comes from, the file it applies to, and the corpus entry that exercises it. A finding in an entry's `expected.yaml` names a rule by its id.
 
-Severity: an **error** makes the project invalid; a **warning** leaves it valid, and a tool reports it. Every rule has a sentence of its own: the design review added one to README.md for J8, J9 and S7, which the first draft marked implicit.
+Severity: an **error** makes the project invalid; a **warning** leaves it valid, and a tool reports it; **information** leaves it valid and marks nothing wrong, and the audit shows it. Every rule has a sentence of its own: the design review added one to README.md for J8, J9 and S7, which the first draft marked implicit.
 
 ## Project and `version.yaml`
 
@@ -115,14 +115,16 @@ The design review kept S11 an error (question Q1 in [README.md](README.md#questi
 |-----|----------|----------------------------------------------------------------------------|--------------------------------------------------------------------------------------------|--------------------------------|
 | H1  | warning  | A task trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; `Model:` names no task | SYNTAX Commit trailers: "a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it." | `unknown-trailer` |
 | H2  | warning  | A `Reviewed:` commit by someone other than the junction's reviewer has no effect, and the audit reports it | README Status: "A `Reviewed:` commit from anyone other than the junction's reviewer has no effect, and the audit reports it." | `review-by-non-reviewer` |
-
 | H3  | warning  | A commit at a junction carries a `Model:` trailer that names a model outside the junction's stated `model`, read as an identifier or a prefix | README Junctions: "the audit reports a commit at the junction whose trailer names a model outside the one stated" | `model-mismatch`; also `junction-kinds` |
+| H4  | information | A task whose next junction has a reviewer, whose newest event is the contributor's and whose status states no `review`: a hand-off the history implies, or work in progress | README Status: "it reports, as information, a task whose next junction has a reviewer, whose newest event is the contributor's and whose status states no `review`" | `handoff-inferred` |
+| H5  | warning  | A status that still states the reason `review` after the reviewer's `Reviewed:` commit for that junction: a stale hand-off | README Status: "it reports a status that still states `review` after the reviewer's `Reviewed:` commit for that junction" | `handoff-stale` |
+| H6  | warning  | A commit at a junction that states a `model`, by its contributor, carries no `Model:` trailer; a commit at which `version.yaml` states a language before 0.2.1 is exempt | README Junctions: "a commit at the junction by its contributor that carries no trailer, unless the project's `version.yaml` at that commit states a language before 0.2.1" | `model-trailer-missing` |
 
-All three are warnings: a trailer is history, and history cannot make the files invalid after the fact.
+None is an error: a trailer is history, and history cannot make the files invalid after the fact. H4 is information, since the work may be in progress and nothing is wrong.
 
 ## Derived facts, not rules
 
-The audit view reports where files and history disagree. A **proposed** task is such a disagreement, but no sentence makes it a validator finding, so `expected.yaml` carries it as the derived fact `authorisation.state` and not as a finding. The corpus treats **requirement conditions**, **resolved junctions**, **status dates and recorders**, **roll-up** and **events** the same way: a conforming tool must agree on them, and a validator says nothing about them.
+The audit view reports where files and history disagree. A **proposed** task is such a disagreement, but no sentence makes it a validator finding, so `expected.yaml` carries it as the derived fact `authorisation.state` and not as a finding. The corpus treats **requirement conditions**, **resolved junctions**, **status dates and recorders**, **roll-up** and **events** the same way: a conforming tool must agree on them, and a validator says nothing about them. A roll-up tie breaks by display order (README Status, step 3), and the entry `roll-up-tie` fixes it as a derived fact.
 
 ## Candidate rules, resolved
 
