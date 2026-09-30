@@ -1,4 +1,3 @@
-gate: defined
+gate: design
 state: nominal
-reason: review
-note: The revised VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's acceptance at the design gate
+note: VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place
