@@ -6,10 +6,11 @@ description: >
   attributes its work to the person and the audit cannot see it. This task
   decides the rule: an agent commits with its own identity, or the method reads
   the trailer, or both. It also decides who reviews an agent by default when
-  the assignee is itself an agent.
+  the assignee is itself an agent, and how the model a junction states reaches
+  the agent and how the model that ran reaches the history.
 assignee: nbyoung@nbyoung.com
 references:
-  - { url: PLAN.md#findings, text: "Findings F1, F2 and F10" }
+  - { url: PLAN.md#findings, text: "Findings F1, F2, F10 and F20" }
 junctions:
   mockup:    { applies: false }
   function:  { applies: false }
