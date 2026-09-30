@@ -23,6 +23,7 @@ The plan proposes; the owner decides. Each decision that goes the other way chan
 | D3 | Agent Git identity         | Agents commit as `noreply@anthropic.com` until task `ac33` decides the rule                 | Every `contributor` and agent `assignee` field    |
 | D4 | Review policy              | The owner reviews mockup, design, validation and release; agents own execution subtrees; see F2 | The root task's junctions and the assignees       |
 | D5 | Authorise the plan         | Commit `.tableaux/` and this document on `main`                                             | Every task turns from proposed to authorised      |
+| D7 | Model per gate             | A model family per junction, stated by prefix (F20): `claude-haiku` records `defined`, `claude-sonnet` builds and tests, `claude-opus` designs and draws mockups, `claude-fable` designs the language; see [Review policy](#review-policy) | The root tasks' junctions here and in each subproject, `bc63`, and three `tablo` leaves |
 | D6 | Defer the findings         | The [findings](#findings) resolve through tasks `ac33`, `9f3f` and `7166` (F19 joined `7166` and F20 joined `ac33` on 2026-09-30), not before D5    | Those tasks' design gates, which the owner reviews |
 
 ## Language
@@ -130,12 +131,16 @@ The twenty leaves under Markdown views and HTML views are the mockup tasks, one 
 
 The root task states junction defaults that every task inherits.
 
-| Gate                                         | Contributor | Reviewer                                    |
-|----------------------------------------------|-------------|---------------------------------------------|
-| defined                                      | Agent       | None stated; the authorisation stands as the review (F8, resolved) |
-| mockup, design, validate                     | Agent       | The owner                                   |
-| function, implementation, unit, integrate    | Agent       | None stated; the compiler, vet, tests and corpus stand in |
-| release                                      | The owner   | —                                           |
+| Gate                                         | Contributor | Model (D7)                        | Reviewer                                    |
+|----------------------------------------------|-------------|-----------------------------------|---------------------------------------------|
+| defined                                      | Agent       | `claude-haiku`                    | None stated; the authorisation stands as the review (F8, resolved) |
+| mockup                                       | Agent       | `claude-opus`                     | The owner                                   |
+| design                                       | Agent       | `claude-opus`; `claude-fable` under Method | The owner                          |
+| function, implementation, unit, integrate    | Agent       | `claude-sonnet`; `claude-opus` for tablo's semantics | None stated; the compiler, vet, tests and corpus stand in |
+| validate                                     | Agent       | `claude-sonnet`; `claude-opus` under Method | The owner                         |
+| release                                      | The owner   | —                                 | —                                           |
+
+The model column estimates the least capable model that does each gate's work well, so that the effort's cost follows its difficulty. Recording `defined` is clerical: the criteria already hold once the owner authorises, and `claude-haiku` writes the status. Building, testing and integrating Go against a design and a corpus is bounded work with a compiler and tests as the reviewer, and `claude-sonnet` carries it; `tablo`'s loader, validator, derivation and audit carry the method's semantics, so their implementation goes to `claude-opus`. A design or a mockup fixes what every later gate builds and the owner reviews it by eye, so `claude-opus` draws it. The language itself, the Method branch's design and the abstract views, goes to `claude-fable`, and the Method's validation, which shows that tools and corpus follow the text, goes to `claude-opus`. Each name is a prefix, so a revision within a family needs no plan change, and the `Model:` trailer on every agent commit lets the evidence report test the estimate against what each gate in fact cost.
 
 The method gives an agent contributor with no stated reviewer the assignee as reviewer. The choice of assignee therefore decides where human review falls at the gates the owner leaves unstated. Owner-assigned tasks, which are the method decisions `ac33`, `9f3f` and `7166` and the four subproject roots, get the owner's review at every gate. Agent-assigned subtrees, which are the roles, views, mockups, schemas, corpus, evidence and every subproject leaf, review themselves at the execution gates: the commit that records such a status carries `Reviewed: <id> <gate>`, authored by the agent, so the status passes rule S11 of the corpus without a second commit. Every agent commit also carries `Model:` with the model that ran (F20), and a dispatcher passes the junction's `model` to the agent it spawns. The tableau below shows the result in each cell.
 

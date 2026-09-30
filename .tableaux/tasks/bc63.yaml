@@ -10,4 +10,7 @@ assignee: nbyoung@nbyoung.com
 references:
   - { url: README.md, text: The Tableaux method }
   - { url: SYNTAX.md, text: The Tableaux syntax }
+junctions:
+  design:   { contributor: noreply@anthropic.com, model: claude-fable }
+  validate: { contributor: noreply@anthropic.com, model: claude-opus }
 parent: { id: "437e", order: 1 }
