@@ -1,0 +1,3 @@
+gate: defined
+state: nominal
+note: Design waits for Roles (c2ad) at design
