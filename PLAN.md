@@ -107,7 +107,7 @@ In this plan the owner holds owner, authority, assignee and reviewer, and the ag
 
 ## Views
 
-Every view answers one question, takes the same focusing parameters (a task, a person, a gate window or a list of columns, a ref or a ref range, and the role that sets the disclosure level) and renders in both formats.
+Every view answers one question, takes the same focusing parameters (a task, a person, a gate window or a list of columns, a switch for the historical junctions, a ref or a ref range, and the role that sets the disclosure level) and renders in both formats.
 
 | View                   | Question                                    | Roles                                 | Markdown                                                   | HTML                                                                    |
 |------------------------|---------------------------------------------|---------------------------------------|------------------------------------------------------------|-------------------------------------------------------------------------|
@@ -124,7 +124,7 @@ Every view answers one question, takes the same focusing parameters (a task, a p
 
 Markdown is the static medium: one file, plain tables and symbols, no script, so it travels as an attachment, a chat message, a `STATUS.md` that CI regenerates, or a brief in an agent's prompt. `tabloio` also writes each view as a Unicode drawing for places with no Markdown viewer; that format shares the Markdown mockups' content and needs none of its own. Scripts take the view data as JSON or YAML from `tablo`. HTML is the interactive medium: a page from a local daemon with progressive disclosure per role, or the same pages exported as a static bundle.
 
-Gate columns follow one rule in every format. Long-complete junctions and far-off ones rarely bear on a near-term decision, so a tableau opens on a **gate window**: the next gates of the tasks in view and a few columns either side, with the columns outside folded to a count of what they hold. The window is a default the view computes, not a policy a role imposes. From there the viewer hides or shows any column, and the choice persists: in the browser for HTML, in a settings file for the terminal, and in a flag for Markdown, where CI fixes it once. A link to an HTML page carries the columns it shows, so a shared page opens as its sender saw it.
+Gate columns follow one rule in every format. Long-complete junctions and far-off ones rarely bear on a near-term decision, so a tableau opens on a **gate window**: the next gates of the tasks in view and one column either side, with each column outside folded to the count of tasks whose current gate lies in it, as `e9c6`'s design review decided. The window is a default the view computes, not a policy a role imposes. A cell before a task's current gate is historical and shows no mark unless the viewer asks for the historical junctions. From there the viewer hides or shows any column, and the choice persists: in the browser for HTML, in a settings file for the terminal, and in a flag for Markdown, where CI fixes it once. A link to an HTML page carries the columns it shows, so a shared page opens as its sender saw it.
 
 The twenty leaves under Markdown views and HTML views are the mockup tasks, one per view per format. An agent makes each mockup by hand and depicts this project in it, so the owner reviews each design against work they know. [The plan at a glance](#the-plan-at-a-glance) below stands in for the global tableau in Markdown until task `ab8e` replaces it.
 

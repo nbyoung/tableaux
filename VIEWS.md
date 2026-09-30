@@ -2,7 +2,7 @@
 
 A view is what a Tableaux tool shows. This document defines each view once, independently of any format: the question it answers, the roles it serves, the data it draws from the project and the history, the parameters that focus it, and the levels at which it discloses. [PLAN.md](PLAN.md#views) proposes the views, the mockups under `docs/mockups/` give each a form in Markdown and in HTML, `tablo` derives each as data, and each front end renders it. [README.md](README.md) gives the meaning of every term this document uses, and [README.md#roles](README.md#roles) the roles.
 
-Every example comes from this project's own plan as it stands on `main` at commit `bf58fad`, 2026-09-30, before this design's hand-off, so that the owner reviews the design against work they know. An example shows content, not form; the mockups fix the form.
+Every example comes from this project's own plan as it stands on `main` at commit `1b6916e`, 2026-09-30, before this design's hand-off, so that the owner reviews the design against work they know. An example shows content, not form; the mockups fix the form.
 
 - [What every view shares](#what-every-view-shares)
 - [Gate definition](#gate-definition)
@@ -15,7 +15,7 @@ Every example comes from this project's own plan as it stands on `main` at commi
 - [Contextual tableau](#contextual-tableau)
 - [History](#history)
 - [Audit](#audit)
-- [Questions for review](#questions-for-review)
+- [Decisions at review](#decisions-at-review)
 - [Findings about the method](#findings-about-the-method)
 
 ## What every view shares
@@ -26,37 +26,40 @@ A view shows nothing a tool does not derive from the project files and the Git h
 
 | Fact                   | Content                                                                                                   | Defined in                                                                 |
 |------------------------|-----------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
-| Gates                  | The gates, states and reasons in order, with symbols, criteria, severities and synopses                    | [README.md#gates](README.md#gates)                                          |
+| Gates                  | The gates, states and reasons in order, with symbols, criteria, severities and synopses; the reserved reason `review` | [README.md#gates](README.md#gates)                               |
 | Tree                   | The root, each task's parent and children, in display order: `order` ascending, then id                   | [README.md#tasks](README.md#tasks)                                          |
 | Authorities            | The assignees of a task's ancestors, nearest first                                                        | [README.md#tasks](README.md#tasks)                                          |
 | Resolved junctions     | Each task's junction at each gate: its kind and fields, and for each field the task whose entry supplies it, or the plain default | [README.md#junctions](README.md#junctions)                    |
 | Applicable gates       | The gates a task passes through, and its first and last applicable gate                                   | [README.md#junctions](README.md#junctions)                                  |
-| Requirement conditions | Each `requires` entry with `from` and `to` resolved and its condition: met, due, unmet; and the reverse relation, the tasks that require a given task, called its dependents here | [README.md#tasks](README.md#tasks) |
+| Requirement conditions | Each `requires` entry, local by `id` or cross-project by `subproject` with `url`, `id` and `commit`, with `from` and `to` resolved and its condition: met, due, unmet; a cross-project entry reads its originating task at the commit the linkage fixes; and the reverse relation, the tasks that require a given task, called its dependents here | [README.md#tasks](README.md#tasks) |
 | Authorisation          | Authorised or proposed, the deciding commit, and whether its author or its committer is the authority     | [README.md#proposed-and-authorised-tasks](README.md#proposed-and-authorised-tasks) |
 | Status                 | A leaf's gate, state, reason and note, with the date and recorder its deciding commit gives; a leaf without a file at `undefined` | [README.md#status](README.md#status)                        |
 | Reviews                | For each reviewed junction the status passes, the `Reviewed:` commit that accepts it                      | [README.md#status](README.md#status)                                        |
-| Roll-up                | A parent's derived status and the child it comes from                                                     | [README.md#status](README.md#status)                                        |
-| Subproject snapshot    | For a recursive junction, the subproject task read at the pinned commit                                   | [README.md#junctions](README.md#junctions)                                  |
-| Events                 | The history: task, authorised, status, reaffirmed and reviewed events, and the change of a pin, each with its date, commit and actor | [README.md#history](README.md#history), [SYNTAX.md#history](SYNTAX.md#history) |
+| Roll-up                | A parent's derived status and the child it comes from; a tie breaks by display order                      | [README.md#status](README.md#status)                                        |
+| Subproject snapshot    | For a recursive junction, the subproject task read at the commit its `url` fixes: a submodule's pin, the parent's own commit for a same-repository path, or the stated `commit` for an absolute URL | [README.md#junctions](README.md#junctions) |
+| Events                 | The history: task, authorised, status, reaffirmed, reviewed and pin events, each with its date, commit and actor; a pin event names the `url` and the old and new commit | [README.md#history](README.md#history), [SYNTAX.md#history](SYNTAX.md#history) |
 | Models                 | The `Model:` trailer on each commit at a junction, against the model the junction states                  | [SYNTAX.md#commit-trailers](SYNTAX.md#commit-trailers)                      |
 | Findings               | What a validator reports, by rule                                                                         | [corpus/RULES.md](corpus/RULES.md)                                          |
-
-The change of a pin is an event README.md names and the history schema does not (finding F12); the views show it as `pin` until task `9f3f` decides.
 
 ### Parameters
 
 Every view takes the same parameters. Each view's section says which apply to it and what its default is; a parameter a view does not name has no effect on it.
 
-| Parameter          | Focuses                                                                                                                                       | Default                                                     |
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
-| task               | One task, or the subtree under it                                                                                                             | The root                                                    |
-| person             | One email: the tasks, junctions and commits in which it appears                                                                               | The viewer                                                  |
-| window or columns  | The gate columns shown: a window of *n* columns either side of the next gates of the tasks in view, or an explicit list; the columns outside fold to a count | A window of one                              |
-| ref, or a range    | The commit whose files and history are in view; a range bounds the history                                                                    | `HEAD` of the checkout; authorisation always reads the trunk |
-| role               | The role whose level the view opens at                                                                                                        | The viewer's role at each item                              |
-| level              | The level, overriding the role's                                                                                                              | —                                                           |
+| Parameter            | Focuses                                                                                                                                       | Default                                                     |
+|----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
+| task                 | One task, or the subtree under it                                                                                                             | The root                                                    |
+| person               | One email: the tasks, junctions and commits in which it appears                                                                               | The viewer                                                  |
+| window or columns    | The gate columns shown: a window of *n* columns either side of the next gates of the tasks in view, or an explicit list; the columns outside fold to a count | A window of one                              |
+| historical junctions | Whether a tableau shows the junction marks of a task's historical junctions                                                                   | False                                                       |
+| ref, or a range      | The commit whose files and history are in view; a range bounds the history                                                                    | `HEAD` of the checkout; authorisation always reads the trunk |
+| role                 | The role whose level the view opens at                                                                                                        | The viewer's role at each item                              |
+| level                | The level, overriding the role's                                                                                                              | —                                                           |
 
-The **viewer** is whoever runs the tool, identified by the email Git would commit with. An agent that runs inside a person's session shares that person's email, so a dispatcher names the agent by `person`. An observer has no email in the project and sees every view at glance. Two views take a parameter of their own: the work queue's `brief` and the audit's `stale` age.
+The **viewer** is whoever runs the tool, identified by the email Git would commit with. An agent that runs inside a person's session shares that person's email, so a dispatcher names the agent by `person`. An observer has no email in the project and sees every view at glance.
+
+A task's **historical junctions** are its junctions at every gate before the gate its status names, applicable or not; for a parent, before its derived gate; a task at `undefined` has none. A tableau shows a historical cell empty, neither marks nor `—`, unless the historical-junctions parameter is on, since the work there is done and the marks would only say who did it.
+
+Two views take a parameter of their own: the work queue's `brief` and the audit's `stale` age.
 
 ### Levels
 
@@ -74,14 +77,14 @@ Every view discloses at three levels, and the levels nest. A format decides how 
 
 **Roles.** Every role. A contributor reads the criteria of the gate they work at, an observer reads the legend beside a static export, and every other view links here.
 
-**Data.** Gates. The language version and trunk from `version.yaml`. The junction marks, which belong to the method rather than to a project: 🤖 an agent contributes, 👀 a reviewer accepts, 🪆 a subproject does the work, — the gate does not apply, and 🧑 a person contributes, which PLAN.md uses and README.md does not define (finding F23). For one task, the junction references that expand a gate's criteria for it.
+**Data.** Gates. The language version and trunk from `version.yaml`. The junction marks, which belong to the method rather than to a project: 🧑 a person contributes, 🤖 an agent contributes, 👀 a reviewer accepts, 🪆 a subproject does the work, and — the gate does not apply. For one task, the junction references that expand a gate's criteria for it.
 
 **Parameters.** ref: the gates as they stand at that commit. task: the criteria as that task's junction references expand them. window or columns: those gates only.
 
 **Levels.**
 
 - glance: the gates in order with symbol and name; the states with symbol and key; the reasons with symbol and key; the junction marks.
-- detail: each gate's criteria, each state's severity and synopsis, each reason's synopsis; for a task, the references that expand each gate.
+- detail: each gate's criteria, each state's severity and synopsis, each reason's synopsis, with the reserved meaning of `review`; for a task, the references that expand each gate.
 - provenance: the language version, and the commit that last changed `gates.yaml` and `version.yaml`.
 
 **Example.** This project's `gates.yaml` drops the performance and reliability gates from the set SYNTAX.md shows.
@@ -89,7 +92,7 @@ Every view discloses at three levels, and the levels nest. A format decides how 
 | ❔ undefined | 📝 defined | 📌 mockup | ⚙️ function | 📐 design | 🛠️ implementation | 🧩 unit | 🖼️ integrate | 🌍 validate | 🚀 release |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 
-States ⚪ undefined 0 · 🟢 nominal 1 · 🟡 at_risk 2 · 🔴 stalled 3 · ✅ complete 0. Reasons 🪫 overloaded · ⛔ blocked · 👀 review. At detail, 📐 reads "A model and sufficient tests exist"; a task under the Method branch reads the gate as its parent `bc63` describes it, an outline with examples, which the task definition shows. The reason `review` shares 👀 with the reviewer mark; a cell that shows 🟢👀 states a state and a reason, and one that shows 🤖👀 states two marks.
+States ⚪ undefined 0 · 🟢 nominal 1 · 🟡 at_risk 2 · 🔴 stalled 3 · ✅ complete 0. Reasons 🪫 overloaded · ⛔ blocked · 👓 review. At detail, 📐 reads "A model and sufficient tests exist"; a task under the Method branch reads the gate as its parent `bc63` describes it, an outline with examples, which the task definition shows. 👓 beside a state says the contributor has handed the next junction's work to its reviewer; 👀 in a cell says a reviewer accepts the work there.
 
 ## Task definition
 
@@ -97,7 +100,7 @@ States ⚪ undefined 0 · 🟢 nominal 1 · 🟡 at_risk 2 · 🔴 stalled 3 · 
 
 **Roles.** Every role. The assignee and the contributor read their own task, the reviewer reads what they accept, an agent reads it as the expansion of its brief, and an authority reads a proposal before accepting it.
 
-**Data.** The task file entire. Tree: parent, order, children. Authorities. Resolved junctions and applicable gates. Requirement conditions, both ways. Authorisation. Status, or for a parent the roll-up, or for a recursive next junction the subproject snapshot. Reviews. Models. The newest events.
+**Data.** The task file entire. Tree: parent, order, children. Authorities. Resolved junctions and applicable gates, with the three `url` forms of a recursive junction and the commit each fixes. Requirement conditions, both ways, with a cross-project entry shown by its `url`, `id` and the commit it reads. Authorisation. Status, or for a parent the roll-up, or for a recursive next junction the subproject snapshot. Reviews. Models. The newest events.
 
 **Parameters.** task, required. ref. person marks the positions the person holds in this task. window or columns restricts the junction list; the default shows every gate, since one task's row is short.
 
@@ -105,15 +108,15 @@ States ⚪ undefined 0 · 🟢 nominal 1 · 🟡 at_risk 2 · 🔴 stalled 3 · 
 
 - glance: id, title, assignee, parent, and the status line: gate, state, reason, note, date, recorder.
 - detail: the description and references; each requirement with its text and condition, and the dependents; every junction with its resolved fields and its marks; the authorisation state.
-- provenance: the ancestor each junction field resolves from; the deciding commits of the authorisation and the status, with hash, date, author and committer; the review commits; the last few events, and the command that lists them all.
+- provenance: the ancestor each junction field resolves from; the deciding commits of the authorisation and the status, with hash, date, author and committer; the review commits; the commit a linkage reads and how its `url` fixes it; the last few events, and the command that lists them all.
 
 **Example.** `e9c6` Abstract views at glance:
 
 > `e9c6` **Abstract views** — noreply@anthropic.com — under `2034` Views, order 1 — 📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com: Design waits for Roles (c2ad) at design
 
-At detail, the requirement on `c2ad` from design to design, "The role names the views refer to", is met, since `c2ad` stands at design, and due, since the next gate is design. The junctions read: mockup, function, unit, integrate —; defined 🤖 `claude-haiku`; design 🤖👀 `claude-fable`, reviewer nbyoung@nbyoung.com; implementation 🤖 `claude-sonnet`; validate 🤖👀 `claude-opus`; release 🧑 nbyoung@nbyoung.com. Twenty-one tasks depend on it: the twenty mockups at mockup and `77b2` at design. The task is authorised.
+At detail, the requirement on `c2ad` from design to design, "The role names the views refer to", is met, since `c2ad` stands at implementation, and due, since the next gate is design. The junctions read: mockup, function, unit, integrate —; defined 🤖 `claude-haiku`; design 🤖👀 `claude-fable`, reviewer nbyoung@nbyoung.com; implementation 🤖 `claude-sonnet`; validate 🤖👀 `claude-opus`; release 🧑 nbyoung@nbyoung.com. Twenty-one tasks depend on it: the twenty mockups at mockup and `77b2` at design. The task is authorised.
 
-At provenance, the design junction takes its contributor and model from `bc63` and its reviewer from `437e`; the authorisation is the plan commit `6b6c99a` by nbyoung@nbyoung.com on 2026-09-29; the status is `1a17bfc`; and `5958858` carries `Reviewed: e9c6 defined` from the assignee, the agent's reviewer at defined, which has no effect because the authorisation stands as the review there.
+At provenance, the design junction takes its contributor and model from `bc63` and its reviewer from `437e`; the authorisation is the plan commit `6b6c99a` by nbyoung@nbyoung.com on 2026-09-29; the status is `1a17bfc`; and `5958858` carries `Reviewed: e9c6 defined` from the assignee, the agent's reviewer at defined, which has no effect because the authorisation stands as the review there. For `77b2` tablo, the same level shows the recursive junction's `url`, `subprojects/tablo`, as a submodule path and the commit it pins, `7e94d58`.
 
 ## Authority delegation
 
@@ -167,7 +170,7 @@ Every task is authorised. At provenance, thirty-three read the plan commit `6b6c
 
 **Levels.**
 
-- glance: one row per email: tasks assigned, junctions to contribute next, reviews to accept next, and for an agent its models.
+- glance: one row per email: tasks assigned, junctions to contribute next, junctions to review next, and for an agent its models.
 - detail: per email, the lists: tasks with their status; junctions by gate, with the model and the reviewer.
 - provenance: for each position, the file and the ancestor that states it, or the plain default.
 
@@ -175,10 +178,10 @@ Every task is authorised. At provenance, thirty-three read the plan commit `6b6c
 
 | Email                  | Assigned | Contributes next | Reviews next | Models                                                                                  |
 |------------------------|---------:|-----------------:|-------------:|-----------------------------------------------------------------------------------------|
-| nbyoung@nbyoung.com    | 10       | 0                | 0            | —                                                                                       |
-| noreply@anthropic.com  | 27       | 32               | 0            | `claude-haiku`, `claude-opus`, `claude-sonnet`, `claude-fable`                          |
+| nbyoung@nbyoung.com    | 10       | 0                | 27           | —                                                                                       |
+| noreply@anthropic.com  | 27       | 28               | 0            | `claude-haiku`, `claude-opus`, `claude-sonnet`, `claude-fable`                          |
 
-At detail, the owner contributes at release on every task and reviews mockup, design and validate on every task, both from `437e`; the agent contributes next at defined on `9f3f` and the four subprojects, at mockup on the twenty mockups, at design on `e9c6`, at implementation on `c2ad`, `fcec`, `ac33`, `7861` and `7166`, and at unit on `e3cb`. Its model at design is `claude-opus` from `437e` except under the Method branch, where `bc63` states `claude-fable`.
+At detail, the owner contributes at release on every task and reviews mockup, design and validate on every task, both from `437e`, and reviews the agent at every junction of the tasks the owner is assigned; the agent contributes next at validate on `c2ad`, `e3cb` and `7861`, at design on `e9c6`, at unit on `fcec`, at implementation on `ac33`, `9f3f` and `7166`, and at mockup on the twenty mockups. The four subprojects' next junctions are recursive, so nobody in this project contributes there. The agent's model at design is `claude-opus` from `437e` except under the Method branch, where `bc63` states `claude-fable`.
 
 ## Contributor work queue
 
@@ -188,13 +191,13 @@ At detail, the owner contributes at release on every task and reviews mockup, de
 
 **Data.** For one person, the items where the person acts, in five kinds and in this order:
 
-1. **Reviews owed.** Tasks whose next junction names the person as reviewer and whose status carries the reason `review`, which is this project's hand-off signal (finding F22).
+1. **Reviews owed.** Tasks whose next junction names the person as reviewer and whose status carries the reason `review`, the hand-off the method reserves that key for.
 2. **Authorisations owed.** Proposed tasks in a subtree the person has authority over.
-3. **Work ready.** Junctions at a task's next gate where the person is the contributor and every due requirement is met.
+3. **Work ready.** Junctions at a task's next gate where the person is the contributor and every due requirement is met, a cross-project one read at the commit its linkage fixes.
 4. **Reaffirmations.** Statuses the person recorded and has not reaffirmed for longest, oldest first.
 5. **Work waiting.** Junctions as in 3 with an unmet requirement or a `blocked` or `overloaded` reason, each with its cause, so that nobody starts them.
 
-Reviews come first because each one unblocks other people's work; within a kind, items follow display order. Each item draws from resolved junctions, requirement conditions, status, reviews, authorisation, gates and models.
+Reviews come first because each one unblocks other people's work; within a kind, items follow display order. Each item draws from resolved junctions, requirement conditions, status, reviews, authorisation, gates and models. A task whose next junction is recursive is no item for anyone in this project: the subproject's own queue holds its work.
 
 **Parameters.** person: the viewer by default; a dispatcher names the agent. task: within a subtree. window or columns: items at those gates only. ref. brief: a task and a gate, which writes that one item as a brief.
 
@@ -208,15 +211,14 @@ Reviews come first because each one unblocks other people's work; within a kind,
 
 | Kind         | Task                              | Gate           | Model          |
 |--------------|-----------------------------------|----------------|----------------|
+| Work ready   | `c2ad` Roles                      | validate       | `claude-opus`  |
 | Work ready   | `e9c6` Abstract views             | design         | `claude-fable` |
-| Work ready   | `c2ad` Roles                      | implementation | `claude-sonnet` |
-| Work ready   | `e3cb` Schema files               | unit           | `claude-sonnet` |
-| Work ready   | `fcec` Conformance corpus         | implementation | `claude-sonnet` |
+| Work ready   | `e3cb` Schema files               | validate       | `claude-opus`  |
+| Work ready   | `fcec` Conformance corpus         | unit           | `claude-sonnet` |
 | Work ready   | `ac33` Agent identity             | implementation | `claude-sonnet` |
-| Work ready   | `9f3f` Subproject linkage         | defined        | `claude-haiku` |
-| Work ready   | `7861` Productivity evidence      | implementation | `claude-sonnet` |
+| Work ready   | `9f3f` Subproject linkage         | implementation | `claude-sonnet` |
+| Work ready   | `7861` Productivity evidence      | validate       | `claude-opus`  |
 | Work ready   | `7166` Language clarifications    | implementation | `claude-sonnet` |
-| Work ready   | `77b2` tablo, and three more      | defined        | `claude-haiku` |
 | Work waiting | `99f0` Gate definition view in Markdown, and nineteen more | mockup | `claude-opus`; waits for `e9c6` at design |
 
 The owner's queue is empty until this design hands off, when it reads one review owed: `e9c6` at design.
@@ -227,7 +229,7 @@ A brief is the queue's provenance level for one item, written so that an agent s
 
 1. The item: the task's id and title, the gate, its criteria, and the junction resolved: contributor, `model`, reviewer, and the task whose entry supplies each.
 2. The task: its description and references, its parent chain by title, and the description of the task whose entry supplies the contributor, since that entry is what sends the work to this agent.
-3. The requirements with their texts and conditions, and the dependents this junction unblocks.
+3. The requirements with their texts and conditions, a cross-project one with its `url`, `id` and the commit it reads, and the dependents this junction unblocks.
 4. The status with its note, date and recorder.
 5. The commit the agent makes when done: the status file it writes, with the reason `review` when a reviewer is stated and the gate passed with `Reviewed: <id> <gate>` when the agent reviews itself; the `Model:` trailer, with the exact identifier the harness reports, and the `Co-Authored-By:` trailer; the branch, and that the reviewer merges it.
 6. The commands that reproduce the brief and show the task.
@@ -273,7 +275,7 @@ Reproduce: tabloio queue --person noreply@anthropic.com --brief e9c6 design
 
 **Data.** The causes, and what each holds:
 
-- an unmet requirement: the originating task at its `from` gate holds the terminating tasks at their `to` gates;
+- an unmet requirement: the originating task at its `from` gate holds the terminating tasks at their `to` gates; a cross-project one reads as a local one, its originating task read at the commit the linkage fixes, and when that commit alone leaves it unmet (R13) the cause is the commit and the action is to advance it;
 - a status with the reason `blocked` or `overloaded`, or in the state `at_risk` or `stalled`: the task holds itself and its dependents;
 - a review outstanding: the reviewer at the junction holds the task and its dependents;
 - an authorisation outstanding: a proposed task holds itself and its dependents;
@@ -287,7 +289,7 @@ A held task holds its own dependents in turn, so the tree is transitive; a task 
 
 - glance: one line per cause with the person who resolves it and the count of tasks it holds, largest first.
 - detail: the tree: each cause expands to the tasks and gates it holds, each of those to what it holds in turn; then the requirements not yet due.
-- provenance: the requirement entry, the status file with its date and recorder, the deciding commit, and the command that resolves the cause.
+- provenance: the requirement entry, the status file with its date and recorder, the deciding commit, the commit a linkage reads, and the command that resolves the cause.
 
 **Example.** `main` has one cause.
 
@@ -307,41 +309,41 @@ Once this design hands off, the cause reads "`e9c6` design awaits review by nbyo
 
 **Roles.** The owner and an observer; every role reads it.
 
-**Data.** Tree, every task in display order and indented by depth, with every gate as a column. In the cell at a task's current gate, the gate its status names, the state symbol and, when present, the reason symbol. In every other applicable cell, the junction marks; in an exempt cell, —. For a parent, the roll-up, and the marks of the defaults it states. For a recursive next junction, the subproject snapshot. The date and note of each row.
+**Data.** Tree, every task in display order and indented by depth, with every gate as a column. In the cell at a task's current gate, the gate its status names, the state symbol and, when present, the reason symbol. In every other applicable cell at or after that gate, the junction marks; in an exempt cell there, —; in a historical cell, nothing, unless the historical-junctions parameter is on. For a parent, the roll-up, and the marks of the defaults it states. For a recursive next junction, the subproject snapshot. The date and note of each row.
 
-**Parameters.** ref. window or columns: the default window spans the next gates of every task in view with one column either side, and each folded column shows the count of tasks whose current gate lies in it. person marks the cells where the person acts.
+**Parameters.** ref. window or columns: the default window spans the next gates of every task in view with one column either side, and each folded column shows the count of tasks whose current gate lies in it. historical junctions: off by default. person marks the cells where the person acts.
 
 **Levels.**
 
 - glance: the rows to depth one: the root and its children, each with its derived status.
 - detail: every row.
-- provenance: on a cell, the status date, recorder and deciding commit; on a parent's cell, the child it rolls up from; on a mark, the ancestor that states it.
+- provenance: on a cell, the status date, recorder and deciding commit; on a parent's cell, the child it rolls up from; on a mark, the ancestor that states it; on a subproject's cell, the commit the snapshot is read at.
 
-**Example.** At glance on `main`, the root rolls up to defined and nominal from `bc63`, which rolls up from `2034`; the four subprojects stand undefined, since no status file records their defined gate.
+**Example.** At glance on `main`, every row stands at defined. The root rolls up to defined and nominal from `bc63`, which rolls up from `2034` and in turn from `e9c6`, since its children tie and display order decides. Each subproject's row takes its state from its root task at the pin, itself a roll-up: `tablo`'s from `4b4f` Conformance, the one leaf there still at defined.
 
 | Id     | Task                | ❔ | 📝 | 📌   | ⚙️ | 📐   | 🛠️ | 🧩 | 🖼️ | 🌍 | 🚀 |
 |--------|---------------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `437e` | **Tableaux tooling** |   | 🟢 | 🤖👀 | 🤖 | 🤖👀 | 🤖 | 🤖 | 🤖 | 🤖👀 | 🧑 |
 | `bc63` | &nbsp;&nbsp;**Method** |   | 🟢 | 🤖👀 | 🤖 | 🤖👀 | 🤖 | 🤖 | 🤖 | 🤖👀 | 🧑 |
-| `77b2` | &nbsp;&nbsp;tablo   | ⚪ | 🤖👀 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
-| `6103` | &nbsp;&nbsp;tabloio | ⚪ | 🤖👀 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
-| `c6e8` | &nbsp;&nbsp;tablotui | ⚪ | 🤖👀 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
-| `595e` | &nbsp;&nbsp;tableaud | ⚪ | 🤖👀 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
+| `77b2` | &nbsp;&nbsp;tablo   |   | 🟢 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
+| `6103` | &nbsp;&nbsp;tabloio |   | 🟢 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
+| `c6e8` | &nbsp;&nbsp;tablotui |   | 🟢 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
+| `595e` | &nbsp;&nbsp;tableaud |   | 🟢 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 | 🪆 |
 
 At detail the Method branch opens:
 
 | Id     | Task                        | ❔ | 📝 | 📌 | ⚙️ | 📐 | 🛠️ | 🧩 | 🖼️ | 🌍 | 🚀 |
 |--------|-----------------------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| `c2ad` | Roles                       |   | 🤖 | — | — | 🟢 | 🤖 | — | — | 🤖👀 | 🧑 |
+| `c2ad` | Roles                       |   |   |   |   |   | 🟢 | — | — | 🤖👀 | 🧑 |
 | `2034` | **Views**                   |   | 🟢 | 🤖👀 | 🤖 | 🤖👀 | 🤖 | 🤖 | 🤖 | 🤖👀 | 🧑 |
-| `e3cb` | Schema files                |   | 🤖 | — | — | 🤖👀 | 🟢 | 🤖 | — | 🤖👀 | 🧑 |
-| `fcec` | Conformance corpus          |   | 🤖 | — | — | 🟢 | 🤖 | 🤖 | 🤖 | 🤖👀 | 🧑 |
-| `ac33` | Agent identity              |   | 🤖👀 | — | — | 🟢 | 🤖👀 | — | — | 🤖👀 | 🧑 |
-| `9f3f` | Subproject linkage          | ⚪ | 🤖👀 | — | — | 🤖👀 | 🤖👀 | — | — | 🤖👀 | 🧑 |
-| `7861` | Productivity evidence       |   | 🤖 | — | — | 🟢 | 🤖 | — | — | 🤖👀 | 🧑 |
-| `7166` | Language clarifications     |   | 🤖👀 | — | — | 🟢 | 🤖👀 | — | — | 🤖👀 | 🧑 |
+| `e3cb` | Schema files                |   |   |   |   |   |   | 🟢 | — | 🤖👀 | 🧑 |
+| `fcec` | Conformance corpus          |   |   |   |   |   | 🟢 | 🤖 | 🤖 | 🤖👀 | 🧑 |
+| `ac33` | Agent identity              |   |   |   |   | 🟢 | 🤖👀 | — | — | 🤖👀 | 🧑 |
+| `9f3f` | Subproject linkage          |   |   |   |   | 🟢 | 🤖👀 | — | — | 🤖👀 | 🧑 |
+| `7861` | Productivity evidence       |   |   |   |   |   | 🟢 | — | — | 🤖👀 | 🧑 |
+| `7166` | Language clarifications     |   |   |   |   | 🟢 | 🤖👀 | — | — | 🤖👀 | 🧑 |
 
-The state symbol sits in the column of the gate the status names, as [PLAN.md](PLAN.md#the-plan-at-a-glance) draws it, so `c2ad` shows 🟢 at 📐: it has passed design and proceeds towards implementation. A cell the task has passed keeps its marks; whether a format dims it is the mockup's choice. The default window spans every column but 🌍 and 🚀, since the next gates in view run from defined to unit, and those two fold to a count of zero; the example shows them so that the marks read.
+The state symbol sits in the column of the gate the status names, as [PLAN.md](PLAN.md#the-plan-at-a-glance) draws it, with the reason symbol beside it, so `c2ad` shows 🟢 at 🛠️: it has passed implementation and proceeds towards validate. Its four historical cells stand empty; with historical junctions on they read 🤖, —, —, 🤖👀, which is who did the work and who accepted it. The default window spans every column but ❔, since the next gates in view run from mockup to validate, and ❔ folds to a count of zero.
 
 ## Contextual tableau
 
@@ -351,7 +353,7 @@ The state symbol sits in the column of the gate the status names, as [PLAN.md](P
 
 **Data.** As the global tableau, over the tasks in view: the subtree under a task; or, for a person, the tasks the person is assigned or contributes at next, their ancestors up to the root as a spine, and their siblings.
 
-**Parameters.** task or person, one of them; the viewer's person by default. window or columns: the default window spans the next gates of the tasks in view with one column either side. ref.
+**Parameters.** task or person, one of them; the viewer's person by default. window or columns: the default window spans the next gates of the tasks in view with one column either side. historical junctions: off by default. ref.
 
 **Levels.**
 
@@ -359,7 +361,7 @@ The state symbol sits in the column of the gate the status names, as [PLAN.md](P
 - detail: the spine and the siblings, the folded columns' counts, the notes.
 - provenance: as the global tableau.
 
-**Example.** For task `2034` Views, the next gates in view are design and mockup, so the window runs from 📝 to 🛠️ and the columns outside fold; the children of `bc86` and `5fe3` stay collapsed at glance.
+**Example.** For task `2034` Views, the next gates in view are design and mockup, so the window runs from 📝 to 🛠️ and the columns outside fold; the children of `bc86` and `5fe3` stay collapsed at glance, and ❔ is historical for every row.
 
 | Id     | Task                    | ❔ | 📝 | 📌 | ⚙️ | 📐 | 🛠️ | 🧩 … 🚀 |
 |--------|-------------------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
@@ -376,25 +378,27 @@ In this project both emails hold most of the tree, so the task form serves them;
 
 **Roles.** Every role. A reviewer reads what changed since their last review, an observer reads a period from a static export, and the owner reads a release period between two tags.
 
-**Data.** Events in author-time order, each with its date, commit, actor, the committer where it differs, and for a status event the gate, state, reason and note. Models, on each agent commit. The status after each event, replayed for a parent from its children. The subproject snapshot's events up to the pin. At a ref off the trunk, the events the branch adds beyond the trunk, marked as proposals.
+**Data.** Events in author-time order, each with its date, commit, actor, the committer where it differs, and for a status event the gate, state, reason and note; for a pin event the `url` and the old and new commit, `old` absent when the linkage first appears. Models, on each agent commit. The status after each event, replayed for a parent from its children. The subproject snapshot's events up to the commit its `url` fixes. At a ref off the trunk, the events the branch adds beyond the trunk, marked as proposals.
 
 **Parameters.** task: one task, or a subtree, which replays its children. person: the events one actor made. ref, or a range such as `v1.0..v1.1` or `main..task/e9c6`. window or columns: events at those gates.
 
 **Levels.**
 
-- glance: one line per event: date, actor, event, task, gate and state.
-- detail: the status after each event, the note, the model, the committer where it differs from the author.
-- provenance: the hash, subject, trailers and files of each commit, and the `git log` commands that produce the list.
+- glance: one line per event: date, actor, event, task, gate and state, or for a pin the `url` and the commits.
+- detail: the status after each event, the note, the model, the committer where it differs from the author, and the subproject's own events between two pins.
+- provenance: the hash, subject, trailers and files of each commit, and the `git log` commands that produce the list, with the submodule path added for a task whose linkage is a submodule.
 
-**Example.** `e9c6` on `main`:
+**Example.** `77b2` tablo on `main`, whose recursive junctions name the submodule `subprojects/tablo`:
 
-| Date       | By                    | Event                | Detail                                                                                              |
-|------------|-----------------------|----------------------|-----------------------------------------------------------------------------------------------------|
-| 2026-09-29 | nbyoung@nbyoung.com   | task, authorised     | `6b6c99a` Plan the Tableaux tooling: the owner commits the file on the trunk                         |
-| 2026-09-29 | noreply@anthropic.com | status               | `1a17bfc` defined, nominal: Design waits for Roles (c2ad) at design                                   |
-| 2026-09-29 | noreply@anthropic.com | reviewed defined     | `5958858` by the assignee, the agent's reviewer at defined; no effect, the authorisation stands       |
+| Date       | By                    | Event            | Detail                                                                                          |
+|------------|-----------------------|------------------|-------------------------------------------------------------------------------------------------|
+| 2026-09-29 | nbyoung@nbyoung.com   | task, authorised | `6b6c99a` Plan the Tableaux tooling: the owner commits the file on the trunk                     |
+| 2026-09-29 | nbyoung@nbyoung.com   | pin              | `37a08e9` Pin the subprojects: `subprojects/tablo` new `dc669dd`, no old commit                  |
+| 2026-09-30 | nbyoung@nbyoung.com   | pin              | `5c87000` … `564c7cb`: six advances of the pin, each with its old and new commit                  |
+| 2026-09-30 | noreply@anthropic.com | status           | `e66abe2` defined, no state, since the next junction is recursive; `Model: claude-haiku-4-5-20251001` |
+| 2026-09-30 | nbyoung@nbyoung.com   | pin              | `1b6916e` Advance tablo to tableaux language 0.3.0: old `1339804`, new `7e94d58`                   |
 
-At detail the two agent commits show the owner as committer and no `Model:` trailer, since both precede F20. The range `main..<this branch>` shows this design's own hand-off: a status event with the reason `review`, and a `Model:` trailer.
+At detail each pin event carries the subproject's own events between the two commits, replayed under `77b2`, and the status after `1b6916e` reads defined and nominal from `tablo`'s root at the new pin. For `e9c6`, the same view shows the plan commit, the status `1a17bfc`, and `5958858` with `Reviewed: e9c6 defined` from the assignee, an event with no effect since the authorisation stands as the review; the two agent commits show the owner as committer and no `Model:` trailer, since both precede F20. The range `main..<this branch>` shows this design's own hand-off: a status event with the reason `review`, and a `Model:` trailer.
 
 ## Audit
 
@@ -402,39 +406,44 @@ At detail the two agent commits show the owner as committer and no `Model:` trai
 
 **Roles.** The owner and an authority.
 
-**Data.** Findings, and the disagreements no rule makes invalid: a proposed task; a `Reviewed:` commit from the wrong hand (H2); a trailer that names nothing (H1); a `Model:` trailer outside the model the junction states (H3); an agent commit at a junction that states a model and carries no trailer (finding F24); an unmet requirement (R9); a stale status, one whose date is older than an age and has no later reaffirmation; a pin off the subproject's trunk (J13); a subproject the tool cannot read (J8, J9); and an undetermined trunk (P5). Each finding names the action that resolves it and the person who takes it: authorise, review, reaffirm, revise the file, move the pin, check out the submodule.
+**Data.** Findings, and the disagreements no rule makes invalid: a proposed task; a `Reviewed:` commit from the wrong hand (H2); a trailer that names nothing (H1); a `Model:` trailer outside the model the junction states (H3), or no trailer at all where the junction states a model (H6); a hand-off the history implies and the status does not state (H4), and one the status still states after its review (H5); an unmet requirement (R9), a cross-project one that names what a junction already reads (R12), or one that its `commit` alone leaves unmet (R13); a stale status, one whose date is older than an age and has no later reaffirmation; a pin or `commit` off the subproject's trunk (J13); a `commit` malformed, missing, misplaced or off the pin (J14 to J17); a subproject the tool cannot read (J8, J9); and an undetermined trunk (P5). Each finding names the action that resolves it and the person who takes it: authorise, review, reaffirm, record the hand-off or clear it, revise the file, move the pin or the `commit`, check out the submodule.
 
-**Parameters.** task: within a subtree. person: the findings the person resolves. ref. stale: this view's own parameter, the age beyond which a status is stale, fourteen days by default.
+**Parameters.** task: within a subtree. person: the findings the person resolves. ref. stale: this view's own parameter, the age beyond which a status is stale, seven days by default.
 
 **Levels.**
 
-- glance: counts by kind, errors first, and the person with the most to resolve.
+- glance: counts by kind, errors first, then warnings, then information, and the person with the most to resolve.
 - detail: the findings table: rule, severity, task, gate, file, message, resolver.
 - provenance: the rule's sentence in README.md or SYNTAX.md, the commits involved, and the command that resolves the finding.
 
-**Example.** On `main`, in a clone with the submodules checked out, the audit reports twenty warnings and no error:
+**Example.** On `main`, in a clone with the submodules checked out, the audit reports no error, twenty warnings and three items of information:
 
-| Rule | Severity | Task                   | Gate   | Message                                             | Resolves when                                  |
-|------|----------|------------------------|--------|-----------------------------------------------------|------------------------------------------------|
-| R9   | warning  | `99f0` … `a8b4`, twenty | mockup | Requires `e9c6` at design; `e9c6` stands at defined  | `e9c6` passes design; nbyoung@nbyoung.com reviews |
+| Rule | Severity    | Task                    | Gate           | Message                                                        | Resolves when                                     |
+|------|-------------|-------------------------|----------------|----------------------------------------------------------------|---------------------------------------------------|
+| R9   | warning     | `99f0` … `a8b4`, twenty | mockup         | Requires `e9c6` at design; `e9c6` stands at defined            | `e9c6` passes design; nbyoung@nbyoung.com reviews |
+| H4   | information | `e9c6`                  | design         | The contributor's `5958858` is the newest event and the status states no hand-off | The agent records `review`, or works on |
+| H4   | information | `ac33`, `7166`          | implementation | The contributor's status commit is the newest event             | As above                                          |
 
-A plain clone without `--recurse-submodules` adds four J8 errors, since `subprojects/tablo` and its siblings resolve to no project the tool can read, and `git submodule update --init` resolves them. Nothing is stale: the plan is two days old. The `Reviewed: … defined` trailers the agent left on 2026-09-29 name their tasks' own reviewer, so H2 stays silent.
+A plain clone without `--recurse-submodules` adds four J8 errors, since `subprojects/tablo` and its siblings resolve to no project the tool can read, and `git submodule update --init` resolves them. Nothing is stale: the plan is two days old. Every agent commit since the language reached 0.2.1 carries its `Model:` trailer, so H6 stays silent, and the `Reviewed: … defined` trailers the agent left on 2026-09-29 name their tasks' own reviewer, so H2 does too.
 
-## Questions for review
+## Decisions at review
 
-- **Q1 Three levels.** Every view discloses at glance, detail and provenance, with a per-role default, rather than at levels of its own. The names are the design's; the mockups may rename them.
-- **Q2 The window.** The default window is one column either side of the next gates in view, and a folded column shows the count of tasks whose current gate lies in it. PLAN.md says "a few"; one keeps a ten-gate project on one screen.
-- **Q3 The queue's order.** Reviews owed, authorisations owed, work ready, reaffirmations, work waiting; display order within a kind. The alternative, the item that unblocks most first, reorders work ready by dependents.
-- **Q4 The brief.** Its six parts, and that it carries the description of the ancestor whose entry supplies the contributor, so the Method branch's reading of the gates reaches an agent under it.
-- **Q5 The tableau cell.** The state symbol sits in the column of the gate the status names, as PLAN.md draws it, with the reason symbol beside it; every other cell keeps its junction marks. The alternative puts the state in the next gate's column, where the work is.
-- **Q6 The stale age.** Fourteen days, on the audit alone; the queue lists reaffirmations by age with no threshold.
-- **Q7 The person form of the contextual tableau.** The person's tasks, the spine to the root and the siblings. In this project it serves nobody yet.
+The owner reviewed the first draft on 2026-09-30 and decided each question below; the text above agrees with each decision.
+
+- **Historical junctions.** The draft said a cell the task has passed keeps its marks. The owner refuted it: every junction before a task's current status gate is historical, applicable or not, and a tableau shows it empty unless the historical-junctions parameter is on, which defaults to false. The shared parameters and both tableaux now say so.
+- **Q1 Three levels.** Accepted: every view discloses at glance, detail and provenance, with a per-role default, and the mockups may rename them.
+- **Q2 The window.** Accepted: one column either side of the next gates in view, and a folded column shows the count of tasks whose current gate lies in it. PLAN.md's Views section now states the same.
+- **Q3 The queue's order.** Kept: reviews owed, authorisations owed, work ready, reaffirmations, work waiting; display order within a kind.
+- **Q4 The brief.** Kept: its six parts, and the description of the ancestor whose entry supplies the contributor.
+- **Q5 The tableau cell.** Kept: the state symbol sits in the column of the gate the status names, with the reason symbol in the same cell.
+- **Q6 The stale age.** Reduced to seven days, on the audit alone; the queue lists reaffirmations by age with no threshold.
+- **Q7 The person form of the contextual tableau.** Kept: the person's tasks, the spine to the root and the siblings.
 
 ## Findings about the method
 
-Defining the views found the following. Each names the task it belongs to under decision D6.
+Defining the views found the following. The owner resolved each at the design review, and the text names what landed.
 
-- **F21 Roll-up ties.** A parent takes the state, reason and note of the most severe considered child at the earliest gate; when two children tie, README.md does not say which. The views take the first in display order and mark it. Task `7166`.
-- **F22 The hand-off has no signal of its own.** A queue lists a review as owed when the status waits for the reviewer, and the method gives no way to say so: this project defines a reason `review` in its `gates.yaml`, which SYNTAX.md's example lacks. Proposal: the method reserves the reason key `review`, or a view reads a review as owed whenever the contributor's newest event at the junction is later than the reviewer's. Task `7166`.
-- **F23 No mark for a person.** README.md gives a view 🤖 for an agent, 👀 for a reviewer, 🪆 for a subproject and — for an exempt gate, and none for a plain junction where a person contributes; PLAN.md uses 🧑. Task `7166`.
-- **F24 A missing trailer escapes the audit.** README.md has the audit report a commit whose `Model:` trailer names a model outside the one stated; an agent commit with no trailer at all passes unremarked, as every commit before F20 does. Proposal: the audit also reports an agent commit at a junction that states a model and carries no trailer. Task `ac33`.
+- **F21 Roll-up ties. Resolved.** A parent takes the state, reason and note of the most severe considered child at the earliest gate, and README.md did not say which of two tied children wins. Decided: the first in display order; README.md#status step 3 states it, and the corpus entry `roll-up-tie` exercises it. Task `7166`.
+- **F22 The hand-off has no signal of its own. Resolved.** A queue lists a review as owed when the status waits for the reviewer, and the method gave no way to say so. Decided, in both forms: the method reserves the reason key `review`, whose symbol is 👓 so that 👀 stays the reviewer mark, and the audit reads the implicit form too, a hand-off the history implies and the status does not state (H4) and one the status still states after its review (H5); corpus entries `handoff-inferred` and `handoff-stale` exercise them. Task `7166`.
+- **F23 No mark for a person. Resolved.** README.md now gives a view 🧑 for a plain junction whose contributor is a person, beside 🤖, 👀 and 🪆. Task `7166`.
+- **F24 A missing trailer escapes the audit. Resolved.** The audit now also reports a commit at a junction that states a model, by that junction's contributor, with no `Model:` trailer (H6); a commit at which the project's `version.yaml` states a language before 0.2.1, the version that introduced the trailer, is exempt, so the history before F20 stays silent. The corpus entry `model-trailer-missing` exercises both. Task `ac33`.
