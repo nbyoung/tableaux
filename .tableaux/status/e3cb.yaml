@@ -1,4 +1,3 @@
-gate: defined
+gate: implementation
 state: nominal
-reason: review
-note: The schemas/ design on branch task/e3cb awaits the owner's review at the design gate
+note: The schema files match SYNTAX.md on the trunk; the unit gate runs the drift test in CI

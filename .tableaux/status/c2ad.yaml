@@ -1,4 +1,3 @@
-gate: defined
+gate: design
 state: nominal
-reason: review
-note: The Roles section of README.md awaits design review on branch task/c2ad
+note: The Roles text is on the trunk; the implementation record awaits the next agent pass

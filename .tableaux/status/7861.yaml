@@ -1,4 +1,3 @@
-gate: defined
+gate: design
 state: nominal
-reason: review
-note: The evidence model, report.py prototype and tests await design review on branch task/7861
+note: The report prototype and tests are on the trunk
