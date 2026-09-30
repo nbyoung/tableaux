@@ -23,7 +23,7 @@ The plan proposes; the owner decides. Each decision that goes the other way chan
 | D3 | Agent Git identity         | Agents commit as `noreply@anthropic.com` until task `ac33` decides the rule                 | Every `contributor` and agent `assignee` field    |
 | D4 | Review policy              | The owner reviews mockup, design, validation and release; agents own execution subtrees; see F2 | The root task's junctions and the assignees       |
 | D5 | Authorise the plan         | Commit `.tableaux/` and this document on `main`                                             | Every task turns from proposed to authorised      |
-| D6 | Defer the findings         | The [findings](#findings) resolve through tasks `ac33`, `9f3f` and `7166`, not before D5    | Those tasks' design gates, which the owner reviews |
+| D6 | Defer the findings         | The [findings](#findings) resolve through tasks `ac33`, `9f3f` and `7166` (F19 joined `7166` on 2026-09-30), not before D5    | Those tasks' design gates, which the owner reviews |
 
 ## Language
 
@@ -216,6 +216,7 @@ Writing the plan in Tableaux found the following about the method. Each names th
 - **F7 Inheritance across a not-applicable entry.** A plain entry inherits field by field from its ancestors, and a not-applicable entry exempts a subtree until a descendant states its own entry. Whether that descendant's plain entry inherits fields from ancestors above the not-applicable one is unstated. This plan avoids the case. Task `7166`.
 - **F8 Authorisation and the defined gate.** Authorising a task accepts its definition, and reviewing its `defined` gate does the same; a plan of forty tasks would need forty `Reviewed:` trailers. This plan states no reviewer at `defined`. Resolved at the corpus design review (2026-09-29): authorisation stands as the review of `defined`, and README.md says so; `tabloio review` accepting many tasks at once remains for task `7166`.
 - **F9 No state before defined.** The gate is `undefined` exactly when the state is, so work in progress towards `defined` has no state and no reason. Minor; the queue view shows the work instead. Task `7166`.
+- **F19 The trunk rests on convention.** Authorisation reads the trunk's history, and README.md named it only as the repository's default branch. A clone records that branch as `refs/remotes/origin/HEAD`, but a `git init` repository, a continuous-integration checkout that fetches one commit, a git-flow project that integrates on `develop`, and a detached submodule checkout all lack or contradict it, and the `STATUS.md` job and the conformance run live in the first two. Proposed on 2026-09-30, after Git's own `submodule.<name>.branch`: an optional `trunk` field in `version.yaml`, a default of the remote's default branch, then a tool flag, then a warning that the trunk is undetermined; a subproject's `version.yaml` names its trunk and the audit reports a pin off it. The field raises the language to 0.2.0. Task `7166`.
 - **F10 An agent as assignee.** Only a junction carries `model`, so an agent assignee looks like a person. Proposal: an optional `model` on the task, or an identities file that maps each email to a name, a kind and a model. Task `ac33`.
 
 ## Next steps

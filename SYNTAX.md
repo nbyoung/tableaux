@@ -38,7 +38,7 @@ History has no file: a tool derives it from the Git log (see [History](#history)
 
 ## `version.yaml`
 
-The version file states the Tableaux language version that the other files follow.
+The version file states the Tableaux language version that the other files follow, and names the trunk.
 
 ### Schema
 
@@ -52,6 +52,9 @@ properties:
   tableaux:
     type: string
     pattern: "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+  trunk:
+    type: string
+    minLength: 1
 ```
 
 ### Fields
@@ -59,11 +62,13 @@ properties:
 | Field      | Required | Meaning                                                          |
 |------------|----------|------------------------------------------------------------------|
 | `tableaux` | Yes      | The semantic version (`major.minor.patch`) of the Tableaux language |
+| `trunk`    | No       | The branch on which the project accepts tasks and statuses; defaults to the remote's default branch ([README.md](README.md#project)) |
 
 ### Example
 
 ```yaml
-tableaux: 0.1.0
+tableaux: 0.2.0
+trunk: main
 ```
 
 ## `gates.yaml`
