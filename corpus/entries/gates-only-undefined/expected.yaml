@@ -1,0 +1,8 @@
+# expected.yaml : gates.yaml lists the undefined gate alone. No gate after undefined applies to any task, so J12 fires for each. The entry drops the status file, since no status could name a later gate.
+entry: gates-only-undefined
+language: 0.2.1
+valid: false
+findings:
+  - { rule: G3, severity: error, file: gates.yaml }
+  - { rule: J12, severity: error, task: "e4a1", file: tasks/e4a1.yaml }
+  - { rule: J12, severity: error, task: "b2c9", file: tasks/b2c9.yaml }

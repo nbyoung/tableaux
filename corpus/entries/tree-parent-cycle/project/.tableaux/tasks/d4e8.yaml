@@ -1,0 +1,5 @@
+# tasks/d4e8.yaml : a third leaf
+title: Third leaf
+description: A leaf task that waits on the first.
+assignee: pat@example.org
+parent: { id: "c3d7", order: 1 }

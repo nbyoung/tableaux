@@ -1,0 +1,6 @@
+# expected.yaml : Two states share the key nominal.
+entry: gates-duplicate-state
+language: 0.2.1
+valid: false
+findings:
+  - { rule: G9, severity: error, file: gates.yaml }

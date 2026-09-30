@@ -1,0 +1,6 @@
+# expected.yaml : A state's severity is negative.
+entry: gates-negative-severity
+language: 0.2.1
+valid: false
+findings:
+  - { rule: G8, severity: error, file: gates.yaml }

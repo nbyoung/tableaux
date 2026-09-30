@@ -1,0 +1,15 @@
+# gates.yaml : the smallest gate set the invalid entries share
+gates:
+  - { key: undefined, symbol: ❔, name: Undefined, criteria: No one has started work on the definition }
+  - { key: defined,   symbol: 📝, name: Defined,   criteria: "Title, description, assignee and references exist" }
+  - { key: design,    symbol: 📐, name: Design,    criteria: A model and sufficient tests exist }
+  - { key: release,   symbol: 🚀, name: Release,   criteria: All variants documented and approved }
+
+states:
+  - { key: undefined, symbol: ⚪, severity: 0, synopsis: The work has not yet been defined }
+  - { key: nominal,   symbol: 🟢, severity: 1, synopsis: The work is proceeding as expected }
+  - { key: stalled,   symbol: 🔴, severity: 3, synopsis: Practically all progress has stalled }
+  - { key: complete,  symbol: ✅, severity: 1, synopsis: All deliverables satisfy their requirements }
+
+reasons:
+  - { key: blocked, symbol: ⛔, synopsis: An external resource is unavailable }

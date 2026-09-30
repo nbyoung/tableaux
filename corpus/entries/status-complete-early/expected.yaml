@@ -1,0 +1,6 @@
+# expected.yaml : A status has the state complete at a gate before the last.
+entry: status-complete-early
+language: 0.2.1
+valid: false
+findings:
+  - { rule: S12, severity: error, task: "b2c9", file: status/b2c9.yaml, gate: defined }

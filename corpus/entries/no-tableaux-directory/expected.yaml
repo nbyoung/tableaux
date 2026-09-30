@@ -1,0 +1,7 @@
+# expected.yaml : The repository has no .tableaux directory.
+entry: no-tableaux-directory
+language: 0.2.1
+trunk: { caller: main }              # the caller names main, since version.yaml states no trunk
+valid: false
+findings:
+  - { rule: P1, severity: error }

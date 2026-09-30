@@ -1,0 +1,7 @@
+# expected.yaml : A requirement names the id XYZ1, which is not four lowercase hexadecimal digits; it also names no task, so R1 fires.
+entry: task-bad-id-pattern
+language: 0.2.1
+valid: false
+findings:
+  - { rule: T6, severity: error, task: "b2c9", file: tasks/b2c9.yaml }
+  - { rule: R1, severity: error, task: "b2c9", file: tasks/b2c9.yaml }

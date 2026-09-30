@@ -1,0 +1,6 @@
+# expected.yaml : The first gate is defined, not undefined.
+entry: gates-first-not-undefined
+language: 0.2.1
+valid: false
+findings:
+  - { rule: G2, severity: error, file: gates.yaml }

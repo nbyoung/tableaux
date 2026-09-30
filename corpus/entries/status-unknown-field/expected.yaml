@@ -1,0 +1,6 @@
+# expected.yaml : A status holds a field the schema does not define.
+entry: status-unknown-field
+language: 0.2.1
+valid: false
+findings:
+  - { rule: S3, severity: error, task: "b2c9", file: status/b2c9.yaml }

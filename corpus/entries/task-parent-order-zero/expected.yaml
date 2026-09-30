@@ -1,0 +1,6 @@
+# expected.yaml : A task's order is 0.
+entry: task-parent-order-zero
+language: 0.2.1
+valid: false
+findings:
+  - { rule: T11, severity: error, task: "b2c9", file: tasks/b2c9.yaml }
