@@ -1,6 +1,5 @@
 #!/bin/sh
 # corpus/build.sh: build every entry, or the entries named, under corpus/build/.
-# Sketch. The implementation gate makes it real once the schema files exist.
 #
 #   sh corpus/build.sh                 # every entry
 #   sh corpus/build.sh weather-station # one entry
@@ -12,8 +11,9 @@
 #      commits carry fixed identities and dates, and it labels the commits that
 #      expected.yaml refers to. A subproject the entry pins builds first, under
 #      corpus/build/<name>.<sub>, from the same script.
-#   3. Otherwise make one commit: the base tree, then the entry's project/ tree
-#      over it, as olive on 2026-09-01. Most invalid entries build this way.
+#   3. Otherwise make one commit: the base tree without its .tableaux, then the
+#      entry's project/ tree over it, as olive on 2026-09-01. Most invalid entries
+#      build this way. project/.tableaux is complete, so a deviation can delete a file.
 #   4. Check that the trunk's final .tableaux equals the entry's project/.tableaux, so
 #      the checked-in files and the built history never disagree. An entry
 #      whose expected.yaml has `source:` is read in place and skips the build.
@@ -45,13 +45,14 @@ for name in $entries; do
   else
     . "$LIB"
     init
-    tree "$CORPUS/base"
-    tree "$ENTRY/project"
+    plan
     who olive; on 2026-09-01
     commit only "Commit the $name entry"
   fi
-  if ! diff -r -q "$ENTRY/project/.tableaux" "$REPO/.tableaux" > /dev/null; then
-    echo "$name: built .tableaux differs from project/.tableaux" >&2; exit 1
+  if [ -e "$ENTRY/project/.tableaux" ] || [ -e "$REPO/.tableaux" ]; then
+    if ! diff -r -q "$ENTRY/project/.tableaux" "$REPO/.tableaux" > /dev/null 2>&1; then
+      echo "$name: built .tableaux differs from project/.tableaux" >&2; exit 1
+    fi
   fi
   echo "$name: $(git -C "$REPO" rev-list --count HEAD) commits"
 done
