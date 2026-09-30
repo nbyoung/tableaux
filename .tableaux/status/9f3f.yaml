@@ -1,0 +1,4 @@
+gate: defined
+state: nominal
+reason: review
+note: The subproject linkage design (F3, F5, F12) awaits the owner's review
