@@ -1,0 +1,4 @@
+gate: defined
+state: nominal
+reason: review
+note: The Roles section of README.md awaits design review on branch task/c2ad

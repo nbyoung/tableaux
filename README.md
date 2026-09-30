@@ -14,6 +14,7 @@ This document gives the meaning of each Tableaux structure. [SYNTAX.md](SYNTAX.m
 - [Proposed and authorised tasks](#proposed-and-authorised-tasks)
 - [Status](#status)
 - [History](#history)
+- [Roles](#roles)
 
 ## Project
 
@@ -144,3 +145,19 @@ Git's branching shapes the history it keeps:
 - A tag marks a moment a view reports against, so `git log v1.0..v1.1` bounds a reporting period.
 
 The audit-only caveat holds here too. A rewritten branch rewrites its history.
+
+## Roles
+
+Nothing declares a role. A person or agent holds one wherever their email appears in the position that defines it, holds several at once, and holds most of them with respect to one task rather than the whole project. A tool's views each serve some roles, and each role below names the views that serve it.
+
+- The **owner** is the root task's assignee. The owner is an authority of every other task, so may authorise any task, and alone authorises the root, including the change of its assignee that transfers ownership. The global tableau and the audit serve the owner, and every other view does too.
+- An **authority** of a task is the assignee of one of its ancestors, nearest first. An authority authorises the tasks in its subtree, by commit, by merge or by an `Authorised:` trailer, and its own task's junctions state the defaults that subtree inherits. The authority delegation, task assignment and work-blockage views and the contextual tableau serve an authority.
+- The **assignee** of a task is its `assignee`. The assignee is responsible for the task: the contributor at every junction that states none, the reviewer of an agent contributor at every junction that states none, and the one who answers for the status. The contextual tableau, the task view and the work queue serve an assignee.
+- A **contributor** at a junction is its `contributor`, or the assignee when it states none. The contributor does the work at the gate, records the status and reaffirms it. The work queue, the task view, the contextual tableau and the gate definition serve a contributor.
+- An **agent** is a contributor at a junction that states a `model`. It contributes as a person does, and its work at the gate always has a reviewer: the one the junction states, or the assignee. The work queue serves an agent as a brief, and the task view expands the brief.
+- A **reviewer** at a junction is its `reviewer`. The reviewer accepts the work at the gate with a `Reviewed: <id> <gate>` commit, and until then the status cannot pass the gate. The work queue, the task view and the history serve a reviewer.
+- An **observer** is anyone whose email appears nowhere in the project. An observer reads. The global tableau, the gate definition and the history serve an observer, as a static export where the observer has no tool.
+
+In the weather station, Ada holds several roles at once: the owner, as the root's assignee, and the assignee of the sensor board, `9f31`, so she contributes at each of its gates that states no contributor. Ben is the assignee of the node firmware, `c07d`, and the reviewer of the sensor board at `validate`. The sensor node's assignee is an authority of both tasks, as Ada is of every task, and any of them authorises the sensor board with the commits shown under [Proposed and authorised tasks](#proposed-and-authorised-tasks). At the firmware's `unit` gate, `opus@example.org` is an agent contributor, and Ben reviews its work as the assignee, since the junction states no reviewer. Whoever reads the project's tableau without an email in it is an observer.
+
+A role is audit-only, like the acts it names. Tableaux reads a role from the files and the history to tell whose commit authorises, reviews or records, and does not prevent a commit from another hand; the audit reports where the files and the history disagree.
