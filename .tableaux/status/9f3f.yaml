@@ -1,0 +1,3 @@
+gate: design
+state: nominal
+note: The subproject linkage rule (F3, F5, F12) is on the trunk at language 0.3.0; tablo and the subprojects follow

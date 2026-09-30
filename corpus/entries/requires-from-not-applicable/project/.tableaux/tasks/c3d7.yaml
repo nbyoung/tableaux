@@ -1,0 +1,7 @@
+# tasks/c3d7.yaml : a second leaf that the deviation needs
+title: Second leaf
+description: A leaf task that no one has started.
+assignee: olive@example.org
+junctions:
+  design: { applies: false }
+parent: { id: "e4a1", order: 2 }

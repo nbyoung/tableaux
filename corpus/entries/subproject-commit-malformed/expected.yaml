@@ -1,0 +1,6 @@
+# expected.yaml : A commit field is not forty hexadecimal digits. The submodule at sub resolves.
+entry: subproject-commit-malformed
+language: 0.3.0
+valid: false
+findings:
+  - { rule: J14, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: design }

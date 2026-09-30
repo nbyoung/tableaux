@@ -1,0 +1,10 @@
+# tasks/b2c9.yaml : one leaf; it requires its parent project's board, named upward by URL and commit
+title: Leaf
+description: A leaf task that needs the pin map from the parent project's board.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+requires:
+  - { subproject: { url: https://example.org/umbrella.git, id: "9e10", commit: eb41f2018ba641e51afe4a60731e104e36b80ab2 },
+      from: design, to: release, text: The board's pin map }
+parent: { id: "e4a1", order: 1 }

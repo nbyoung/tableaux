@@ -1,0 +1,6 @@
+# expected.yaml : gates.yaml does not exist.
+entry: gates-missing
+language: 0.3.0
+valid: false
+findings:
+  - { rule: G1, severity: error, file: gates.yaml }

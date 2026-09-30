@@ -1,0 +1,6 @@
+# expected.yaml : Two tasks have no parent.
+entry: tree-two-roots
+language: 0.3.0
+valid: false
+findings:
+  - { rule: T8, severity: error }

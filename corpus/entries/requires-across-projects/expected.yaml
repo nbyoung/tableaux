@@ -1,0 +1,40 @@
+# expected.yaml : two cross-project requirements. b2c9 requires the parent project's board, 9e10, upward
+# by URL and commit (M1 at U1, M2 at U2: a pin event), and the requirement is met at M2. c3d7 requires the
+# submodule's leaf, 5a00, at the pin S1, where it stands at defined, so the requirement is pending.
+entry: requires-across-projects
+language: 0.3.0
+valid: true
+findings: []
+replace: { "https://example.org/umbrella.git": umbrella }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 3, leaves: 2 }
+order: ["e4a1", "b2c9", "c3d7"]
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: U2, by: olive@example.org }
+    applicable: [undefined, defined, design, release]
+    requires:                                    # upward: 9e10 at M2 stands at design, and b2c9's next gate is release
+      - { subproject: { url: https://example.org/umbrella.git, id: "9e10", pin: M2 }, from: design, to: release, met: true, due: true, condition: met }
+    status: { gate: design, state: nominal, date: 2026-09-03, recorder: olive@example.org, commit: U1 }
+    events:
+      - { date: 2026-09-03, commit: U1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-03, commit: U1, by: olive@example.org, task: "b2c9", event: status, gate: design, state: nominal }
+      - { date: 2026-09-03, commit: U1, by: olive@example.org, task: "b2c9", event: pin, url: https://example.org/umbrella.git, new: M1 }
+      - { date: 2026-09-05, commit: U2, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-05, commit: U2, by: olive@example.org, task: "b2c9", event: pin, url: https://example.org/umbrella.git, old: M1, new: M2 }
+  "c3d7":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: U1, by: olive@example.org }
+    requires:                                    # downward: 5a00 at S1 stands at defined, and c3d7's next gate, design, precedes release
+      - { subproject: { url: sub, id: "5a00", pin: S1 }, from: design, to: release, met: false, due: false, condition: pending }
+    status: { gate: defined, state: nominal, date: 2026-09-03, recorder: olive@example.org, commit: U1 }
+    events:                                      # the submodule's first pin is a pin event of the task whose requirement names it
+      - { date: 2026-09-03, commit: U1, by: olive@example.org, task: "c3d7", event: task }
+      - { date: 2026-09-03, commit: U1, by: olive@example.org, task: "c3d7", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-03, commit: U1, by: olive@example.org, task: "c3d7", event: pin, url: sub, new: S1 }

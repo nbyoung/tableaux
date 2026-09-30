@@ -1,0 +1,7 @@
+# tasks/a210.yaml : states its own entry under the exemption (F7)
+title: Restates under the exemption
+description: A leaf that states a plain entry at release below a not-applicable one.
+assignee: pat@example.org
+junctions:
+  release: { contributor: pat@example.org }
+parent: { id: "a200", order: 1 }

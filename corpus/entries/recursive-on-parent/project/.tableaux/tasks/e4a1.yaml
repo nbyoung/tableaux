@@ -1,0 +1,8 @@
+# tasks/e4a1.yaml : the root; olive owns the base project
+title: Base
+description: The smallest valid project; every invalid entry starts from it.
+assignee: olive@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { subproject: { url: sub } }

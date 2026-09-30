@@ -1,0 +1,4 @@
+# tasks/1000.yaml : a root whose id YAML reads as an integer
+title: Unquoted id
+description: A project whose root id is 1000, which YAML reads as a number when unquoted.
+assignee: olive@example.org

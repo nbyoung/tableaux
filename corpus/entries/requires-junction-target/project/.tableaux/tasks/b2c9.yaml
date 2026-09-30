@@ -1,0 +1,11 @@
+# tasks/b2c9.yaml : one leaf; its design junction reads the subproject's root, and a requirement names the same task
+title: Leaf
+description: A leaf task whose design the subproject does, and which also requires that subproject's task.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+requires:
+  - { subproject: { url: sub, id: "5a00" }, from: defined, to: design, text: The subproject's definition }
+junctions:
+  design: { subproject: { url: sub } }
+parent: { id: "e4a1", order: 1 }

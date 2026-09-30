@@ -1,0 +1,6 @@
+# expected.yaml : The defined gate has no criteria.
+entry: gates-gate-missing-criteria
+language: 0.3.0
+valid: false
+findings:
+  - { rule: G4, severity: error, file: gates.yaml, gate: defined }

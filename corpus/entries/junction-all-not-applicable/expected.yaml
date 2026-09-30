@@ -1,0 +1,6 @@
+# expected.yaml : Every gate after undefined is exempt for one task.
+entry: junction-all-not-applicable
+language: 0.3.0
+valid: false
+findings:
+  - { rule: J12, severity: error, task: "c3d7", file: tasks/c3d7.yaml }

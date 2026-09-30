@@ -1,0 +1,6 @@
+# expected.yaml : A task requires itself.
+entry: requires-self
+language: 0.3.0
+valid: false
+findings:
+  - { rule: R3, severity: error, task: "b2c9", file: tasks/b2c9.yaml }

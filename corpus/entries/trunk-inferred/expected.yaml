@@ -1,0 +1,17 @@
+# expected.yaml : no trunk in version.yaml; the clone records origin/HEAD, which names main.
+entry: trunk-inferred
+language: 0.3.0
+trunk: { inferred: main }
+valid: true
+findings: []
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "e4a1":
+    authorisation: { state: authorised, commit: I1, by: olive@example.org }
+  "b2c9":
+    authorisation: { state: authorised, commit: I1, by: olive@example.org }
+  "c3d7":
+    authorisation: { state: proposed, commit: I2, by: pat@example.org }   # pat is a sibling's assignee, not an authority

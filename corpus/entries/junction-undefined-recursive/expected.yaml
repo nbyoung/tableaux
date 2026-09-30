@@ -1,0 +1,6 @@
+# expected.yaml : A recursive junction sits at the undefined gate. The subproject resolves.
+entry: junction-undefined-recursive
+language: 0.3.0
+valid: false
+findings:
+  - { rule: J11, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: undefined }

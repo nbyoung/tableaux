@@ -1,0 +1,31 @@
+# expected.yaml : b2c9's design junction reads the subproject's root, 5a00, and a cross-project requirement
+# names the same task: one R12 warning, since the junction already carries that task's status. The
+# requirement still resolves: 5a00 at S1 stands at defined, so it is met.
+entry: requires-junction-target
+language: 0.3.0
+valid: true
+
+findings:
+  - { rule: R12, severity: warning, task: "b2c9", file: tasks/b2c9.yaml,
+      message: "The requirement on 5a00 at sub names the task the design junction reads" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: recursive, subproject: { url: sub }, source: "b2c9" }
+    subproject: { url: sub, pin: S1, task: "5a00" }
+    requires:
+      - { subproject: { url: sub, id: "5a00", pin: S1 }, from: defined, to: design, met: true, due: true, condition: met }
+    status:                                      # the gate is the file's; the rest is 5a00's at the pin
+      gate: defined
+      state: nominal
+      date: 2026-08-31
+      recorder: pat@example.org
+      commit: S1

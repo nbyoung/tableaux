@@ -1,0 +1,29 @@
+# expected.yaml : the pinned commit S2 is on the branch side, not on the subproject's trunk, main (J13, a warning).
+# The pinned task still reads at S2.
+entry: subproject-pin-off-trunk
+language: 0.3.0
+valid: true
+
+findings:
+  - { rule: J13, severity: warning, task: "b2c9", file: tasks/b2c9.yaml, gate: design,
+      message: "The pin sub is at S2, which main in the subproject does not contain" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: recursive, subproject: { url: sub }, source: "b2c9" }
+    subproject: { url: sub, pin: S2, task: "5a00" }
+    status:                                      # the gate is the file's; the rest is 5a00's at the pin
+      gate: defined
+      state: nominal
+      note: Drafted on a side branch
+      date: 2026-09-03
+      recorder: pat@example.org
+      commit: S2

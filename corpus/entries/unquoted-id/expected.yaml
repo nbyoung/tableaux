@@ -1,0 +1,25 @@
+# expected.yaml : a valid project with one unquoted id (T7, a warning). A tool takes the id as the string
+# "1000" before it validates against the schema (F16), so the parent below is a string.
+entry: unquoted-id
+language: 0.3.0
+valid: true
+
+findings:
+  - { rule: T7, severity: warning, task: "1a00", file: tasks/1a00.yaml,
+      message: "parent.id is written as the integer 1000, not the string \"1000\"" }
+
+owner: olive@example.org
+root: "1000"
+count: { tasks: 2, leaves: 1 }
+order: ["1000", "1a00"]                        # the tree a tool derives once it reads the id as a string
+
+tasks:
+  "1000":
+    parent: null
+    authorities: []
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+  "1a00":
+    parent: "1000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    status: { gate: defined, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: only }

@@ -1,0 +1,10 @@
+# tasks/b2c9.yaml : one leaf; it requires a library's design by URL at a commit that lags the library's trunk
+title: Leaf
+description: A leaf task that needs a library's design before its own release.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+requires:
+  - { subproject: { url: https://example.org/lib.git, id: "5a00", commit: 7f00a1f81289e9078cee911dccc23a7af9851f59 },
+      from: design, to: release, text: The library's design }
+parent: { id: "e4a1", order: 1 }

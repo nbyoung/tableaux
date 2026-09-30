@@ -1,0 +1,27 @@
+# expected.yaml : a Reviewed commit from someone other than the junction's reviewer has no effect (H2, a warning).
+# b2c9 stays at defined, since a status at design would still lack a review (S11).
+entry: review-by-non-reviewer
+language: 0.3.0
+valid: true
+
+findings:
+  - { rule: H2, severity: warning, task: "b2c9", gate: design, commit: R2,
+      message: "pat is not the reviewer of the design junction; olive is" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: R1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: pat@example.org, reviewer: olive@example.org, source: "b2c9" }
+    reviews: []                                  # R2 accepts nothing
+    status: { gate: defined, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: R1 }
+    events:                                      # the trailer names the task, so R2 is an event though it has no effect
+      - { date: 2026-09-01, commit: R1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: R1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: R2, by: pat@example.org, task: "b2c9", event: reviewed, gate: design }

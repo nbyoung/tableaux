@@ -1,0 +1,6 @@
+# expected.yaml : version.yaml holds a field the schema does not define.
+entry: version-unknown-field
+language: 0.3.0
+valid: false
+findings:
+  - { rule: P3, severity: error, file: version.yaml }

@@ -1,0 +1,131 @@
+# expected.yaml : every junction kind and every way a junction resolves.
+#   plain with contributor, model, reviewer and references : a110 (function, design, unit)
+#   a model matched by prefix                              : a110 design, claude-fable, K6 records claude-fable-5-1
+#   inheritance field by field                             : a110 unit takes its reviewer from a100
+#   recursive with and without an id                       : a400 and a500
+#   not applicable                                         : a600, and a220 by inheritance
+#   an exemption with a descendant that states its own     : a200 and a210; F7 is open, so a210's release is undecided
+#   an agent with no reviewer, under a person and an agent : a110 design (ben reviews) and a300 design (the agent reviews itself); F2
+# A resolved entry's source is the task whose entry supplies it, or a list, nearest first, when fields come from several.
+entry: junction-kinds
+language: 0.3.0
+valid: true
+
+findings:
+  - { rule: H3, severity: warning, task: "a300", gate: design, commit: K8,
+      message: "Model claude-sonnet-5 is outside the stated model claude-fable-5-1" }
+
+owner: olive@example.org
+root: "a000"
+count: { tasks: 10, leaves: 7 }
+order: ["a000", "a100", "a110", "a200", "a210", "a220", "a300", "a400", "a500", "a600"]
+
+tasks:
+  "a000":
+    parent: null
+    authorities: []
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+  "a100":
+    parent: "a000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    status: { gate: design, state: nominal, date: 2026-09-08, derived: true, from: "a110" }
+  "a110":
+    parent: "a100"
+    authorities: [ben@example.org, olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    junctions:
+      default:  { kind: plain, contributor: ben@example.org }
+      function: { kind: plain, contributor: pat@example.org, reviewer: ben@example.org, source: "a110",
+                  references: [{ url: docs/kinds.md#function, text: Function demo }] }
+      design:   { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: ben@example.org, source: "a110" }   # the assignee reviews an agent that states no reviewer
+      unit:     { kind: plain, contributor: bot@example.org, model: claude-sonnet, reviewer: olive@example.org,
+                  source: ["a110", "a100"] }                      # contributor and model from a110, reviewer from a100
+      release:  { kind: plain, contributor: ben@example.org, reviewer: olive@example.org, source: "a000" }   # inherited from the root
+    reviews:
+      - { gate: function, reviewer: ben@example.org, commit: K5 }
+      - { gate: design, reviewer: ben@example.org, commit: K7 }
+    status: { gate: design, state: nominal, date: 2026-09-08, recorder: bot@example.org, commit: K6 }
+    events:
+      - { date: 2026-09-03, commit: K1, by: olive@example.org, task: "a110", event: task }
+      - { date: 2026-09-06, commit: K4, by: pat@example.org, task: "a110", event: status, gate: function, state: nominal }
+      - { date: 2026-09-07, commit: K5, by: ben@example.org, task: "a110", event: reviewed, gate: function }
+      - { date: 2026-09-08, commit: K6, by: bot@example.org, task: "a110", event: status, gate: design, state: nominal }
+      - { date: 2026-09-09, commit: K7, by: ben@example.org, task: "a110", event: reviewed, gate: design }
+  "a200":
+    parent: "a000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    status: { gate: defined, state: nominal, date: 2026-09-04, derived: true, from: "a210" }   # a220 is undefined and steps aside
+  "a210":
+    parent: "a200"
+    authorities: [pat@example.org, olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      release: { kind: plain, contributor: pat@example.org, source: "a210", undecided: F7 }   # a000's reviewer, olive, applies only if a plain entry inherits across a200's exemption
+    applicable: [undefined, defined, mockup, function, performance, reliability, design, implementation, unit, integrate, validate, release]
+    status: { gate: defined, state: nominal, date: 2026-09-04, recorder: pat@example.org, commit: K2 }
+  "a220":
+    parent: "a200"
+    authorities: [pat@example.org, olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      release: { kind: not_applicable, source: "a200" }
+    applicable: [undefined, defined, mockup, function, performance, reliability, design, implementation, unit, integrate, validate]
+    status: { gate: undefined, state: undefined, date: 2026-09-03, commit: K1 }
+  "a300":
+    parent: "a000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: bot@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable-5-1, reviewer: bot@example.org, source: "a300" }   # the assignee is an agent, so the agent reviews itself
+    reviews:
+      - { gate: design, reviewer: bot@example.org, commit: K8 }    # the review rides on the commit that records the status
+    status: { gate: design, state: nominal, date: 2026-09-10, recorder: bot@example.org, commit: K8 }
+    events:
+      - { date: 2026-09-03, commit: K1, by: olive@example.org, task: "a300", event: task }
+      - { date: 2026-09-10, commit: K8, by: bot@example.org, task: "a300", event: status, gate: design, state: nominal }
+      - { date: 2026-09-10, commit: K8, by: bot@example.org, task: "a300", event: reviewed, gate: design }
+  "a400":
+    parent: "a000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    junctions:
+      default:        { kind: plain, contributor: ben@example.org }
+      implementation: { kind: recursive, subproject: { url: sub, id: "5b00" }, source: "a400" }
+    subproject: { url: sub, pin: S2, task: "5b00" }
+    status:                                      # the gate is the file's; the rest is 5b00's at the pin
+      gate: design
+      state: nominal
+      note: Bus driver drafted
+      date: 2026-09-02
+      recorder: pat@example.org
+      commit: S2
+  "a500":
+    parent: "a000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: ben@example.org }
+      unit:    { kind: recursive, subproject: { url: sub }, source: "a500" }      # no id: the subproject's root, 5a00
+    subproject: { url: sub, pin: S2, task: "5a00" }
+    status:                                      # 5a00 rolls up 5b00 (design) and 5c00 (defined); the earliest gate is defined, held by 5c00
+      gate: implementation
+      state: nominal
+      date: 2026-09-01
+      derived: true
+      from: "5c00"
+  "a600":
+    parent: "a000"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: K1, by: olive@example.org }
+    junctions:
+      default:  { kind: plain, contributor: ben@example.org }
+      mockup:   { kind: not_applicable, source: "a600" }
+      function: { kind: not_applicable, source: "a600" }
+      release:  { kind: plain, contributor: ben@example.org, reviewer: olive@example.org, source: "a000" }
+    applicable: [undefined, defined, performance, reliability, design, implementation, unit, integrate, validate, release]
+    status: { gate: defined, state: nominal, date: 2026-09-05, recorder: ben@example.org, commit: K3 }

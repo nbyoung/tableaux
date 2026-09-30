@@ -1,0 +1,6 @@
+# expected.yaml : A requirement holds a field the schema does not define.
+entry: requires-unknown-field
+language: 0.3.0
+valid: false
+findings:
+  - { rule: R8, severity: error, task: "b2c9", file: tasks/b2c9.yaml }

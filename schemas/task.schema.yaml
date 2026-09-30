@@ -17,6 +17,17 @@ $defs:
     type: string
     format: uri-reference
     minLength: 1
+  commit:
+    type: string
+    pattern: "^[0-9a-f]{40}$"
+  subproject:
+    type: object
+    required: [url]
+    additionalProperties: false
+    properties:
+      url:    { $ref: "#/$defs/url" }
+      id:     { $ref: "#/$defs/id" }
+      commit: { $ref: "#/$defs/commit" }
   references:
     type: array
     items:
@@ -45,13 +56,7 @@ $defs:
     required: [subproject]
     additionalProperties: false
     properties:
-      subproject:
-        type: object
-        required: [url]
-        additionalProperties: false
-        properties:
-          url: { $ref: "#/$defs/url" }
-          id:  { $ref: "#/$defs/id" }
+      subproject: { $ref: "#/$defs/subproject" }
   not_applicable:
     type: object
     required: [applies]
@@ -67,10 +72,16 @@ properties:
     type: array
     items:
       type: object
-      required: [id]
+      oneOf:
+        - required: [id]
+        - required: [subproject]
       additionalProperties: false
       properties:
         id:   { $ref: "#/$defs/id" }
+        subproject:
+          allOf:
+            - $ref: "#/$defs/subproject"
+            - required: [id]
         from: { $ref: "#/$defs/key" }
         to:   { $ref: "#/$defs/key" }
         text: { type: string, minLength: 1 }

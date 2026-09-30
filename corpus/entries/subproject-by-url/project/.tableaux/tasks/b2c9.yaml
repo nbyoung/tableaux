@@ -1,0 +1,9 @@
+# tasks/b2c9.yaml : one leaf; the design is the library's, read at the commit the junction names
+title: Leaf
+description: A leaf task whose design another repository does.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { subproject: { url: https://example.org/lib.git, commit: c1ed65be650bb12ba50c48f1ed224d3d106ca58b } }
+parent: { id: "e4a1", order: 1 }

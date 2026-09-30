@@ -1,0 +1,6 @@
+# expected.yaml : The status passes the design junction, whose reviewer never committed a Reviewed trailer. History alone shows the finding.
+entry: status-unreviewed-gate
+language: 0.3.0
+valid: false
+findings:
+  - { rule: S11, severity: error, task: "b2c9", file: status/b2c9.yaml, gate: design }

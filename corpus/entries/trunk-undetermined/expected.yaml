@@ -1,0 +1,17 @@
+# expected.yaml : no trunk in version.yaml, no remote, and the caller names no branch.
+# The tool runs without a branch name for this entry. It warns (P5) and reads every task as proposed.
+entry: trunk-undetermined
+language: 0.3.0
+trunk: { undetermined: true }
+valid: true
+
+findings:
+  - { rule: P5, severity: warning, file: version.yaml,
+      message: "No trunk: version.yaml names none, refs/remotes/origin/HEAD is absent and the caller names no branch" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "e4a1": { authorisation: { state: proposed } }
+  "b2c9": { authorisation: { state: proposed } }

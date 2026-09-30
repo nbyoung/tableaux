@@ -1,0 +1,8 @@
+# expected.yaml : Every task has a parent, so the root's parent chain loops through its own child: T8 and T10. The entry drops the status file, since b2c9 is no longer a leaf.
+entry: tree-no-root
+language: 0.3.0
+valid: false
+findings:
+  - { rule: T8, severity: error }
+  - { rule: T10, severity: error, task: "e4a1", file: tasks/e4a1.yaml }
+  - { rule: T10, severity: error, task: "b2c9", file: tasks/b2c9.yaml }

@@ -10,8 +10,11 @@ items:
     commit: { type: string, pattern: "^[0-9a-f]{7,40}$" }
     by:     { type: string, format: email }
     task:   { type: string, pattern: "^[0-9a-f]{4}$" }
-    event:  { enum: [task, authorised, status, reaffirmed, reviewed] }
+    event:  { enum: [task, authorised, status, reaffirmed, reviewed, pin] }
     gate:   { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
     state:  { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
     reason: { type: string, pattern: "^[a-z][a-z0-9_-]*$" }
     note:   { type: string, minLength: 1 }
+    url:    { type: string, minLength: 1 }
+    old:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
+    new:    { type: string, pattern: "^[0-9a-f]{7,40}$" }

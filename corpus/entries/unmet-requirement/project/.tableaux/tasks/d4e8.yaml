@@ -1,0 +1,7 @@
+# tasks/d4e8.yaml : a leaf whose requirement is not yet due
+title: Third leaf
+description: A leaf task that waits far ahead on the first leaf's design.
+assignee: pat@example.org
+requires:
+  - { id: "b2c9", from: design, to: release }
+parent: { id: "e4a1", order: 3 }

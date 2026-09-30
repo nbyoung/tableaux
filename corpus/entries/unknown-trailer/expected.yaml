@@ -1,0 +1,22 @@
+# expected.yaml : two trailers name nothing (H1, warnings) and change no derived fact.
+# The Model trailer on U3 names no task by design and draws no finding.
+entry: unknown-trailer
+language: 0.3.0
+valid: true
+
+findings:
+  - { rule: H1, severity: warning, commit: U2, trailer: "Authorised: zzzz",
+      message: "zzzz names no task" }
+  - { rule: H1, severity: warning, commit: U2, trailer: "Reviewed: 9f31 nowhere",
+      message: "9f31 names no task and nowhere names no gate" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    authorisation: { state: authorised, commit: U1, by: olive@example.org }
+    status: { gate: defined, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: U1 }
+    events:
+      - { date: 2026-09-01, commit: U1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: U1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
