@@ -162,7 +162,7 @@ The entry records that at `fcec`'s gates after `defined` the agent is its own re
 
 - **Q1 S11 severity.** Decided at design review: the validator rejects a status that passes an unreviewed junction, as README.md says. The consequence for this repository, every agent-recorded status invalid, resolves through Q2.
 - **Q2 The agent as its own reviewer.** Decided at design review, in two parts. First, F8 resolves: authorising a task stands as the review of its `defined` gate, so no status at `defined` needs a `Reviewed:` commit, and every status this repository holds today is valid. Second, at every later gate where the agent is its own reviewer, the commit that records the status carries `Reviewed: <id> <gate>`, authored by the agent, so status and review land together. README.md states both. F2's proposal of a human default reviewer stays open in task `ac33`.
-- **Q3 Implicit rules.** J8, J9 and S7 have no sentence. Keep them as rules with a sentence added to README.md, or drop their entries?
+- **Q3 Implicit rules.** Decided at design review: J8, J9 and S7 stay as rules, and README.md now states each in a sentence of its own. No implicit rule remains.
 - **Q4 Candidate rules.** Decided at design review: all eight candidates become rules, and README.md and SYNTAX.md now state them (RULES.md, "Candidate rules, resolved").
 - **Q5 Entry granularity.** One entry per rule gives 69 invalid entries of five files each. The alternative is one entry per file with several findings each, about twelve entries. The build cost is the same; the difference is how a failing test reads.
 - **Q6 The read-in-place entry's ref.** A hash pins the facts but goes stale on every merge; a tag such as `corpus/tooling` that the owner moves is easier to keep current. Which?
