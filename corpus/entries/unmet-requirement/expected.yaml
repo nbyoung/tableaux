@@ -1,0 +1,44 @@
+# expected.yaml : a valid project with one unmet requirement (R9, a warning) and one pending requirement.
+entry: unmet-requirement
+language: 0.2.1
+valid: true
+
+findings:
+  - { rule: R9, severity: warning, task: "c3d7", file: tasks/c3d7.yaml,
+      message: "Requirement on b2c9 from design is due at release and unmet: b2c9 stands at defined" }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 4, leaves: 3 }
+order: ["e4a1", "b2c9", "c3d7", "d4e8"]
+
+tasks:
+  "e4a1":
+    parent: null
+    authorities: []
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    status:                                   # derived: all three leaves are nominal, and the earliest gate is defined
+      gate: defined
+      state: nominal
+      date: 2026-09-01
+      derived: true
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    status: { gate: defined, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: only }
+  "c3d7":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    applicable: [undefined, defined, design, release]
+    requires:                                 # c3d7 stands at design, so its next gate, release, is the requirement's to gate
+      - { id: "b2c9", from: design, to: release, met: false, due: true, condition: unmet }
+    status: { gate: design, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: only }
+  "d4e8":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    requires:                                 # d4e8 stands at defined, so its next gate, design, precedes release
+      - { id: "b2c9", from: design, to: release, met: false, due: false, condition: pending }
+    status: { gate: defined, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: only }

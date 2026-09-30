@@ -1,0 +1,7 @@
+# tasks/a100.yaml : a parent whose plain entry its child inherits field by field
+title: Plain and inherited
+description: A parent that states a reviewer at unit for its children.
+assignee: ben@example.org
+junctions:
+  unit: { reviewer: olive@example.org }
+parent: { id: "a000", order: 1 }

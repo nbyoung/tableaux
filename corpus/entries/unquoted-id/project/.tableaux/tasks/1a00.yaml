@@ -1,0 +1,5 @@
+# tasks/1a00.yaml : names its parent by an unquoted id, which SYNTAX.md warns of (T7)
+title: Leaf under 1000
+description: A leaf whose parent id is written without quotes.
+assignee: pat@example.org
+parent: { id: 1000, order: 1 }

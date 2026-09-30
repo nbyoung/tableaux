@@ -1,0 +1,5 @@
+# tasks/a220.yaml : states nothing, so the exemption reaches it; no status file, so undefined
+title: Inherits the exemption
+description: A leaf that takes its parent's exemption from release.
+assignee: pat@example.org
+parent: { id: "a200", order: 2 }

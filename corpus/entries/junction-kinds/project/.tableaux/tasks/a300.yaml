@@ -1,0 +1,7 @@
+# tasks/a300.yaml : an agent under an agent (F2)
+title: Agent under an agent
+description: A leaf whose assignee is an agent, so the agent that contributes at design also reviews it.
+assignee: bot@example.org
+junctions:
+  design: { contributor: bot@example.org, model: claude-fable-5-1 }
+parent: { id: "a000", order: 3 }

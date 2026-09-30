@@ -1,0 +1,6 @@
+# tasks/a000.yaml : the root; its junction defaults reach the whole tree
+title: Junction kinds
+description: A project that shows every junction kind and every way a junction resolves.
+assignee: olive@example.org
+junctions:
+  release: { reviewer: olive@example.org }

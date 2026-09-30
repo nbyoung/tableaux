@@ -1,0 +1,16 @@
+# tasks/c100.yaml : delegates every gate after defined to the root of the subproject at sub
+title: Delegating task
+description: A leaf whose work after its definition is another project's.
+assignee: ben@example.org
+junctions:
+  mockup:        { subproject: { url: sub } }
+  function:      { subproject: { url: sub } }
+  performance:   { subproject: { url: sub } }
+  reliability:   { subproject: { url: sub } }
+  design:        { subproject: { url: sub } }
+  implementation: { subproject: { url: sub } }
+  unit:          { subproject: { url: sub } }
+  integrate:     { subproject: { url: sub } }
+  validate:      { subproject: { url: sub } }
+  release:       { subproject: { url: sub } }
+parent: { id: "c000", order: 1 }

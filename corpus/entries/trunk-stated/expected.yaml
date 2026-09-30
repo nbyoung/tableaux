@@ -1,0 +1,32 @@
+# expected.yaml : version.yaml names the trunk develop; the default branch is main; the view is develop.
+entry: trunk-stated
+language: 0.2.1
+trunk: { stated: develop }
+ref: develop
+valid: true
+findings: []
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 2, leaves: 1 }
+order: ["e4a1", "b2c9"]
+
+tasks:
+  "e4a1":
+    parent: null
+    authorities: []
+    authorisation: { state: authorised, commit: T1, by: olive@example.org }
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: T2, by: olive@example.org }
+    status: { gate: defined, state: nominal, date: 2026-09-02, recorder: olive@example.org, commit: T2 }
+
+# main is off the trunk, so every task reads as proposed there, including c3d7, which only main holds.
+refs:
+  main:
+    commit: T3
+    tasks:
+      "e4a1": { authorisation: { state: proposed } }
+      "b2c9": { authorisation: { state: proposed } }
+      "c3d7": { authorisation: { state: proposed } }
