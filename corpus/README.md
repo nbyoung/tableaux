@@ -150,7 +150,7 @@ Invalid entries, one per rule in [RULES.md](RULES.md), 69 in all. Each is `base/
 
 ## This project as an entry
 
-`entries/tableaux-tooling/expected.yaml` names this repository (`source: { repository: ../../.., ref: c764f8a }`) and states facts about it: thirty-seven tasks, the owner, every task authorised because the owner committed the plan on `main`, the resolved junctions of `fcec` under the root's review policy, its pending requirement on `e3cb`, and `77b2`'s recursive junction to `subprojects/tablo` at the pinned commit. The build skips it. When a commit on `main` changes those facts, the entry's `ref` and facts move together, so the corpus always describes one fixed commit of this repository and never its tip.
+`entries/tableaux-tooling/expected.yaml` names this repository (`source: { repository: ../../.., ref: corpus/tooling }`) and states facts about it: thirty-seven tasks, the owner, every task authorised because the owner committed the plan on `main`, the resolved junctions of `fcec` under the root's review policy, its pending requirement on `e3cb`, and `77b2`'s recursive junction to `subprojects/tablo` at the pinned commit. The build skips it. The ref is the tag `corpus/tooling`, which the owner moves: when a commit on `main` changes those facts, the owner updates the facts and moves the tag to that commit in one step, `git tag -f corpus/tooling main && git push -f origin corpus/tooling`, so the corpus always describes one fixed commit of this repository and never its tip. The tag first lands on the commit that merges this design.
 
 The entry records that at `fcec`'s gates after `defined` the agent is its own reviewer by the method's default, so the commit that records each such status carries `Reviewed: fcec <gate>` by the agent, or rule S11 fires. At `defined`, the owner's authorisation stands as the review. See Q1 and Q2.
 
@@ -165,7 +165,7 @@ The entry records that at `fcec`'s gates after `defined` the agent is its own re
 - **Q3 Implicit rules.** Decided at design review: J8, J9 and S7 stay as rules, and README.md now states each in a sentence of its own. No implicit rule remains.
 - **Q4 Candidate rules.** Decided at design review: all eight candidates become rules, and README.md and SYNTAX.md now state them (RULES.md, "Candidate rules, resolved").
 - **Q5 Entry granularity.** Decided at design review: one entry per rule. A red conformance run in `tablo` then names the rule that regressed, a new rule adds one directory and leaves every other fixture untouched, and the check that every rule has an entry is a directory listing against RULES.md. The 69 invalid entries cost nothing to maintain, since `build.sh` makes each from `base/` plus its one deviation.
-- **Q6 The read-in-place entry's ref.** A hash pins the facts but goes stale on every merge; a tag such as `corpus/tooling` that the owner moves is easier to keep current. Which?
+- **Q6 The read-in-place entry's ref.** Decided at design review: the tag `corpus/tooling`, which the owner moves. A hash would go stale on every merge; the tag moves only when the owner re-reads the facts, and its move is itself an event in the history.
 
 ## Findings about the method
 

@@ -4,7 +4,7 @@
 # a later commit that changes them updates `ref` and the facts together.
 entry: tableaux-tooling
 language: 0.1.0
-source: { repository: ../../.., ref: c764f8a }
+source: { repository: ../../.., ref: corpus/tooling }   # a tag the owner moves; see README.md
 valid: true
 findings: []
 
