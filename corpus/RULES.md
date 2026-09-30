@@ -10,8 +10,9 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 |----|----------|--------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|----------------------------------------------|
 | P1 | error    | The project is the `.tableaux` directory at the root of the repository                     | SYNTAX Layout: "A Tableaux project is the `.tableaux` directory at the root of its Git repository." | `no-tableaux-directory`            |
 | P2 | error    | `version.yaml` exists                                                                      | SYNTAX Layout table: "`version.yaml`, `gates.yaml`: Fixed"                              | `version-missing`                            |
-| P3 | error    | `version.yaml` matches its schema: `tableaux` required, `major.minor.patch`, no other field | SYNTAX version schema                                                                   | `version-bad-pattern`, `version-unknown-field` |
+| P3 | error    | `version.yaml` matches its schema: `tableaux` required, `major.minor.patch`; `trunk`, when present, non-empty; no other field | SYNTAX version schema                                                       | `version-bad-pattern`, `version-unknown-field`, `version-trunk-empty` |
 | P4 | error    | The major version equals the tool's and the minor version does not exceed it               | README Version: "A tool accepts a project whose major version equals its own and whose minor version does not exceed it." | `version-major-mismatch`, `version-minor-ahead` |
+| P5 | warning  | The trunk resolves: `trunk` in `version.yaml`, else `refs/remotes/origin/HEAD`, else the branch the caller names; otherwise every task reads as proposed | README Project: "otherwise the trunk is undetermined, every task reads as proposed, and a validator warns" | `trunk-undetermined`; also `trunk-stated`, `trunk-inferred` |
 
 ## `gates.yaml`
 
@@ -78,6 +79,7 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | J10 | error            | A plain entry has no field beyond `contributor`, `model`, `reviewer`, `references` | Schema `plain: additionalProperties: false`                                        | `junction-unknown-field`             |
 | J11 | error            | No plain or recursive entry at `undefined`                                 | README Junctions: "The `undefined` gate … has no work of its own, so a file states no entry of any kind at `undefined`." Schema `junctions: propertyNames: not: { const: undefined }` | `junction-undefined-plain`, `junction-undefined-recursive` |
 | J12 | error            | At least one gate after `undefined` applies to every task                  | README Junctions: "At least one gate after `undefined` applies to every task"              | `junction-all-not-applicable`        |
+| J13 | warning          | The commit a submodule pins is on the subproject's trunk                   | README Project: "A subproject's own `version.yaml` names its trunk, and the audit reports a pinned commit that is not on it." | `subproject-pin-off-trunk`  |
 
 ## `status/<id>.yaml`
 

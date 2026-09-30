@@ -20,6 +20,8 @@ This document gives the meaning of each Tableaux structure. [SYNTAX.md](SYNTAX.m
 
 A project lives in the `.tableaux` directory at the root of its Git repository, so the project and the repository share one history, one set of branches and one set of identities. The dot prefix keeps the project beside the repository's own metadata (`.git`, `.github`) rather than among its sources.
 
+The **trunk** is the branch on which the project accepts tasks and statuses: authorisation reads the trunk's history, and every commit off it is a proposal. `version.yaml` names the trunk in `trunk`, as `.gitmodules` names a submodule's branch. When the field is absent, a tool takes the remote's default branch, `refs/remotes/origin/HEAD`, which a clone records; when that is absent too, as in a repository made by `git init` or a continuous-integration checkout that fetches one commit, the tool takes the branch its caller names, and otherwise the trunk is undetermined, every task reads as proposed, and a validator warns. A tool resolves the name against the local branches, then the remote-tracking branches. A subproject's own `version.yaml` names its trunk, and the audit reports a pinned commit that is not on it.
+
 ## Version
 
 `version.yaml` names the semantic version of the Tableaux language that every other file in the project follows:
@@ -68,7 +70,7 @@ A validator checks that every junction key names a gate in `gates.yaml`. Junctio
 
 ## Proposed and authorised tasks
 
-Any contributor may create or change a task, so the project distinguishes a **proposed** task, which states the contributor's intent, from an **authorised** task, which one of its authorities has accepted. Git records the acceptance on the trunk (the repository's default branch):
+Any contributor may create or change a task, so the project distinguishes a **proposed** task, which states the contributor's intent, from an **authorised** task, which one of its authorities has accepted. Git records the acceptance on the [trunk](#project):
 
 - The **deciding commit** of a task is the newest commit in the trunk's first-parent history that changed the task's file or carries an `Authorised:` trailer naming the task.
 - The task is authorised when the deciding commit's author or committer is one of its authorities, and proposed otherwise. The authorities are read from the tree as it stands at that commit, so a move to a new parent is accepted by the new parent's chain.
