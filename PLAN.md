@@ -160,7 +160,7 @@ Task `7861` measures this policy against the aim, and the measurement feeds the 
 
 The umbrella project rendered as the global tableau. Every task stands at the undefined gate until the owner commits the plan and the first reviews land. A parent row shows the defaults its children inherit; its status derives from theirs.
 
-| Id | Task | ❔ | 📝 | 📌 | ⚙️ | 📐 | 🛠️ | 🧩 | 🖼️ | 🌍 | 🚀 |
+| Id | Task | ❔ | 📝 | 📌 | 🔧 | 📐 | 🧱 | 📏 | 🔗 | 🌍 | 🚀 |
 |----|------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `437e` | **Tableaux tooling** | ⚪ | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🧑 |
 | `bc63` | &nbsp;&nbsp;**Method** | ⚪ | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🤖👀 | 🧑 |
