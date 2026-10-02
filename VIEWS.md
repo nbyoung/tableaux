@@ -89,7 +89,7 @@ Every view discloses at three levels, and the levels nest. A format decides how 
 
 **Example.** This project's `gates.yaml` drops the performance and reliability gates from the set SYNTAX.md shows.
 
-| ❔ undefined | 📝 defined | 📌 mockup | ⚙️ function | 📐 design | 🛠️ implementation | 🧩 unit | 🖼️ integrate | 🌍 validate | 🚀 release |
+| ❔ undefined | 📝 defined | 📌 mockup | 🔧 function | 📐 design | 🧱 implementation | 📏 unit | 🔗 integrate | 🌍 validate | 🚀 release |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 
 States ⚪ undefined 0 · 🟢 nominal 1 · 🟡 at_risk 2 · 🔴 stalled 3 · ✅ complete 0. Reasons 🪫 overloaded · ⛔ blocked · 👓 review. At detail, 📐 reads "A model and sufficient tests exist"; a task under the Method branch reads the gate as its parent `bc63` describes it, an outline with examples, which the task definition shows. 👓 beside a state says the contributor has handed the next junction's work to its reviewer; 👀 in a cell says a reviewer accepts the work there.
@@ -321,7 +321,7 @@ Once this design hands off, the cause reads "`e9c6` design awaits review by nbyo
 
 **Example.** At glance on `main`, every row stands at defined. The root rolls up to defined and nominal from `bc63`, which rolls up from `2034` and in turn from `e9c6`, since its children tie and display order decides. Each subproject's row takes its state from its root task at the pin, itself a roll-up: `tablo`'s from `4b4f` Conformance, the one leaf there still at defined.
 
-| Id     | Task                | ❔ | 📝 | 📌   | ⚙️ | 📐   | 🛠️ | 🧩 | 🖼️ | 🌍 | 🚀 |
+| Id     | Task                | ❔ | 📝 | 📌   | 🔧 | 📐   | 🧱 | 📏 | 🔗 | 🌍 | 🚀 |
 |--------|---------------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `437e` | **Tableaux tooling** |   | 🟢 | 🤖👀 | 🤖 | 🤖👀 | 🤖 | 🤖 | 🤖 | 🤖👀 | 🧑 |
 | `bc63` | &nbsp;&nbsp;**Method** |   | 🟢 | 🤖👀 | 🤖 | 🤖👀 | 🤖 | 🤖 | 🤖 | 🤖👀 | 🧑 |
@@ -332,7 +332,7 @@ Once this design hands off, the cause reads "`e9c6` design awaits review by nbyo
 
 At detail the Method branch opens:
 
-| Id     | Task                        | ❔ | 📝 | 📌 | ⚙️ | 📐 | 🛠️ | 🧩 | 🖼️ | 🌍 | 🚀 |
+| Id     | Task                        | ❔ | 📝 | 📌 | 🔧 | 📐 | 🧱 | 📏 | 🔗 | 🌍 | 🚀 |
 |--------|-----------------------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `c2ad` | Roles                       |   |   |   |   |   | 🟢 | — | — | 🤖👀 | 🧑 |
 | `2034` | **Views**                   |   | 🟢 | 🤖👀 | 🤖 | 🤖👀 | 🤖 | 🤖 | 🤖 | 🤖👀 | 🧑 |
@@ -343,7 +343,7 @@ At detail the Method branch opens:
 | `7861` | Productivity evidence       |   |   |   |   |   | 🟢 | — | — | 🤖👀 | 🧑 |
 | `7166` | Language clarifications     |   |   |   |   | 🟢 | 🤖👀 | — | — | 🤖👀 | 🧑 |
 
-The state symbol sits in the column of the gate the status names, as [PLAN.md](PLAN.md#the-plan-at-a-glance) draws it, with the reason symbol beside it, so `c2ad` shows 🟢 at 🛠️: it has passed implementation and proceeds towards validate. Its four historical cells stand empty; with historical junctions on they read 🤖, —, —, 🤖👀, which is who did the work and who accepted it. The default window spans every column but ❔, since the next gates in view run from mockup to validate, and ❔ folds to a count of zero.
+The state symbol sits in the column of the gate the status names, as [PLAN.md](PLAN.md#the-plan-at-a-glance) draws it, with the reason symbol beside it, so `c2ad` shows 🟢 at 🧱: it has passed implementation and proceeds towards validate. Its four historical cells stand empty; with historical junctions on they read 🤖, —, —, 🤖👀, which is who did the work and who accepted it. The default window spans every column but ❔, since the next gates in view run from mockup to validate, and ❔ folds to a count of zero.
 
 ## Contextual tableau
 
@@ -361,9 +361,9 @@ The state symbol sits in the column of the gate the status names, as [PLAN.md](P
 - detail: the spine and the siblings, the folded columns' counts, the notes.
 - provenance: as the global tableau.
 
-**Example.** For task `2034` Views, the next gates in view are design and mockup, so the window runs from 📝 to 🛠️ and the columns outside fold; the children of `bc86` and `5fe3` stay collapsed at glance, and ❔ is historical for every row.
+**Example.** For task `2034` Views, the next gates in view are design and mockup, so the window runs from 📝 to 🧱 and the columns outside fold; the children of `bc86` and `5fe3` stay collapsed at glance, and ❔ is historical for every row.
 
-| Id     | Task                    | ❔ | 📝 | 📌 | ⚙️ | 📐 | 🛠️ | 🧩 … 🚀 |
+| Id     | Task                    | ❔ | 📝 | 📌 | 🔧 | 📐 | 🧱 | 📏 … 🚀 |
 |--------|-------------------------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | `2034` | **Views**               | 0 | 🟢 | 🤖👀 | 🤖 | 🤖👀 | 🤖 | 0 |
 | `e9c6` | Abstract views          |   | 🟢 | — | — | 🤖👀 | 🤖 |   |
