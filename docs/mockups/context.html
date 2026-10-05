@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contextual tableau · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+tbody th { font-weight: 400; }
+table.tableau { table-layout: fixed; min-width: 44rem; }
+col.c-id { width: 4rem; }
+col.c-fold { width: 3rem; }
+col.c-gate { width: 3.5rem; }
+col.c-foldr { width: 5.5rem; }
+th.fold, td.fold { background: var(--band); }
+th.d1 { padding-left: 1.6rem; }
+th.d2 { padding-left: 2.6rem; }
+th.d3 { padding-left: 3.6rem; }
+th.d4 { padding-left: 4.6rem; }
+.note { display: block; color: var(--muted); font-size: .8125rem; font-weight: 400; }
+table.narrow { width: auto; margin: .5rem 0; }
+details.detail { border-top: 1px solid var(--line); padding: .35rem 0; }
+details.detail > :not(summary) { margin-left: 1rem; }
+form.columns fieldset { border: 1px solid var(--line); margin: .5rem 0; padding: .25rem .75rem .5rem; }
+form.columns label { display: inline-block; margin-right: 1rem; white-space: nowrap; }
+.key { color: var(--muted); font-size: .875rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html" aria-current="page">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · task <code class="id">2034</code> Views · window of one, 📝 to 📏 · historical junctions off</p>
+</header>
+<main id="main">
+  <h1>Contextual tableau</h1>
+  <p class="question">How does my corner stand?</p>
+
+  <p>This page shows the <strong>task form</strong>: the subtree under <a class="id" href="task.html?task=2034">2034</a> Views, of which the viewer is the assignee and so the authority. The <a href="#person">person form</a> follows it. <a href="tableau.html">The global tableau shows the whole project</a>, and <a href="gates.html">the gate definition explains every column and symbol</a>.</p>
+
+  <!-- glance: visible without any interaction -->
+  <section aria-labelledby="h-task">
+  <h2 id="h-task">Views and its children</h2>
+<div class="scroll">
+<table class="tableau">
+<caption>Task 2034 Views and its three children in the gate window defined to unit. The first row carries the count of each folded column.</caption>
+<colgroup><col class="c-id"><col class="c-task"><col class="c-fold"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-foldr"></colgroup>
+<thead><tr><th scope="col">Id</th><th scope="col">Task</th><th scope="col" class="gate fold"><span title="undefined, folded">❔</span><span class="sr">undefined, folded</span></th><th scope="col" class="gate"><span title="defined">📝</span><span class="sr">defined</span></th><th scope="col" class="gate"><span title="mockup">📌</span><span class="sr">mockup</span></th><th scope="col" class="gate"><span title="function">🔧</span><span class="sr">function</span></th><th scope="col" class="gate"><span title="design">📐</span><span class="sr">design</span></th><th scope="col" class="gate"><span title="implementation">🧱</span><span class="sr">implementation</span></th><th scope="col" class="gate"><span title="unit">📏</span><span class="sr">unit</span></th><th scope="col" class="gate fold"><span title="integrate to release, folded">🔗 … 🚀</span><span class="sr">integrate to release, folded</span></th></tr></thead>
+<tbody>
+<tr class="parent"><td><a class="id" href="task.html?task=2034">2034</a></td><th scope="row" class="d0">Views</th><td class="cell fold">0<span class="sr"> tasks stand in this folded column</span></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold">0<span class="sr"> tasks stand in this folded column</span></td></tr>
+<tr><td><a class="id" href="task.html?task=e9c6">e9c6</a></td><th scope="row" class="d1">Abstract views</th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=bc86">bc86</a></td><th scope="row" class="d1">Markdown views <span class="fold">(10<span class="sr"> children not drawn</span>)</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=5fe3">5fe3</a></td><th scope="row" class="d1">HTML views <span class="fold">(10<span class="sr"> children not drawn</span>)</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+</tbody>
+</table>
+</div>
+  <p class="key">Columns: 📝 defined · 📌 mockup · 🔧 function · 📐 design · 🧱 implementation · 📏 unit. Folded: ❔ undefined, and 🔗 integrate, 🌍 validate, 🚀 release as one column. Cells: 🟢 nominal, in the column of the gate the status names · 🤖 an agent contributes · 👀 a reviewer accepts · 🪆 a subproject does the work · — the gate does not apply · an empty cell before the state is historical. A <span class="mine">highlighted cell</span> is one where the viewer reviews. A bold title is a parent; a number in brackets counts the children the table does not draw.</p>
+  <p>The next gates in view are 📌 mockup, for <a class="id" href="task.html?task=2034">2034</a>, <a class="id" href="task.html?task=bc86">bc86</a>, <a class="id" href="task.html?task=5fe3">5fe3</a> and the twenty mockups, and 🧱 implementation, for <a class="id" href="task.html?task=e9c6">e9c6</a>. One column either side gives the window 📝 to 📏; the columns outside fold to the count of tasks whose current gate lies in them, which is none. The example in VIEWS.md shows 2026-09-30, when <code class="id">e9c6</code> stands at 📝 and the window ends at 🧱.</p>
+
+  <!-- A table has no native way to fold rows without script. Each collapsed parent
+       therefore opens, below the table, a block that holds its children in a table
+       of identical columns. With script, the daemon moves those rows into the table
+       above, under their parent, as a tree grid with arrow keys. -->
+
+  <!-- detail: <details class="detail"> per item; carries `open` where the viewer's role opens at detail -->
+  <details class="detail" open id="d-2034">
+    <summary><span class="id">2034</span> Views: 📝 defined 🟢 nominal, rolled up</summary>
+    <dl class="fields">
+      <dt>Status</dt><dd>📝 defined, 🟢 nominal, from <a class="id" href="task.html?task=bc86">bc86</a> Markdown views</dd>
+      <dt>Date</dt><dd>2026-09-29</dd>
+      <dt>Note</dt><dd>from <a class="id" href="task.html?task=bc86">bc86</a>: Mockup waits for Abstract views (e9c6) at design</dd>
+      <dt>Next gate</dt><dd>📌 mockup: an agent contributes and nbyoung@nbyoung.com reviews, as its children inherit</dd>
+    </dl>
+    <details class="prov">
+      <summary>Provenance of the roll-up and the marks</summary>
+      <p><a class="id" href="task.html?task=2034">2034</a> has no status file. Its three children are nominal; the earliest gate among them is defined, where <a class="id" href="task.html?task=bc86">bc86</a> and <a class="id" href="task.html?task=5fe3">5fe3</a> tie, and <a class="id" href="task.html?task=bc86">bc86</a> comes first in display order. <a class="id" href="task.html?task=bc86">bc86</a> in turn rolls up from <a class="id" href="task.html?task=99f0">99f0</a>, the first of its ten children. The date is the oldest among the children.</p>
+      <dl class="fields">
+        <dt>📌 🤖👀</dt><dd><a class="id" href="task.html?task=437e">437e</a> states the contributor noreply@anthropic.com, the model <code>claude-opus</code> and the reviewer nbyoung@nbyoung.com</dd>
+        <dt>🔧 🤖, 🧱 🤖, 📏 🤖</dt><dd><a class="id" href="task.html?task=437e">437e</a> states the contributor noreply@anthropic.com and the model <code>claude-sonnet</code>, and no reviewer</dd>
+        <dt>📐 🤖👀</dt><dd><a class="id" href="task.html?task=bc63">bc63</a> states the contributor noreply@anthropic.com and the model <code>claude-fable</code>; <a class="id" href="task.html?task=437e">437e</a> states the reviewer nbyoung@nbyoung.com</dd>
+      </dl>
+    </details>
+  </details>
+
+  <details class="detail" open id="d-e9c6">
+    <summary><span class="id">e9c6</span> Abstract views: 📐 design 🟢 nominal</summary>
+    <dl class="fields">
+      <dt>Status</dt><dd>📐 design, 🟢 nominal</dd>
+      <dt>Date</dt><dd>2026-09-30</dd>
+      <dt>Note</dt><dd>VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place</dd>
+      <dt>Next gate</dt><dd>🧱 implementation: an agent contributes</dd>
+    </dl>
+    <p><a href="task.html?task=e9c6">The task view shows e9c6 in full</a>.</p>
+    <details class="prov">
+      <summary>Provenance of the status and the marks</summary>
+      <dl class="fields">
+        <dt>Status file</dt><dd><code>.tableaux/status/e9c6.yaml</code></dd>
+        <dt>Deciding commit</dt><dd><code>879b447</code> Advance the abstract views task to its design gate</dd>
+        <dt>Date</dt><dd>2026-09-30, the author date</dd>
+        <dt>Recorder</dt><dd>Claude Fable 5.1, noreply@anthropic.com, the author and the committer</dd>
+        <dt>Trailers</dt><dd><code>Model: claude-fable-5-1</code></dd>
+        <dt>Review</dt><dd><code>0704a09</code> Accept the abstract views design, 2026-09-30: nbyoung@nbyoung.com authors and commits it with <code>Reviewed: e9c6 design</code></dd>
+        <dt>🧱 🤖</dt><dd><a class="id" href="task.html?task=437e">437e</a> states the contributor noreply@anthropic.com and the model <code>claude-sonnet</code>; no entry states a reviewer, and the assignee is the agent itself, so no 👀</dd>
+        <dt>📏 —</dt><dd><a class="id" href="task.html?task=e9c6">e9c6</a> states <code>applies: false</code> itself</dd>
+      </dl>
+      <p><code>git log -1 --format='%as %ae %h' -- .tableaux/status/e9c6.yaml</code></p>
+      <p><a href="history.html">The history lists every event of the task</a>.</p>
+    </details>
+  </details>
+
+  <details class="detail" open id="d-bc86">
+    <summary><span class="id">bc86</span> Markdown views: 📝 defined 🟢 nominal, rolled up; ten children</summary>
+    <dl class="fields">
+      <dt>Status</dt><dd>📝 defined, 🟢 nominal, from <a class="id" href="task.html?task=99f0">99f0</a> Gate definition view in Markdown</dd>
+      <dt>Date</dt><dd>2026-09-29</dd>
+      <dt>Note</dt><dd>from <a class="id" href="task.html?task=99f0">99f0</a>: Mockup waits for Abstract views (e9c6) at design</dd>
+      <dt>Next gate</dt><dd>📌 mockup: an agent contributes and nbyoung@nbyoung.com reviews</dd>
+    </dl>
+<div class="scroll">
+<table class="tableau">
+<caption>The ten children of <a class="id" href="task.html?task=bc86">bc86</a> Markdown views, in the columns of the table above</caption>
+<colgroup><col class="c-id"><col class="c-task"><col class="c-fold"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-foldr"></colgroup>
+<thead><tr><th scope="col">Id</th><th scope="col">Task</th><th scope="col" class="gate fold"><span title="undefined, folded">❔</span><span class="sr">undefined, folded</span></th><th scope="col" class="gate"><span title="defined">📝</span><span class="sr">defined</span></th><th scope="col" class="gate"><span title="mockup">📌</span><span class="sr">mockup</span></th><th scope="col" class="gate"><span title="function">🔧</span><span class="sr">function</span></th><th scope="col" class="gate"><span title="design">📐</span><span class="sr">design</span></th><th scope="col" class="gate"><span title="implementation">🧱</span><span class="sr">implementation</span></th><th scope="col" class="gate"><span title="unit">📏</span><span class="sr">unit</span></th><th scope="col" class="gate fold"><span title="integrate to release, folded">🔗 … 🚀</span><span class="sr">integrate to release, folded</span></th></tr></thead>
+<tbody>
+<tr><td><a class="id" href="task.html?task=99f0">99f0</a></td><th scope="row" class="d1">Gate definition view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=05a9">05a9</a></td><th scope="row" class="d1">Task definition view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=a9ce">a9ce</a></td><th scope="row" class="d1">Authority delegation view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=bb7c">bb7c</a></td><th scope="row" class="d1">Task assignment view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=c74a">c74a</a></td><th scope="row" class="d1">Contributor work queue view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=efff">efff</a></td><th scope="row" class="d1">Work-blockage tree view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=ab8e">ab8e</a></td><th scope="row" class="d1">Global tableau view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=c545">c545</a></td><th scope="row" class="d1">Contextual tableau view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=d615">d615</a></td><th scope="row" class="d1">History view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=b14e">b14e</a></td><th scope="row" class="d1">Audit view in Markdown<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+</tbody>
+</table>
+</div>
+    <details class="prov">
+      <summary>Provenance of the ten statuses and the marks</summary>
+      <dl class="fields">
+        <dt>Deciding commit</dt><dd><code>1a17bfc</code> Record the defined gate for the views and mockups, for all ten status files</dd>
+        <dt>Date</dt><dd>2026-09-29, the author date</dd>
+        <dt>Recorder</dt><dd>Claude Fable 5.1, noreply@anthropic.com, the author; Norman Young, nbyoung@nbyoung.com, commits it</dd>
+        <dt>Trailers</dt><dd>none of the method's; the commit precedes the <code>Model:</code> trailer</dd>
+        <dt>Roll-up</dt><dd><a class="id" href="task.html?task=bc86">bc86</a> takes its status from <a class="id" href="task.html?task=99f0">99f0</a>, the first of ten children that tie at defined</dd>
+        <dt>📌 🤖👀</dt><dd><a class="id" href="task.html?task=437e">437e</a> states the contributor noreply@anthropic.com, the model <code>claude-opus</code> and the reviewer nbyoung@nbyoung.com</dd>
+        <dt>🔧 📐 🧱 📏 —</dt><dd><a class="id" href="task.html?task=bc86">bc86</a> states <code>applies: false</code> at each gate, and its children inherit it</dd>
+      </dl>
+    </details>
+  </details>
+
+  <details class="detail" open id="d-5fe3">
+    <summary><span class="id">5fe3</span> HTML views: 📝 defined 🟢 nominal, rolled up; ten children</summary>
+    <dl class="fields">
+      <dt>Status</dt><dd>📝 defined, 🟢 nominal, from <a class="id" href="task.html?task=a6f7">a6f7</a> Gate definition view in Html</dd>
+      <dt>Date</dt><dd>2026-09-29</dd>
+      <dt>Note</dt><dd>from <a class="id" href="task.html?task=a6f7">a6f7</a>: Mockup waits for Abstract views (e9c6) at design</dd>
+      <dt>Next gate</dt><dd>📌 mockup: an agent contributes and nbyoung@nbyoung.com reviews</dd>
+    </dl>
+<div class="scroll">
+<table class="tableau">
+<caption>The ten children of <a class="id" href="task.html?task=5fe3">5fe3</a> HTML views, in the columns of the table above</caption>
+<colgroup><col class="c-id"><col class="c-task"><col class="c-fold"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-foldr"></colgroup>
+<thead><tr><th scope="col">Id</th><th scope="col">Task</th><th scope="col" class="gate fold"><span title="undefined, folded">❔</span><span class="sr">undefined, folded</span></th><th scope="col" class="gate"><span title="defined">📝</span><span class="sr">defined</span></th><th scope="col" class="gate"><span title="mockup">📌</span><span class="sr">mockup</span></th><th scope="col" class="gate"><span title="function">🔧</span><span class="sr">function</span></th><th scope="col" class="gate"><span title="design">📐</span><span class="sr">design</span></th><th scope="col" class="gate"><span title="implementation">🧱</span><span class="sr">implementation</span></th><th scope="col" class="gate"><span title="unit">📏</span><span class="sr">unit</span></th><th scope="col" class="gate fold"><span title="integrate to release, folded">🔗 … 🚀</span><span class="sr">integrate to release, folded</span></th></tr></thead>
+<tbody>
+<tr><td><a class="id" href="task.html?task=a6f7">a6f7</a></td><th scope="row" class="d1">Gate definition view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=7dff">7dff</a></td><th scope="row" class="d1">Task definition view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=b1b7">b1b7</a></td><th scope="row" class="d1">Authority delegation view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=ea51">ea51</a></td><th scope="row" class="d1">Task assignment view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=7783">7783</a></td><th scope="row" class="d1">Contributor work queue view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=5471">5471</a></td><th scope="row" class="d1">Work-blockage tree view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=32e7">32e7</a></td><th scope="row" class="d1">Global tableau view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=69eb">69eb</a></td><th scope="row" class="d1">Contextual tableau view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=3194">3194</a></td><th scope="row" class="d1">History view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=a8b4">a8b4</a></td><th scope="row" class="d1">Audit view in Html<span class="note">2026-09-29 · Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+</tbody>
+</table>
+</div>
+    <details class="prov">
+      <summary>Provenance of the ten statuses and the marks</summary>
+      <dl class="fields">
+        <dt>Deciding commit</dt><dd><code>1a17bfc</code> Record the defined gate for the views and mockups, for all ten status files</dd>
+        <dt>Date</dt><dd>2026-09-29, the author date</dd>
+        <dt>Recorder</dt><dd>Claude Fable 5.1, noreply@anthropic.com, the author; Norman Young, nbyoung@nbyoung.com, commits it</dd>
+        <dt>Trailers</dt><dd>none of the method's; the commit precedes the <code>Model:</code> trailer</dd>
+        <dt>Roll-up</dt><dd><a class="id" href="task.html?task=5fe3">5fe3</a> takes its status from <a class="id" href="task.html?task=a6f7">a6f7</a>, the first of ten children that tie at defined</dd>
+        <dt>📌 🤖👀</dt><dd><a class="id" href="task.html?task=437e">437e</a> states the contributor noreply@anthropic.com, the model <code>claude-opus</code> and the reviewer nbyoung@nbyoung.com</dd>
+        <dt>🔧 📐 🧱 📏 —</dt><dd><a class="id" href="task.html?task=5fe3">5fe3</a> states <code>applies: false</code> at each gate, and its children inherit it</dd>
+      </dl>
+    </details>
+  </details>
+
+  <details class="detail" open id="d-around">
+    <summary>Spine and siblings: two ancestors and seven siblings of Views</summary>
+<div class="scroll">
+<table class="tableau">
+<caption>The spine from the root to Views, and the siblings of Views under Method, in the same window</caption>
+<colgroup><col class="c-id"><col class="c-task"><col class="c-fold"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-foldr"></colgroup>
+<thead><tr><th scope="col">Id</th><th scope="col">Task</th><th scope="col" class="gate fold"><span title="undefined, folded">❔</span><span class="sr">undefined, folded</span></th><th scope="col" class="gate"><span title="defined">📝</span><span class="sr">defined</span></th><th scope="col" class="gate"><span title="mockup">📌</span><span class="sr">mockup</span></th><th scope="col" class="gate"><span title="function">🔧</span><span class="sr">function</span></th><th scope="col" class="gate"><span title="design">📐</span><span class="sr">design</span></th><th scope="col" class="gate"><span title="implementation">🧱</span><span class="sr">implementation</span></th><th scope="col" class="gate"><span title="unit">📏</span><span class="sr">unit</span></th><th scope="col" class="gate fold"><span title="integrate to release, folded">🔗 … 🚀</span><span class="sr">integrate to release, folded</span></th></tr></thead>
+<tbody>
+<tr class="parent"><td><a class="id" href="task.html?task=437e">437e</a></td><th scope="row" class="d0">Tableaux tooling <span class="fold">· spine</span><span class="note">2026-09-29 · from <a class="id" href="task.html?task=bc63">bc63</a>: Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=bc63">bc63</a></td><th scope="row" class="d1">Method <span class="fold">· spine</span><span class="note">2026-09-29 · from <a class="id" href="task.html?task=2034">2034</a>: Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=c2ad">c2ad</a></td><th scope="row" class="d2">Roles <span class="fold">· sibling</span><span class="note">2026-09-30 · The Roles text is on the trunk and covers all seven roles; the validate gate awaits the owner</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at implementation</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=2034">2034</a></td><th scope="row" class="d2">Views <span class="fold">· this task, above</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=e3cb">e3cb</a></td><th scope="row" class="d2">Schema files <span class="fold">· sibling</span><span class="note">2026-09-30 · schemas/check.sh (files agree with SYNTAX.md, version 0.2.1) and schemas/load.py (files load as JSON Schema 2020-12) pass; every .tableaux file validates</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at unit</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=fcec">fcec</a></td><th scope="row" class="d2">Conformance corpus <span class="fold">· sibling</span><span class="note">2026-09-30 · The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at implementation</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=ac33">ac33</a></td><th scope="row" class="d2">Agent identity <span class="fold">· sibling</span><span class="note">2026-09-30 · The model plan-and-record rule (F20) is on the trunk; F1, F2 and F10 remain for design</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=9f3f">9f3f</a></td><th scope="row" class="d2">Subproject linkage <span class="fold">· sibling</span><span class="note">2026-09-30 · The subproject linkage rule (F3, F5, F12) is on the trunk at language 0.3.0; tablo and the subprojects follow</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=7861">7861</a></td><th scope="row" class="d2">Productivity evidence <span class="fold">· sibling</span><span class="note">2026-09-30 · The full report, its 23 tests and an example over five repositories are on the trunk</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at implementation</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=7166">7166</a></td><th scope="row" class="d2">Language clarifications <span class="fold">· sibling</span><span class="note">2026-09-30 · The trunk clarification (F19) is on the trunk; F7 and F9 remain for design</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+</tbody>
+</table>
+</div>
+    <p>The four subprojects are children of the root and no siblings of Views, so <a href="tableau.html">the global tableau shows them</a>. The spine and the siblings appear in the window of the subtree and do not widen it.</p>
+    <details class="prov">
+      <summary>Provenance of the spine and the siblings</summary>
+      <table>
+        <caption>The deciding commit of each sibling's status</caption>
+        <thead><tr><th scope="col">Cell</th><th scope="col">Date</th><th scope="col">Deciding commit</th><th scope="col">Committer</th><th scope="col">Trailers</th></tr></thead>
+        <tbody>
+        <tr><td><a class="id" href="task.html?task=c2ad">c2ad</a> 🧱</td><td>2026-09-30</td><td><code>3d8ce0e</code> Record the Roles task at its implementation gate</td><td>noreply@anthropic.com</td><td><code>Model: claude-sonnet-5-5</code>, <code>Reviewed: c2ad implementation</code></td></tr>
+        <tr><td><a class="id" href="task.html?task=e3cb">e3cb</a> 📏</td><td>2026-09-30</td><td><code>5cbec7c</code> Record e3cb at unit, nominal</td><td>noreply@anthropic.com</td><td><code>Model: claude-sonnet-5-5</code>, <code>Reviewed: e3cb unit</code></td></tr>
+        <tr><td><a class="id" href="task.html?task=fcec">fcec</a> 🧱</td><td>2026-09-30</td><td><code>60495c2</code> Record all three corpus corrections at implementation</td><td>noreply@anthropic.com</td><td><code>Model: claude-sonnet-5-5</code>, <code>Reviewed: fcec implementation</code></td></tr>
+        <tr><td><a class="id" href="task.html?task=ac33">ac33</a> 📐</td><td>2026-09-30</td><td><code>6762222</code> Advance the agent identity task to its design gate</td><td>nbyoung@nbyoung.com</td><td><code>Model: claude-fable-5-1</code></td></tr>
+        <tr><td><a class="id" href="task.html?task=9f3f">9f3f</a> 📐</td><td>2026-09-30</td><td><code>43d68e4</code> Advance the subproject linkage task to its design gate</td><td>noreply@anthropic.com</td><td><code>Model: claude-fable-5-1</code></td></tr>
+        <tr><td><a class="id" href="task.html?task=7861">7861</a> 🧱</td><td>2026-09-30</td><td><code>c6f2655</code> Complete the productivity evidence report</td><td>noreply@anthropic.com</td><td><code>Model: claude-sonnet-5-5</code>, <code>Reviewed: 7861 implementation</code></td></tr>
+        <tr><td><a class="id" href="task.html?task=7166">7166</a> 📐</td><td>2026-09-30</td><td><code>d9396b4</code> Advance the language clarifications to their design gate</td><td>nbyoung@nbyoung.com</td><td>none</td></tr>
+        </tbody>
+      </table>
+      <p>noreply@anthropic.com records each of the seven. <a class="id" href="task.html?task=437e">437e</a> rolls up from <a class="id" href="task.html?task=bc63">bc63</a>, the first of five children at defined, and <a class="id" href="task.html?task=bc63">bc63</a> from <a class="id" href="task.html?task=2034">2034</a>, its one child at defined. On <a class="id" href="task.html?task=ac33">ac33</a>, <a class="id" href="task.html?task=9f3f">9f3f</a> and <a class="id" href="task.html?task=7166">7166</a> the 🧱 cell reads 🤖👀 because no entry states a reviewer and the assignee, nbyoung@nbyoung.com, reviews; on <a class="id" href="task.html?task=fcec">fcec</a> the 📏 cell reads 🤖 because the assignee is the agent itself.</p>
+    </details>
+  </details>
+
+  <details class="detail" open id="d-fold">
+    <summary>Folded columns: no task in view stands in one</summary>
+<table class="narrow">
+<caption>Tasks in view whose current gate lies in a folded column</caption>
+<thead><tr><th scope="col">Folded column</th><th scope="col">Gate</th><th scope="col">Tasks</th></tr></thead>
+<tbody>
+<tr><td>❔</td><td>undefined</td><td class="num">0</td></tr>
+<tr><td>🔗 … 🚀</td><td>integrate</td><td class="num">0</td></tr>
+<tr><td>🔗 … 🚀</td><td>validate</td><td class="num">0</td></tr>
+<tr><td>🔗 … 🚀</td><td>release</td><td class="num">0</td></tr>
+</tbody>
+</table>
+  </details>
+
+  <details class="detail" id="d-columns">
+    <summary>Columns: 📝 to 📏 shown, four folded</summary>
+    <form class="columns" action="context.html" method="get">
+      <input type="hidden" name="task" value="2034">
+      <fieldset>
+        <legend>Gate columns shown</legend>
+        <label><input type="checkbox" name="columns" value="undefined"> ❔ undefined</label>
+        <label><input type="checkbox" name="columns" value="defined" checked> 📝 defined</label>
+        <label><input type="checkbox" name="columns" value="mockup" checked> 📌 mockup</label>
+        <label><input type="checkbox" name="columns" value="function" checked> 🔧 function</label>
+        <label><input type="checkbox" name="columns" value="design" checked> 📐 design</label>
+        <label><input type="checkbox" name="columns" value="implementation" checked> 🧱 implementation</label>
+        <label><input type="checkbox" name="columns" value="unit" checked> 📏 unit</label>
+        <label><input type="checkbox" name="columns" value="integrate"> 🔗 integrate</label>
+        <label><input type="checkbox" name="columns" value="validate"> 🌍 validate</label>
+        <label><input type="checkbox" name="columns" value="release"> 🚀 release</label>
+      </fieldset>
+      <label><input type="checkbox" name="historical" value="on"> Show the marks of historical junctions</label>
+      <button type="submit">Show these columns</button>
+    </form>
+    <p class="key">The daemon answers this form with the page in the chosen columns, and the address then carries the choice, so a shared link opens as its sender sees it. Keeping the choice for the next visit, and any change of columns in a static export, needs script.</p>
+  </details>
+
+  <p class="key">The viewer is the assignee of Views, so the page arrives with each block above open at detail and each provenance closed. An observer, and every reader of a static export, arrives with every block closed and sees the four-row table alone. A contributor arrives at the person form below, with the parents of their tasks open.</p>
+  </section>
+
+  <section aria-labelledby="person">
+  <h2 id="person">The person form</h2>
+  <p>With a person in place of a task, the view shows the tasks the person is assigned or contributes at next, their ancestors up to the root as a spine, and their siblings. The daemon serves it at <a href="context.html">context.html with no task</a>, for the viewer by default; this mockup draws it beneath the task form. The person form serves a contributor with few tasks. In this project both emails hold most of the tree: noreply@anthropic.com is assigned twenty-seven of the thirty-seven tasks, and nbyoung@nbyoung.com ten, among them the root and the Method and Views branches. The form drawn here is the owner's, which still leaves something out: the twenty-three tasks under <a class="id" href="task.html?task=2034">2034</a>. <a href="assignment.html">The assignment view lists what each email carries</a>.</p>
+  <p class="context">person nbyoung@nbyoung.com, the viewer · window of one, 📝 to 📏 · historical junctions off</p>
+<div class="scroll">
+<table class="tableau">
+<caption>The ten tasks assigned to nbyoung@nbyoung.com in the gate window defined to unit. The first row carries the count of each folded column.</caption>
+<colgroup><col class="c-id"><col class="c-task"><col class="c-fold"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-foldr"></colgroup>
+<thead><tr><th scope="col">Id</th><th scope="col">Task</th><th scope="col" class="gate fold"><span title="undefined, folded">❔</span><span class="sr">undefined, folded</span></th><th scope="col" class="gate"><span title="defined">📝</span><span class="sr">defined</span></th><th scope="col" class="gate"><span title="mockup">📌</span><span class="sr">mockup</span></th><th scope="col" class="gate"><span title="function">🔧</span><span class="sr">function</span></th><th scope="col" class="gate"><span title="design">📐</span><span class="sr">design</span></th><th scope="col" class="gate"><span title="implementation">🧱</span><span class="sr">implementation</span></th><th scope="col" class="gate"><span title="unit">📏</span><span class="sr">unit</span></th><th scope="col" class="gate fold"><span title="integrate to release, folded">🔗 … 🚀</span><span class="sr">integrate to release, folded</span></th></tr></thead>
+<tbody>
+<tr class="parent"><td><a class="id" href="task.html?task=437e">437e</a></td><th scope="row" class="d0">Tableaux tooling</th><td class="cell fold">0<span class="sr"> tasks stand in this folded column</span></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold">0<span class="sr"> tasks stand in this folded column</span></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=bc63">bc63</a></td><th scope="row" class="d1">Method <span class="fold">(4<span class="sr"> children not drawn</span>)</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=2034">2034</a></td><th scope="row" class="d2">Views <span class="fold">(3<span class="sr"> children not drawn</span>)</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=ac33">ac33</a></td><th scope="row" class="d2">Agent identity</th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=9f3f">9f3f</a></td><th scope="row" class="d2">Subproject linkage</th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=7166">7166</a></td><th scope="row" class="d2">Language clarifications</th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=77b2">77b2</a></td><th scope="row" class="d1">tablo: backend library and plumbing</th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=6103">6103</a></td><th scope="row" class="d1">tabloio: command line, output and input</th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=c6e8">c6e8</a></td><th scope="row" class="d1">tablotui: terminal user interface</th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=595e">595e</a></td><th scope="row" class="d1">tableaud: local daemon and HTML</th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+</tbody>
+</table>
+</div>
+  <p>The next gates of the ten tasks are 📌 mockup, for the three parents and the four subprojects, and 🧱 implementation, for <a class="id" href="task.html?task=ac33">ac33</a>, <a class="id" href="task.html?task=9f3f">9f3f</a> and <a class="id" href="task.html?task=7166">7166</a>, so the window is again 📝 to 📏. nbyoung@nbyoung.com contributes at 🚀 release alone, which is nobody's next gate, so the tasks in view are the ten assigned ones.</p>
+
+  <details class="detail" open id="p-detail">
+    <summary>Spine, siblings and notes: four siblings under Method, no new ancestor</summary>
+<div class="scroll">
+<table class="tableau">
+<caption>The ten tasks with their four siblings, each with its date and note</caption>
+<colgroup><col class="c-id"><col class="c-task"><col class="c-fold"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-gate"><col class="c-foldr"></colgroup>
+<thead><tr><th scope="col">Id</th><th scope="col">Task</th><th scope="col" class="gate fold"><span title="undefined, folded">❔</span><span class="sr">undefined, folded</span></th><th scope="col" class="gate"><span title="defined">📝</span><span class="sr">defined</span></th><th scope="col" class="gate"><span title="mockup">📌</span><span class="sr">mockup</span></th><th scope="col" class="gate"><span title="function">🔧</span><span class="sr">function</span></th><th scope="col" class="gate"><span title="design">📐</span><span class="sr">design</span></th><th scope="col" class="gate"><span title="implementation">🧱</span><span class="sr">implementation</span></th><th scope="col" class="gate"><span title="unit">📏</span><span class="sr">unit</span></th><th scope="col" class="gate fold"><span title="integrate to release, folded">🔗 … 🚀</span><span class="sr">integrate to release, folded</span></th></tr></thead>
+<tbody>
+<tr class="parent"><td><a class="id" href="task.html?task=437e">437e</a></td><th scope="row" class="d0">Tableaux tooling<span class="note">2026-09-29 · from <a class="id" href="task.html?task=bc63">bc63</a>: Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold">0<span class="sr"> tasks stand in this folded column</span></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold">0<span class="sr"> tasks stand in this folded column</span></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=bc63">bc63</a></td><th scope="row" class="d1">Method<span class="note">2026-09-29 · from <a class="id" href="task.html?task=2034">2034</a>: Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=c2ad">c2ad</a></td><th scope="row" class="d2">Roles <span class="fold">· sibling</span><span class="note">2026-09-30 · The Roles text is on the trunk and covers all seven roles; the validate gate awaits the owner</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at implementation</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr class="parent"><td><a class="id" href="task.html?task=2034">2034</a></td><th scope="row" class="d2">Views <span class="fold">(3<span class="sr"> children not drawn</span>)</span><span class="note">2026-09-29 · from <a class="id" href="task.html?task=bc86">bc86</a>: Mockup waits for Abstract views (e9c6) at design</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=e3cb">e3cb</a></td><th scope="row" class="d2">Schema files <span class="fold">· sibling</span><span class="note">2026-09-30 · schemas/check.sh (files agree with SYNTAX.md, version 0.2.1) and schemas/load.py (files load as JSON Schema 2020-12) pass; every .tableaux file validates</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at unit</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=fcec">fcec</a></td><th scope="row" class="d2">Conformance corpus <span class="fold">· sibling</span><span class="note">2026-09-30 · The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at implementation</span></td><td class="cell">🤖<span class="sr">an agent contributes</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=ac33">ac33</a></td><th scope="row" class="d2">Agent identity<span class="note">2026-09-30 · The model plan-and-record rule (F20) is on the trunk; F1, F2 and F10 remain for design</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=9f3f">9f3f</a></td><th scope="row" class="d2">Subproject linkage<span class="note">2026-09-30 · The subproject linkage rule (F3, F5, F12) is on the trunk at language 0.3.0; tablo and the subprojects follow</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=7861">7861</a></td><th scope="row" class="d2">Productivity evidence <span class="fold">· sibling</span><span class="note">2026-09-30 · The full report, its 23 tests and an example over five repositories are on the trunk</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at implementation</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=7166">7166</a></td><th scope="row" class="d2">Language clarifications<span class="note">2026-09-30 · The trunk clarification (F19) is on the trunk; F7 and F9 remain for design</span></th><td class="cell fold"></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell"><span class="sr">historical</span></td><td class="cell">🟢<span class="sr">nominal, stands at design</span></td><td class="cell mine">🤖<span class="sr">an agent contributes;</span>👀<span class="sr">a reviewer accepts</span><span class="sr">; you review</span></td><td class="cell">—<span class="sr">does not apply</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=77b2">77b2</a></td><th scope="row" class="d1">tablo: backend library and plumbing<span class="note">2026-09-30 · from <code>subprojects/tablo</code>: The design is next and no requirement gates it</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=6103">6103</a></td><th scope="row" class="d1">tabloio: command line, output and input<span class="note">2026-09-30 · from <code>subprojects/tabloio</code>: prototype/e3ed renders the gate and task definition views as Markdown at three levels from tablo view data</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=c6e8">c6e8</a></td><th scope="row" class="d1">tablotui: terminal user interface<span class="note">2026-09-30 · from <code>subprojects/tablotui</code>: prototype/679b renders the global tableau as a Bubble Tea grid with tree expand and collapse, scrolling, a folded gate window and hidden columns kept in a settings file; emoji lines align where the terminal widens U+FE0F</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+<tr><td><a class="id" href="task.html?task=595e">595e</a></td><th scope="row" class="d1">tableaud: local daemon and HTML<span class="note">2026-09-30 · from <code>subprojects/tableaud</code>: prototype/49ce serves the ten views with a stdlib HEAD and .tableaux watcher, ETag 304 polling through htmx, a Source interface and a loopback Host check</span></th><td class="cell fold"></td><td class="cell">🟢<span class="sr">nominal, stands at defined</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell">🪆<span class="sr">a subproject does the work</span></td><td class="cell fold"></td></tr>
+</tbody>
+</table>
+</div>
+    <p>The spine adds no row, since <a class="id" href="task.html?task=437e">437e</a> and <a class="id" href="task.html?task=bc63">bc63</a> are the person's own. A subproject's row takes its state, date and note from the subproject's root task at the commit the submodule pins.</p>
+<table class="narrow">
+<caption>Tasks in the person form whose current gate lies in a folded column</caption>
+<thead><tr><th scope="col">Folded column</th><th scope="col">Gate</th><th scope="col">Tasks</th></tr></thead>
+<tbody>
+<tr><td>❔</td><td>undefined</td><td class="num">0</td></tr>
+<tr><td>🔗 … 🚀</td><td>integrate</td><td class="num">0</td></tr>
+<tr><td>🔗 … 🚀</td><td>validate</td><td class="num">0</td></tr>
+<tr><td>🔗 … 🚀</td><td>release</td><td class="num">0</td></tr>
+</tbody>
+</table>
+    <details class="prov">
+      <summary>Provenance of the four subproject snapshots</summary>
+      <table>
+        <caption>The commit each snapshot is read at</caption>
+        <thead><tr><th scope="col">Cell</th><th scope="col">Subproject at</th><th scope="col">Pin moves in</th><th scope="col">Root there</th><th scope="col">Rolls up from</th></tr></thead>
+        <tbody>
+        <tr><td><a class="id" href="task.html?task=77b2">77b2</a> 📝 🟢</td><td><code>subprojects/tablo</code> at <code>00f8f68</code></td><td><code>552d38f</code>, 2026-10-02</td><td><code class="id">b2c1</code> tablo, at defined</td><td><code class="id">4b4f</code> Conformance</td></tr>
+        <tr><td><a class="id" href="task.html?task=6103">6103</a> 📝 🟢</td><td><code>subprojects/tabloio</code> at <code>4593882</code></td><td><code>1c0f04d</code>, 2026-10-02</td><td><code class="id">07e0</code> tabloio, at function</td><td><code class="id">1093</code> Renderers, from <code class="id">e3ed</code></td></tr>
+        <tr><td><a class="id" href="task.html?task=c6e8">c6e8</a> 📝 🟢</td><td><code>subprojects/tablotui</code> at <code>a2878b5</code></td><td><code>fa4551e</code>, 2026-10-04</td><td><code class="id">40e8</code> tablotui, at function</td><td><code class="id">679b</code> Tableau grid</td></tr>
+        <tr><td><a class="id" href="task.html?task=595e">595e</a> 📝 🟢</td><td><code>subprojects/tableaud</code> at <code>e6ec4ec</code></td><td><code>3cdae52</code>, 2026-10-05</td><td><code class="id">8608</code> tableaud, at function</td><td><code class="id">49ce</code> Server</td></tr>
+        </tbody>
+      </table>
+      <p>The four status files come from <code>e66abe2</code>, 2026-09-30, by noreply@anthropic.com with <code>Model: claude-haiku-4-5-20251001</code>; each states the gate <code>defined</code> and nothing else, and the 🟢 comes from the root task there. Three of those roots stand at function at the pin, and the rows stay at 📝 until a contributor advances the gate in this project's file. The other rows take their provenance as the task form above gives it.</p>
+    </details>
+  </details>
+  </section>
+</main>
+<footer class="site">
+  <p>Mockup of the contextual tableau view (task <code class="id">69eb</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
