@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authority delegation · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+/* a tree row: the id and title take the room, the assignee sits in one column at the right */
+ul.auth summary > .row { display: inline-flex; flex-wrap: wrap; gap: 0 .6rem; width: calc(100% - 1.5rem); vertical-align: top; font-weight: 400; }
+ul.auth summary > .row .title { flex: 1 1 12rem; font-weight: 600; }
+/* the assignee column indents by the task's depth, --d, so the hierarchy reads in this column too */
+ul.auth summary > .row .who { flex: 0 0 20rem; padding-left: calc(var(--d, 0) * 1.25rem); }
+p.cols { display: flex; gap: 0 .6rem; margin: 0; padding: .2rem 1.5rem .2rem 0; background: var(--band); font-weight: 600; }
+p.cols .title { flex: 1 1 12rem; padding-left: 1rem; }
+p.cols .who { flex: 0 0 20rem; }
+ul.auth summary > .row .who.same { color: var(--muted); }
+ul.auth li { border-top: 1px solid var(--line); }
+ul.auth li > details.detail { margin: 0; padding: .2rem 0; }
+ul.auth .body { margin: .25rem 0 .5rem 1.1rem; }
+ul.auth details.kids { margin: 0; }
+ul.auth details.kids > ul { border-left: 2px solid var(--line); }
+.proposed { background: var(--mark); padding: 0 .3rem; }
+p.filter a[aria-current="true"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+aside.illustration { border: 2px dashed var(--line); padding: .25rem .75rem; margin: 1rem 0; }
+p.empty { background: var(--band); padding: .5rem .75rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html" aria-current="page">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · task <code class="id">437e</code>, the root, so the whole tree · person: the viewer, who has authority over every task</p>
+</header>
+<main id="main">
+  <h1>Authority delegation</h1>
+  <p class="question">Who may accept what?</p>
+
+  <!-- the filter in its resting state: two plain links, no script. The daemon serves the filtered tree in place of the whole one; this static page shows the filter's result in its own section below. -->
+  <p class="filter">Show: <a href="#tree" aria-current="true">all 37 tasks</a> · <a href="#proposed">proposed tasks only, 0</a></p>
+
+  <!-- glance: visible without any interaction -->
+  <h2 id="tree">The tree of assignees</h2>
+  <p>Every row states its task's assignee, and the Assignee column indents as the Task column does, so the hierarchy reads in either. A task whose assignee differs from its parent's is a delegation; a task that keeps its parent's assignee shows it in a quieter tone. A proposed task carries the word <span class="proposed">proposed</span> after its assignee; no row carries it here. The <a href="gates.html">gate definition</a> is the legend of every symbol.</p>
+  <ul>
+    <li>37 tasks, 17 rows on arrival: a parent whose children are all leaves with its own assignee folds to a count, and unfolds in place.</li>
+    <li>7 delegations, each from nbyoung@nbyoung.com to noreply@anthropic.com: <code class="id">c2ad</code>, <code class="id">e9c6</code>, <code class="id">bc86</code>, <code class="id">5fe3</code>, <code class="id">e3cb</code>, <code class="id">fcec</code>, <code class="id">7861</code>.</li>
+    <li>nbyoung@nbyoung.com holds 10 tasks and may accept a change to all 37. noreply@anthropic.com holds 27 tasks and may accept a change to the 20 under <code class="id">bc86</code> and <code class="id">5fe3</code>.</li>
+    <li>37 authorised, 0 proposed.</li>
+  </ul>
+  <p class="muted">A row unfolds to its detail: the authority chain, and for a parent the junction defaults it states. The detail unfolds to its provenance, the deciding commit. A junction mark is 🧑 a person contributes, 🤖 an agent contributes, 👀 a reviewer accepts, — the gate does not apply. The owner arrives here with the root's detail open and explores down the tree; an authority who is not the owner arrives with the subtrees they have authority over unfolded and the chain above their own tasks open.</p>
+
+  <!-- detail: <details class="detail"> per item; carries `open` where the viewer's role opens at detail -->
+  <!-- provenance: <details class="prov"> nested inside the detail it explains -->
+  <p class="cols" aria-hidden="true"><span class="title">Task</span><span class="who">Assignee</span></p>
+  <ul class="tree auth">
+    <li>
+      <details class="detail" id="t-437e" open>
+        <summary><span class="row" style="--d:0"><code class="id">437e</code> <span class="title">Tableaux tooling</span> <span class="who">nbyoung@nbyoung.com<span class="sr">, the owner</span></span></span></summary>
+        <div class="body">
+        <dl class="fields">
+          <dt>Assignee</dt><dd>nbyoung@nbyoung.com, the owner</dd>
+          <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com, the owner. The root has no ancestor, and the owner alone authorises it.</dd>
+          <dt>Authorisation</dt><dd>Authorised by <code>8eb0cae</code>, 2026-09-30</dd>
+          <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+        </dl>
+        <p>Authorities of its 5 children, nearest first: nbyoung@nbyoung.com (<code class="id">437e</code>).</p>
+<div class="scroll"><table><caption>Junction defaults <code class="id">437e</code> states for its subtree</caption>
+<thead><tr><th scope="col">Gate</th><th scope="col" class="gate">Marks</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">Reviewer</th></tr></thead><tbody>
+<tr><th scope="row">📝 defined</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span></td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>none stated</td></tr>
+<tr><th scope="row">📌 mockup</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span><span aria-hidden="true">👀</span><span class="sr">a reviewer accepts; </span></td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td></tr>
+<tr><th scope="row">🔧 function</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span></td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>none stated</td></tr>
+<tr><th scope="row">📐 design</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span><span aria-hidden="true">👀</span><span class="sr">a reviewer accepts; </span></td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td></tr>
+<tr><th scope="row">🧱 implementation</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span></td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>none stated</td></tr>
+<tr><th scope="row">📏 unit</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span></td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>none stated</td></tr>
+<tr><th scope="row">🔗 integrate</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span></td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>none stated</td></tr>
+<tr><th scope="row">🌍 validate</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span><span aria-hidden="true">👀</span><span class="sr">a reviewer accepts; </span></td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>nbyoung@nbyoung.com</td></tr>
+<tr><th scope="row">🚀 release</th><td class="cell"><span aria-hidden="true">🧑</span><span class="sr">a person contributes; </span></td><td>nbyoung@nbyoung.com</td><td>none: a person</td><td>none stated</td></tr>
+</tbody></table></div>
+<p>Where an agent contributes and the entry states no reviewer, the task's assignee reviews; at 📝 defined the authorisation stands as the review.</p>
+        <details class="prov">
+          <summary>Provenance: the deciding commit <code>8eb0cae</code></summary>
+          <dl class="fields">
+            <dt>Commit</dt><dd><code>8eb0cae</code> "Name a model family per gate (D7)"</dd>
+            <dt>Date</dt><dd>2026-09-30</dd>
+            <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+            <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+            <dt>Accepts by</dt><dd>a merge by an authority, of <code>320cf2b</code></dd>
+            <dt>The authority is</dt><dd>author and committer</dd>
+            <dt>Also decides</dt><dd>1 other task; see <a href="#commits">the deciding commits</a></dd>
+            <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/437e.yaml</code></dd>
+          </dl>
+        </details>
+        </div>
+      </details>
+      <details class="kids" open>
+        <summary><span class="fold">5 children of <code class="id">437e</code></span></summary>
+        <ul>
+          <li>
+            <details class="detail" id="t-bc63">
+              <summary><span class="row" style="--d:1"><code class="id">bc63</code> <span class="title">Method</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+              <div class="body">
+              <dl class="fields">
+                <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
+                <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">437e</code>)</dd>
+                <dt>Authorisation</dt><dd>Authorised by <code>8eb0cae</code>, 2026-09-30</dd>
+                <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+              </dl>
+              <p>Authorities of its 8 children, nearest first: nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>).</p>
+<div class="scroll"><table><caption>Junction defaults <code class="id">bc63</code> states for its subtree</caption>
+<thead><tr><th scope="col">Gate</th><th scope="col" class="gate">Marks</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">Reviewer</th></tr></thead><tbody>
+<tr><th scope="row">📐 design</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span><span aria-hidden="true">👀</span><span class="sr">a reviewer accepts; </span></td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com, from <code class="id">437e</code></td></tr>
+<tr><th scope="row">🌍 validate</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes; </span><span aria-hidden="true">👀</span><span class="sr">a reviewer accepts; </span></td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com, from <code class="id">437e</code></td></tr>
+</tbody></table></div>
+<p>Both entries state the contributor and the model only, so the reviewer stays the root's, and every other gate keeps the root's entry.</p>
+              <details class="prov">
+                <summary>Provenance: the deciding commit <code>8eb0cae</code></summary>
+                <dl class="fields">
+                  <dt>Commit</dt><dd><code>8eb0cae</code> "Name a model family per gate (D7)"</dd>
+                  <dt>Date</dt><dd>2026-09-30</dd>
+                  <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Accepts by</dt><dd>a merge by an authority, of <code>320cf2b</code></dd>
+                  <dt>The authority is</dt><dd>author and committer</dd>
+                  <dt>Also decides</dt><dd>1 other task; see <a href="#commits">the deciding commits</a></dd>
+                  <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/bc63.yaml</code></dd>
+                </dl>
+              </details>
+              </div>
+            </details>
+            <details class="kids" open>
+              <summary><span class="fold">8 children of <code class="id">bc63</code></span></summary>
+              <ul>
+                <li>
+                  <details class="detail" id="t-c2ad">
+                    <summary><span class="row" style="--d:2"><code class="id">c2ad</code> <span class="title">Roles</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                        <dt>Date</dt><dd>2026-09-29</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/c2ad.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                </li>
+                <li>
+                  <details class="detail" id="t-2034">
+                    <summary><span class="row" style="--d:2"><code class="id">2034</code> <span class="title">Views</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <p>Authorities of its 3 children, nearest first: nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>).</p>
+<p><code class="id">2034</code> states no junction defaults; its subtree takes those of <code class="id">bc63</code>, <code class="id">437e</code>.</p>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                        <dt>Date</dt><dd>2026-09-29</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/2034.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                  <details class="kids" open>
+                    <summary><span class="fold">3 children of <code class="id">2034</code></span></summary>
+                    <ul>
+                      <li>
+                        <details class="detail" id="t-e9c6">
+                          <summary><span class="row" style="--d:3"><code class="id">e9c6</code> <span class="title">Abstract views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                          <div class="body">
+                          <dl class="fields">
+                            <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">2034</code></dd>
+                            <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                            <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                            <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                          </dl>
+                          <details class="prov">
+                            <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                            <dl class="fields">
+                              <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                              <dt>Date</dt><dd>2026-09-29</dd>
+                              <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                              <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                              <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                              <dt>The authority is</dt><dd>author and committer</dd>
+                              <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                              <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/e9c6.yaml</code></dd>
+                            </dl>
+                          </details>
+                          </div>
+                        </details>
+                      </li>
+                      <li>
+                        <details class="detail" id="t-bc86">
+                          <summary><span class="row" style="--d:3"><code class="id">bc86</code> <span class="title">Markdown views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                          <div class="body">
+                          <dl class="fields">
+                            <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">2034</code></dd>
+                            <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                            <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                            <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                          </dl>
+                          <p>Authorities of its 10 children, nearest first: noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>).</p>
+<p>Junction defaults <code class="id">bc86</code> states for its subtree: <span aria-hidden="true">—</span> the gate does not apply at 🔧 function, 📐 design, 🧱 implementation, 📏 unit, 🔗 integrate, 🌍 validate, 🚀 release. Its children pass 📝 defined and 📌 mockup on the root's entries.</p>
+                          <details class="prov">
+                            <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                            <dl class="fields">
+                              <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                              <dt>Date</dt><dd>2026-09-29</dd>
+                              <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                              <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                              <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                              <dt>The authority is</dt><dd>author and committer</dd>
+                              <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                              <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/bc86.yaml</code></dd>
+                            </dl>
+                          </details>
+                          </div>
+                        </details>
+                        <details class="kids">
+                          <summary><span class="fold">10 children<span class="sr">, each assigned as the parent</span> of <code class="id">bc86</code></span></summary>
+                          <ul>
+                            <li>
+                              <details class="detail" id="t-99f0">
+                                <summary><span class="row" style="--d:4"><code class="id">99f0</code> <span class="title">Gate definition view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/99f0.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-05a9">
+                                <summary><span class="row" style="--d:4"><code class="id">05a9</code> <span class="title">Task definition view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/05a9.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-a9ce">
+                                <summary><span class="row" style="--d:4"><code class="id">a9ce</code> <span class="title">Authority delegation view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/a9ce.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-bb7c">
+                                <summary><span class="row" style="--d:4"><code class="id">bb7c</code> <span class="title">Task assignment view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/bb7c.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-c74a">
+                                <summary><span class="row" style="--d:4"><code class="id">c74a</code> <span class="title">Contributor work queue view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/c74a.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-efff">
+                                <summary><span class="row" style="--d:4"><code class="id">efff</code> <span class="title">Work-blockage tree view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/efff.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-ab8e">
+                                <summary><span class="row" style="--d:4"><code class="id">ab8e</code> <span class="title">Global tableau view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/ab8e.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-c545">
+                                <summary><span class="row" style="--d:4"><code class="id">c545</code> <span class="title">Contextual tableau view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/c545.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-d615">
+                                <summary><span class="row" style="--d:4"><code class="id">d615</code> <span class="title">History view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/d615.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-b14e">
+                                <summary><span class="row" style="--d:4"><code class="id">b14e</code> <span class="title">Audit view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">bc86</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/b14e.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                          </ul>
+                        </details>
+                      </li>
+                      <li>
+                        <details class="detail" id="t-5fe3">
+                          <summary><span class="row" style="--d:3"><code class="id">5fe3</code> <span class="title">HTML views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                          <div class="body">
+                          <dl class="fields">
+                            <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">2034</code></dd>
+                            <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                            <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                            <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                          </dl>
+                          <p>Authorities of its 10 children, nearest first: noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>).</p>
+<p>Junction defaults <code class="id">5fe3</code> states for its subtree: <span aria-hidden="true">—</span> the gate does not apply at 🔧 function, 📐 design, 🧱 implementation, 📏 unit, 🔗 integrate, 🌍 validate, 🚀 release. Its children pass 📝 defined and 📌 mockup on the root's entries.</p>
+                          <details class="prov">
+                            <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                            <dl class="fields">
+                              <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                              <dt>Date</dt><dd>2026-09-29</dd>
+                              <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                              <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                              <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                              <dt>The authority is</dt><dd>author and committer</dd>
+                              <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                              <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/5fe3.yaml</code></dd>
+                            </dl>
+                          </details>
+                          </div>
+                        </details>
+                        <details class="kids">
+                          <summary><span class="fold">10 children<span class="sr">, each assigned as the parent</span> of <code class="id">5fe3</code></span></summary>
+                          <ul>
+                            <li>
+                              <details class="detail" id="t-a6f7">
+                                <summary><span class="row" style="--d:4"><code class="id">a6f7</code> <span class="title">Gate definition view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/a6f7.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-7dff">
+                                <summary><span class="row" style="--d:4"><code class="id">7dff</code> <span class="title">Task definition view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/7dff.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-b1b7">
+                                <summary><span class="row" style="--d:4"><code class="id">b1b7</code> <span class="title">Authority delegation view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/b1b7.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-ea51">
+                                <summary><span class="row" style="--d:4"><code class="id">ea51</code> <span class="title">Task assignment view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/ea51.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-7783">
+                                <summary><span class="row" style="--d:4"><code class="id">7783</code> <span class="title">Contributor work queue view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/7783.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-5471">
+                                <summary><span class="row" style="--d:4"><code class="id">5471</code> <span class="title">Work-blockage tree view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/5471.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-32e7">
+                                <summary><span class="row" style="--d:4"><code class="id">32e7</code> <span class="title">Global tableau view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/32e7.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-69eb">
+                                <summary><span class="row" style="--d:4"><code class="id">69eb</code> <span class="title">Contextual tableau view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/69eb.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-3194">
+                                <summary><span class="row" style="--d:4"><code class="id">3194</code> <span class="title">History view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/3194.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                            <li>
+                              <details class="detail" id="t-a8b4">
+                                <summary><span class="row" style="--d:4"><code class="id">a8b4</code> <span class="title">Audit view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
+                                <div class="body">
+                                <dl class="fields">
+                                  <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
+                                  <dt>Authorities, nearest first</dt><dd>noreply@anthropic.com (<code class="id">5fe3</code>); then nbyoung@nbyoung.com (<code class="id">2034</code>, <code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                                  <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                                  <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                                </dl>
+                                <details class="prov">
+                                  <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                                  <dl class="fields">
+                                    <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                                    <dt>Date</dt><dd>2026-09-29</dd>
+                                    <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                                    <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                                    <dt>The authority is</dt><dd>author and committer</dd>
+                                    <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                                    <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/a8b4.yaml</code></dd>
+                                  </dl>
+                                </details>
+                                </div>
+                              </details>
+                            </li>
+                          </ul>
+                        </details>
+                      </li>
+                    </ul>
+                  </details>
+                </li>
+                <li>
+                  <details class="detail" id="t-e3cb">
+                    <summary><span class="row" style="--d:2"><code class="id">e3cb</code> <span class="title">Schema files</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                        <dt>Date</dt><dd>2026-09-29</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/e3cb.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                </li>
+                <li>
+                  <details class="detail" id="t-fcec">
+                    <summary><span class="row" style="--d:2"><code class="id">fcec</code> <span class="title">Conformance corpus</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                        <dt>Date</dt><dd>2026-09-29</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/fcec.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                </li>
+                <li>
+                  <details class="detail" id="t-ac33">
+                    <summary><span class="row" style="--d:2"><code class="id">ac33</code> <span class="title">Agent identity</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>16fe62f</code>, 2026-09-30</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>16fe62f</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>16fe62f</code> "Accept the model plan-and-record proposal"</dd>
+                        <dt>Date</dt><dd>2026-09-30</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a merge by an authority, of <code>018814a</code></dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>0 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/ac33.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                </li>
+                <li>
+                  <details class="detail" id="t-9f3f">
+                    <summary><span class="row" style="--d:2"><code class="id">9f3f</code> <span class="title">Subproject linkage</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                        <dt>Date</dt><dd>2026-09-29</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/9f3f.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                </li>
+                <li>
+                  <details class="detail" id="t-7861">
+                    <summary><span class="row" style="--d:2"><code class="id">7861</code> <span class="title">Productivity evidence</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                        <dt>Date</dt><dd>2026-09-29</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/7861.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                </li>
+                <li>
+                  <details class="detail" id="t-7166">
+                    <summary><span class="row" style="--d:2"><code class="id">7166</code> <span class="title">Language clarifications</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+                    <div class="body">
+                    <dl class="fields">
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
+                      <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
+                      <dt>Authorisation</dt><dd>Authorised by <code>8d8b070</code>, 2026-09-30</dd>
+                      <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+                    </dl>
+                    <details class="prov">
+                      <summary>Provenance: the deciding commit <code>8d8b070</code></summary>
+                      <dl class="fields">
+                        <dt>Commit</dt><dd><code>8d8b070</code> "Accept the trunk clarification"</dd>
+                        <dt>Date</dt><dd>2026-09-30</dd>
+                        <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                        <dt>Accepts by</dt><dd>a merge by an authority, of <code>9d9fb88</code></dd>
+                        <dt>The authority is</dt><dd>author and committer</dd>
+                        <dt>Also decides</dt><dd>0 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                        <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/7166.yaml</code></dd>
+                      </dl>
+                    </details>
+                    </div>
+                  </details>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li>
+            <details class="detail" id="t-77b2">
+              <summary><span class="row" style="--d:1"><code class="id">77b2</code> <span class="title">tablo: backend library and plumbing</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+              <div class="body">
+              <dl class="fields">
+                <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
+                <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">437e</code>)</dd>
+                <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+              </dl>
+              <details class="prov">
+                <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                <dl class="fields">
+                  <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                  <dt>Date</dt><dd>2026-09-29</dd>
+                  <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                  <dt>The authority is</dt><dd>author and committer</dd>
+                  <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                  <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/77b2.yaml</code></dd>
+                </dl>
+              </details>
+              </div>
+            </details>
+          </li>
+          <li>
+            <details class="detail" id="t-6103">
+              <summary><span class="row" style="--d:1"><code class="id">6103</code> <span class="title">tabloio: command line, output and input</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+              <div class="body">
+              <dl class="fields">
+                <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
+                <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">437e</code>)</dd>
+                <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+              </dl>
+              <details class="prov">
+                <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                <dl class="fields">
+                  <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                  <dt>Date</dt><dd>2026-09-29</dd>
+                  <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                  <dt>The authority is</dt><dd>author and committer</dd>
+                  <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                  <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/6103.yaml</code></dd>
+                </dl>
+              </details>
+              </div>
+            </details>
+          </li>
+          <li>
+            <details class="detail" id="t-c6e8">
+              <summary><span class="row" style="--d:1"><code class="id">c6e8</code> <span class="title">tablotui: terminal user interface</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+              <div class="body">
+              <dl class="fields">
+                <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
+                <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">437e</code>)</dd>
+                <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+              </dl>
+              <details class="prov">
+                <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                <dl class="fields">
+                  <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                  <dt>Date</dt><dd>2026-09-29</dd>
+                  <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                  <dt>The authority is</dt><dd>author and committer</dd>
+                  <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                  <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/c6e8.yaml</code></dd>
+                </dl>
+              </details>
+              </div>
+            </details>
+          </li>
+          <li>
+            <details class="detail" id="t-595e">
+              <summary><span class="row" style="--d:1"><code class="id">595e</code> <span class="title">tableaud: local daemon and HTML</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
+              <div class="body">
+              <dl class="fields">
+                <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
+                <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">437e</code>)</dd>
+                <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
+                <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
+              </dl>
+              <details class="prov">
+                <summary>Provenance: the deciding commit <code>6b6c99a</code></summary>
+                <dl class="fields">
+                  <dt>Commit</dt><dd><code>6b6c99a</code> "Plan the Tableaux tooling"</dd>
+                  <dt>Date</dt><dd>2026-09-29</dd>
+                  <dt>Author</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Committer</dt><dd>nbyoung@nbyoung.com</dd>
+                  <dt>Accepts by</dt><dd>a change on the trunk by an authority</dd>
+                  <dt>The authority is</dt><dd>author and committer</dd>
+                  <dt>Also decides</dt><dd>32 other tasks; see <a href="#commits">the deciding commits</a></dd>
+                  <dt>Reproduce</dt><dd><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/595e.yaml</code></dd>
+                </dl>
+              </details>
+              </div>
+            </details>
+          </li>
+        </ul>
+      </details>
+    </li>
+  </ul>
+  <p>A leaf's own <code>junctions</code> block states that task's work, not a default; the <a href="task.html">task definition view</a> shows it. Related views: <a href="assignment.html">task assignment</a> for what each person carries, <a href="history.html">history</a> for every authorisation event, <a href="audit.html">audit</a> for what the files and the history dispute, and the <a href="queue.html">work queue</a>, which lists an authorisation as owed when a task stands proposed.</p>
+
+  <h2>Deciding commits</h2>
+  <p>The deciding commit of a task is the newest commit on the first-parent history of <code>main</code> that changes the task's file or carries an <code>Authorised:</code> trailer that names it. The task is authorised when the commit's author or committer is one of its authorities.</p>
+  <details class="prov" id="commits">
+    <summary>Provenance: 4 deciding commits authorise the 37 tasks</summary>
+    <div class="scroll"><table>
+      <caption>Tasks that share a deciding commit share a row, newest first</caption>
+      <thead><tr><th scope="col">Commit</th><th scope="col">Date</th><th scope="col">Author</th><th scope="col">Committer</th><th scope="col">Accepts by</th><th scope="col">The authority is</th><th scope="col">Tasks</th></tr></thead>
+      <tbody>
+      <tr><th scope="row"><code>8eb0cae</code></th><td>2026-09-30</td><td>nbyoung@nbyoung.com</td><td>nbyoung@nbyoung.com</td><td>a merge by an authority, of <code>320cf2b</code></td><td>author and committer</td><td>2: <code class="id">437e</code>, <code class="id">bc63</code></td></tr>
+      <tr><th scope="row"><code>16fe62f</code></th><td>2026-09-30</td><td>nbyoung@nbyoung.com</td><td>nbyoung@nbyoung.com</td><td>a merge by an authority, of <code>018814a</code></td><td>author and committer</td><td>1: <code class="id">ac33</code></td></tr>
+      <tr><th scope="row"><code>8d8b070</code></th><td>2026-09-30</td><td>nbyoung@nbyoung.com</td><td>nbyoung@nbyoung.com</td><td>a merge by an authority, of <code>9d9fb88</code></td><td>author and committer</td><td>1: <code class="id">7166</code></td></tr>
+      <tr><th scope="row"><code>6b6c99a</code></th><td>2026-09-29</td><td>nbyoung@nbyoung.com</td><td>nbyoung@nbyoung.com</td><td>a change on the trunk by an authority</td><td>author and committer</td><td>33: every other task</td></tr>
+      </tbody>
+    </table></div>
+    <ul>
+      <li><code>6b6c99a</code> "Plan the Tableaux tooling" creates all 37 task files. It still decides 33: <code class="id">c2ad</code>, <code class="id">2034</code>, <code class="id">e9c6</code>, <code class="id">bc86</code>, <code class="id">99f0</code>, <code class="id">05a9</code>, <code class="id">a9ce</code>, <code class="id">bb7c</code>, <code class="id">c74a</code>, <code class="id">efff</code>, <code class="id">ab8e</code>, <code class="id">c545</code>, <code class="id">d615</code>, <code class="id">b14e</code>, <code class="id">5fe3</code>, <code class="id">a6f7</code>, <code class="id">7dff</code>, <code class="id">b1b7</code>, <code class="id">ea51</code>, <code class="id">7783</code>, <code class="id">5471</code>, <code class="id">32e7</code>, <code class="id">69eb</code>, <code class="id">3194</code>, <code class="id">a8b4</code>, <code class="id">e3cb</code>, <code class="id">fcec</code>, <code class="id">9f3f</code>, <code class="id">7861</code>, <code class="id">77b2</code>, <code class="id">6103</code>, <code class="id">c6e8</code>, <code class="id">595e</code>.</li>
+      <li><code>8eb0cae</code> "Name a model family per gate (D7)" merges <code>320cf2b</code> "Name a model family per gate (D7)", author noreply@anthropic.com, committer nbyoung@nbyoung.com, which changes <code class="id">437e</code>, <code class="id">bc63</code> off the first-parent line. The merge is the owner's acceptance.</li>
+      <li><code>16fe62f</code> "Accept the model plan-and-record proposal" merges <code>018814a</code> "Record the model an agent runs (F20)", author noreply@anthropic.com, committer nbyoung@nbyoung.com, which changes <code class="id">ac33</code> off the first-parent line. The merge is the owner's acceptance.</li>
+      <li><code>8d8b070</code> "Accept the trunk clarification" merges <code>9d9fb88</code> "Name the trunk in version.yaml (F19)", author noreply@anthropic.com, committer nbyoung@nbyoung.com, which changes <code class="id">7166</code> off the first-parent line. The merge is the owner's acceptance.</li>
+    </ul>
+    <p>By way of acceptance: 33 tasks by a change on the trunk, 4 by a merge, 0 by an <code>Authorised:</code> trailer. No commit on <code>main</code> carries an <code>Authorised:</code> trailer at this ref.</p>
+    <p>The junction defaults stand in the task files, so the same commits cover them: <code>8eb0cae</code> for those of <code class="id">437e</code> and <code class="id">bc63</code>, <code>6b6c99a</code> for those of <code class="id">bc86</code> and <code class="id">5fe3</code>.</p>
+    <p>Two commands reproduce a row, here for <code class="id">437e</code>:</p>
+    <pre><code>git log --first-parent -1 --format='%h %as %ae %ce %p' main -- .tableaux/tasks/437e.yaml
+git log --first-parent -1 --format='%h %as %ae %ce %p' -E --grep='^Authorised: 437e$' main</code></pre>
+  </details>
+
+  <h2 id="proposed">Proposed tasks only</h2>
+  <p class="muted">ref <code>main</code> · proposed tasks only</p>
+  <p class="empty">No task is proposed: all 37 are authorised on <code>main</code> at <code>3cdae52</code>.</p>
+
+  <aside class="illustration" aria-labelledby="illustration-title">
+    <h3 id="illustration-title">Illustration: how the view marks a proposed task</h3>
+    <p>This block is <strong>not this project</strong>. It shows the weather station of the conformance corpus, <code>corpus/entries/weather-station</code>, where a contributor revises a task after its authority accepts it, so that the form of a proposed row is on view.</p>
+    <ul class="tree auth">
+      <li>
+        <details class="detail">
+          <summary><span class="row" style="--d:0"><code class="id">a1c0</code> <span class="title">Weather station</span> <span class="who">ada@example.org<span class="sr">, the owner</span></span></span></summary>
+          <div class="body"><p>An ancestor of a proposed task: the filter keeps it, unmarked, so that the row keeps its place in the tree.</p></div>
+        </details>
+        <ul>
+          <li>
+            <details class="detail" open>
+              <summary><span class="row" style="--d:1"><code class="id">3c5d</code> <span class="title">Dashboard</span> <span class="who">dan@example.org<span class="sr">, a delegation</span> <span class="proposed">proposed</span></span></span></summary>
+              <div class="body">
+              <dl class="fields">
+                <dt>Assignee</dt><dd>dan@example.org, a delegation from ada@example.org at <code class="id">a1c0</code></dd>
+                <dt>Authorities, nearest first</dt><dd>ada@example.org (<code class="id">a1c0</code>)</dd>
+                <dt>Authorisation</dt><dd><span class="proposed">Proposed</span>: the deciding commit is not by an authority</dd>
+              </dl>
+              <details class="prov" open>
+                <summary>Provenance: the deciding commit, which the corpus labels W12</summary>
+                <dl class="fields">
+                  <dt>Date</dt><dd>2026-09-27</dd>
+                  <dt>Author</dt><dd>dan@example.org</dd>
+                  <dt>Committer</dt><dd>dan@example.org</dd>
+                  <dt>Accepts by</dt><dd>a change on the trunk; neither is an authority</dd>
+                  <dt>The authority is</dt><dd><span aria-hidden="true">—</span><span class="sr">neither</span></dd>
+                  <dt>Before it</dt><dd>The earlier commit W6 by ada@example.org, with the trailer <code>Authorised: 3c5d</code>, no longer decides.</dd>
+                </dl>
+              </details>
+              </div>
+            </details>
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <p>Off the trunk every row carries <span class="proposed">proposed</span>, and <span class="proposed">proposed (differs from trunk)</span> marks a task whose file the branch changes.</p>
+  </aside>
+</main>
+<footer class="site">
+  <p>Mockup of the Authority delegation view (task <code class="id">b1b7</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
