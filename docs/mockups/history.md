@@ -7,7 +7,6 @@ What happened, when, and who did it? This file draws the history view of the Tab
 | task | `e9c6` Abstract views | `437e` Tableaux tooling, the root |
 | ref, or a range | `main` at `3cdae52`, no range | `0704a09..main`, `main` at `3cdae52` |
 | person | not set: every actor | not set: every actor |
-| window or columns | not set: every gate | not set: every gate |
 | level | each of the three, in turn | each of the three, in turn |
 
 Both pictures run oldest first. The status after each event is a replay, so each line builds on the one above it, and a reviewer starts where the last review ends. VIEWS.md and SYNTAX.md write their examples in the same order.
@@ -18,7 +17,7 @@ Gates: ❔ undefined, 📝 defined, 🔧 function, 📐 design. States: ⚪ unde
 
 ## Picture 1. One task: `e9c6` Abstract views
 
-The whole life of `e9c6` Abstract views up to the ref. Parameters: task `e9c6`; ref `main` at `3cdae52`, with no range; person not set, so every actor; window not set, so every gate.
+The whole life of `e9c6` Abstract views up to the ref. Parameters: task `e9c6`; ref `main` at `3cdae52`, with no range; person not set, so every actor.
 
 ### Glance
 
@@ -193,7 +192,7 @@ Command: `tabloio history --task e9c6 --ref main --level provenance`
 
 ## Picture 2. A range: the project since the last review
 
-What a reviewer reads as "what changed since my last review". The range starts after `0704a09`, the newest `Reviewed:` commit of nbyoung@nbyoung.com, which accepts `e9c6` at `design`. Parameters: task `437e` Tableaux tooling, the root, so the range replays every task; range `0704a09..main`, with `main` at `3cdae52`; person not set, so every actor; window not set, so every gate. Three of the four function-prototype waves fall in the range: tabloio (`55e32e3`), tablotui (`fa4551e`) and tableaud (`3cdae52`). The tablo wave (`564c7cb`, 2026-09-30) precedes the last review, so the range leaves it out.
+What a reviewer reads as "what changed since my last review". The range starts after `0704a09`, the newest `Reviewed:` commit of nbyoung@nbyoung.com, which accepts `e9c6` at `design`. Parameters: task `437e` Tableaux tooling, the root, so the range replays every task; range `0704a09..main`, with `main` at `3cdae52`; person not set, so every actor. Three of the four function-prototype waves fall in the range: tabloio (`55e32e3`), tablotui (`fa4551e`) and tableaud (`3cdae52`). The tablo wave (`564c7cb`, 2026-09-30) precedes the last review, so the range leaves it out.
 
 ### Glance
 

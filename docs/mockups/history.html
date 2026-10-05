@@ -107,7 +107,6 @@ table.params { width: auto; }
 <tr><th scope="row">task</th><td><a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, the root</td></tr>
 <tr><th scope="row">ref, or a range</th><td><code>main</code> at <code>3cdae52</code>, no range</td><td><code>0704a09..main</code>, <code>main</code> at <code>3cdae52</code></td></tr>
 <tr><th scope="row">person</th><td>not set: every actor</td><td>not set: every actor</td></tr>
-<tr><th scope="row">window or columns</th><td>not set: every gate</td><td>not set: every gate</td></tr>
 <tr><th scope="row">level</th><td>detail, from the role</td><td>detail, from the role</td></tr>
 </tbody></table></div>
 <p>The viewer is the owner and reads here as a reviewer, so every event arrives open at detail and its provenance stays folded. One event in each picture also shows its provenance open, as the fully drawn example, and the last tabloio pin shows its subproject events open. An observer arrives at glance, with every event closed; the owner with no role set arrives at provenance, with every block open.</p>
@@ -118,7 +117,7 @@ table.params { width: auto; }
 <!-- detail: <details class="detail"> per event; open, since the reviewer role opens at detail -->
 <!-- provenance: <details class="prov"> nested inside the detail it explains -->
 <section id="task-e9c6" aria-labelledby="h-task"><h2 id="h-task">Picture 1. One task: <a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</h2>
-<p>The whole life of <a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views up to the ref. Parameters: task <a class="id" href="task.html?task=e9c6">e9c6</a>; ref <code>main</code> at <code>3cdae52</code>, with no range; person not set, so every actor; window not set, so every gate.</p>
+<p>The whole life of <a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views up to the ref. Parameters: task <a class="id" href="task.html?task=e9c6">e9c6</a>; ref <code>main</code> at <code>3cdae52</code>, with no range; person not set, so every actor.</p>
 <p class="fold">8 events in 7 commits, 2026-09-29 to 2026-09-30: 1 task, 1 authorised, 4 status, 0 reaffirmed, 2 reviewed, 0 pin.</p>
 <details class="day" open><summary><h3>2026-09-29</h3> <span class="fold">4 events in 3 commits: 1 task, 1 authorised, 1 status, 1 reviewed</span></summary>
 <ul class="events">
@@ -260,7 +259,7 @@ table.params { width: auto; }
 <p>The tool merges the output of the two commands in author-time order.</p><p><code>git log --format='%as %h %ae' -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code><br><code>git log --format='%as %h %ae' -E --grep='^(Authorised|Reaffirmed): e9c6$' --grep='^Reviewed: e9c6 '</code></p></details>
 </section>
 <section id="range" aria-labelledby="h-range"><h2 id="h-range">Picture 2. A range: the project since the last review</h2>
-<p>What a reviewer reads as "what changed since my last review". The range starts after <code>0704a09</code>, the newest <code>Reviewed:</code> commit of nbyoung@nbyoung.com, which accepts <a class="id" href="task.html?task=e9c6">e9c6</a> at <code>design</code>. Parameters: task <a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, the root, so the range replays every task; range <code>0704a09..main</code>, with <code>main</code> at <code>3cdae52</code>; person not set, so every actor; window not set, so every gate.</p><p>Three of the four function-prototype waves fall in the range: tabloio (<code>55e32e3</code>), tablotui (<code>fa4551e</code>) and tableaud (<code>3cdae52</code>). The tablo wave (<code>564c7cb</code>, 2026-09-30) precedes the last review, so the range leaves it out.</p>
+<p>What a reviewer reads as "what changed since my last review". The range starts after <code>0704a09</code>, the newest <code>Reviewed:</code> commit of nbyoung@nbyoung.com, which accepts <a class="id" href="task.html?task=e9c6">e9c6</a> at <code>design</code>. Parameters: task <a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, the root, so the range replays every task; range <code>0704a09..main</code>, with <code>main</code> at <code>3cdae52</code>; person not set, so every actor.</p><p>Three of the four function-prototype waves fall in the range: tabloio (<code>55e32e3</code>), tablotui (<code>fa4551e</code>) and tableaud (<code>3cdae52</code>). The tablo wave (<code>564c7cb</code>, 2026-09-30) precedes the last review, so the range leaves it out.</p>
 <p class="fold">13 events in 7 commits, 2026-09-30 to 2026-10-05: 0 task, 0 authorised, 1 status, 0 reaffirmed, 0 reviewed, 12 pin.</p>
 <p>Each day folds: its summary line carries the counts, and a range too long to list event by event arrives with its days closed. This range arrives with every day open.</p>
 <details class="day" open><summary><h3>2026-09-30</h3> <span class="fold">1 event in 1 commit: 1 status</span></summary>
