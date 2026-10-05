@@ -2,7 +2,7 @@
 
 **What do the columns and symbols mean?** This file is the legend of the Tableaux tooling plan, and every other view links here: [tableau](tableau.md), [context](context.md), [queue](queue.md), [blockage](blockage.md), [task](task.md), [assignment](assignment.md), [authority](authority.md), [history](history.md), [audit](audit.md).
 
-Parameters: ref `main` at `3cdae52`, 2026-10-05 · task: none, the project-wide legend, then `e9c6` once · columns: all ten gates, and a window or a column list shows those gates only · level: one section per level below.
+Parameters: ref `main` at `3cdae52`, 2026-10-05 · task: none, the project-wide legend, then `e9c6` once · level: one section per level below.
 
 A rendering holds one level. Its headings are Gates, States, Reasons and Junction marks at every level, so a link to `gates.md#gates`, `gates.md#states`, `gates.md#reasons` or `gates.md#junction-marks` resolves whichever level CI fixes.
 
