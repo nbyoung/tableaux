@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Task assignment · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+.params { color: var(--muted); font-size: .875rem; margin: 0 0 1rem; }
+h3 { font-size: 1rem; margin: 1.25rem 0 .25rem; }
+th.numh { text-align: right; }
+tbody th { font-weight: 400; }
+tfoot th, tfoot td { border-top: 2px solid var(--line); font-weight: 600; }
+ul.notes { margin: .5rem 0; padding-left: 1.25rem; }
+.tally { color: var(--muted); font-weight: 400; }
+details.detail { border-top: 1px solid var(--line); padding: .5rem 0; }
+details.detail > summary { font-size: 1.0625rem; }
+details.group { border-left: 3px solid var(--line); margin: .5rem 0; padding: .1rem 0 .1rem .75rem; }
+details.group > summary { font-weight: 600; }
+details.fold ul { margin: .25rem 0; padding-left: 1.25rem; }
+pre { background: var(--band); font-family: var(--mono); font-size: .875em; margin: .5rem 0; overflow-x: auto; padding: .5rem .75rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html" aria-current="page">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner</p>
+</header>
+<main id="main">
+  <h1>Task assignment</h1>
+  <p class="question">What does each person carry?</p>
+  <p class="params">person: every email · task: <code class="id">437e</code>, the root · level: detail, as the owner arrives · legend: <a href="gates.html">the gate definition</a></p>
+
+<!-- glance: visible without any interaction -->
+<h2 id="people">People</h2>
+<div class="scroll"><table>
+<caption>Glance: one row per email in the project; a count covers leaf tasks</caption>
+<thead><tr><th scope="col">Email</th><th scope="col" class="numh">Assigned</th><th scope="col" class="numh">Contributes next</th><th scope="col" class="numh">Reviews next</th><th scope="col">Models</th></tr></thead>
+<tbody>
+<tr class="mine"><th scope="row"><a href="#p-nbyoung">nbyoung@nbyoung.com</a> (you)</th><td class="num">10</td><td class="num">0</td><td class="num">26</td><td>none: a person</td></tr>
+<tr><th scope="row"><a href="#p-noreply">noreply@anthropic.com</a></th><td class="num">27</td><td class="num">28</td><td class="num">2</td><td><code>claude-haiku</code>, <code>claude-opus</code>, <code>claude-fable</code>, <code>claude-sonnet</code></td></tr>
+</tbody>
+</table></div>
+<ul class="notes">
+  <li>🪆 4 tasks hand their next junction to a subproject: <code class="id">77b2</code>, <code class="id">6103</code>, <code class="id">c6e8</code> and <code class="id">595e</code>, each at 📌 mockup. Nobody in this project contributes or reviews there, so the 32 leaf tasks give 28 next junctions with a contributor here and 4 without.</li>
+  <li>The agent's 2 reviews are of its own work, <code class="id">e9c6</code> at 🧱 implementation and <code class="id">fcec</code> at 📏 unit: the junction states no reviewer, so the assignee reviews, and the agent is the assignee.</li>
+  <li>Next, the agent runs <code>claude-opus</code> at 23 junctions and <code>claude-sonnet</code> at 5.</li>
+  <li>A count covers leaf tasks: a parent has no work of its own, and its junctions state defaults for its children.</li>
+</ul>
+
+<!-- detail: one section per email; provenance: details.prov inside the part it explains -->
+<h2 id="carries">What each carries</h2>
+<p>A junction is <strong>next</strong> when it is the task's next applicable gate, passed when the status stands at or after it, and later otherwise. A group of more than eight rows shows its first three and folds the rest.</p>
+<p class="fold">The owner arrives with each section open and each gate group that holds a next junction unfolded; every provenance stays folded until asked for. An assignee arrives with their own section open and the others folded, and an observer sees the People table alone.</p>
+<!-- The person and task parameters are links: each choice is a page address, so this view needs no script. -->
+<details class="detail" id="p-nbyoung" open>
+<summary>nbyoung@nbyoung.com <span class="tally">· owner · 10 tasks assigned · 0 to contribute next · 26 to review next</span></summary>
+<p>The owner: the assignee of the root <code class="id">437e</code>, so an authority of every task. A person; no junction states a model for this email.</p>
+<h3>Tasks assigned: 10</h3>
+<div class="scroll"><table>
+<caption>Tasks assigned to nbyoung@nbyoung.com, in display order</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Under</th><th scope="col">Status</th><th scope="col">Next junction</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">437e</code></th><td>Tableaux tooling</td><td>root</td><td>📝 defined 🟢 nominal, rolled up from <code class="id">99f0</code></td><td>parent: states defaults</td></tr>
+<tr><th scope="row"><code class="id">bc63</code></th><td>Method</td><td><code class="id">437e</code></td><td>📝 defined 🟢 nominal, rolled up from <code class="id">99f0</code></td><td>parent: states defaults</td></tr>
+<tr><th scope="row"><code class="id">2034</code></th><td>Views</td><td><code class="id">bc63</code></td><td>📝 defined 🟢 nominal, rolled up from <code class="id">99f0</code></td><td>parent: states defaults</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td><code class="id">bc63</code></td><td>📐 design 🟢 nominal</td><td>🧱 implementation 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td><code class="id">bc63</code></td><td>📐 design 🟢 nominal</td><td>🧱 implementation 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td><code class="id">bc63</code></td><td>📐 design 🟢 nominal</td><td>🧱 implementation 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+<tr><th scope="row"><code class="id">77b2</code></th><td>tablo: backend library and plumbing</td><td><code class="id">437e</code></td><td>📝 defined 🟢 nominal, state from the subproject</td><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td></tr>
+<tr><th scope="row"><code class="id">6103</code></th><td>tabloio: command line, output and input</td><td><code class="id">437e</code></td><td>📝 defined 🟢 nominal, state from the subproject</td><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td></tr>
+<tr><th scope="row"><code class="id">c6e8</code></th><td>tablotui: terminal user interface</td><td><code class="id">437e</code></td><td>📝 defined 🟢 nominal, state from the subproject</td><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td></tr>
+<tr><th scope="row"><code class="id">595e</code></th><td>tableaud: local daemon and HTML</td><td><code class="id">437e</code></td><td>📝 defined 🟢 nominal, state from the subproject</td><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td></tr>
+</tbody>
+</table></div>
+<p class="fold">🤖👀 an agent contributes and a person reviews · 🤖 an agent contributes and reviews its own work · 🪆 a subproject does the work.</p>
+<details class="prov"><summary>Provenance: the file behind each assignment</summary><dl class="fields">
+<dt>Assignee</dt><dd>10: <code class="id">437e</code> <code class="id">bc63</code> <code class="id">2034</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7166</code> <code class="id">77b2</code> <code class="id">6103</code> <code class="id">c6e8</code> <code class="id">595e</code></dd><dt>Stated in</dt><dd><code>assignee</code> in each task's own file, <code>.tableaux/tasks/ID.yaml</code>, commit <code>6b6c99a</code></dd>
+</dl></details>
+<p><strong>No contributor in this project.</strong> The next junction of four of these tasks is recursive, so the work belongs to a subproject and no email here contributes or reviews it. Each subproject's own assignment view says who does.</p>
+<div class="scroll"><table>
+<caption>Tasks whose next junction is recursive</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Next gate</th><th scope="col">Subproject</th><th scope="col">Its root task stands at</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">77b2</code></th><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td><td><code>subprojects/tablo</code></td><td><code class="id">b2c1</code> 📝 defined 🟢 nominal</td></tr>
+<tr><th scope="row"><code class="id">6103</code></th><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td><td><code>subprojects/tabloio</code></td><td><code class="id">07e0</code> 🔧 function 🟢 nominal</td></tr>
+<tr><th scope="row"><code class="id">c6e8</code></th><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td><td><code>subprojects/tablotui</code></td><td><code class="id">40e8</code> 🔧 function 🟢 nominal</td></tr>
+<tr><th scope="row"><code class="id">595e</code></th><td>📌 mockup 🪆<span class="sr"> a subproject does the work</span></td><td><code>subprojects/tableaud</code></td><td><code class="id">8608</code> 🔧 function 🟢 nominal</td></tr>
+</tbody>
+</table></div>
+<details class="prov"><summary>Provenance: the file and the pin behind each recursive junction</summary>
+<p>No position, since the junction is recursive: each task's own file states it, a recursive junction inherits nothing, and the submodule pin fixes the commit the subproject is read at.</p>
+<div class="scroll"><table>
+<caption>Where each recursive junction is stated</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Stated in</th><th scope="col">Pinned at</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">77b2</code></th><td><code>junctions.mockup.subproject.url: subprojects/tablo</code> in <code>.tableaux/tasks/77b2.yaml</code>, commit <code>6b6c99a</code></td><td><code>00f8f68</code></td></tr>
+<tr><th scope="row"><code class="id">6103</code></th><td><code>junctions.mockup.subproject.url: subprojects/tabloio</code> in <code>.tableaux/tasks/6103.yaml</code>, commit <code>6b6c99a</code></td><td><code>4593882</code></td></tr>
+<tr><th scope="row"><code class="id">c6e8</code></th><td><code>junctions.mockup.subproject.url: subprojects/tablotui</code> in <code>.tableaux/tasks/c6e8.yaml</code>, commit <code>6b6c99a</code></td><td><code>a2878b5</code></td></tr>
+<tr><th scope="row"><code class="id">595e</code></th><td><code>junctions.mockup.subproject.url: subprojects/tableaud</code> in <code>.tableaux/tasks/595e.yaml</code>, commit <code>6b6c99a</code></td><td><code>e6ec4ec</code></td></tr>
+</tbody>
+</table></div>
+</details>
+<h3>Contributes: 8 junctions, 0 next</h3>
+<details class="group">
+<summary>🚀 release <span class="tally">· 8 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at release where the owner contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td>none: a person</td><td>none</td><td>later</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>8: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.release</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>6b6c99a</code>; no model, since a person contributes</dd>
+<dt>Reviewer</dt><dd>none</dd>
+<dt>Reviewer from</dt><dd>none: a person contributes, and no file states a reviewer</dd>
+</dl>
+</details>
+</details>
+<h3>Reviews: 46 junctions, 26 next</h3>
+<details class="group">
+<summary>📝 defined <span class="tally">· 7 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at defined where the owner reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">77b2</code></th><td>tablo: backend library and plumbing</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">6103</code></th><td>tabloio: command line, output and input</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c6e8</code></th><td>tablotui: terminal user interface</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">595e</code></th><td>tableaud: local daemon and HTML</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+<p class="fold">At 📝 defined the authorisation stands as the review.</p>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>7: <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7166</code> <code class="id">77b2</code> <code class="id">6103</code> <code class="id">c6e8</code> <code class="id">595e</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>📌 mockup <span class="tally">· 20 junctions · 20 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at mockup where the owner reviews: the first 3 of 20</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">99f0</code></th><td>Gate definition view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">05a9</code></th><td>Task definition view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">a9ce</code></th><td>Authority delegation view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+<details class="fold"><summary>… and 17 more: 7 under <code class="id">bc86</code> Markdown views, 10 under <code class="id">5fe3</code> HTML views; each next</summary>
+<div class="scroll"><table>
+<caption>The other 17 junctions at mockup where the owner reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">bb7c</code></th><td>Task assignment view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">c74a</code></th><td>Contributor work queue view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">efff</code></th><td>Work-blockage tree view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">ab8e</code></th><td>Global tableau view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">c545</code></th><td>Contextual tableau view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">d615</code></th><td>History view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">b14e</code></th><td>Audit view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">a6f7</code></th><td>Gate definition view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7dff</code></th><td>Task definition view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">b1b7</code></th><td>Authority delegation view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">ea51</code></th><td>Task assignment view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7783</code></th><td>Contributor work queue view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">5471</code></th><td>Work-blockage tree view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">32e7</code></th><td>Global tableau view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">69eb</code></th><td>Contextual tableau view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">3194</code></th><td>History view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">a8b4</code></th><td>Audit view in Html</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+</details>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>20: the 20 mockups under <code class="id">bc86</code> and <code class="id">5fe3</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.mockup</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.mockup</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+</dl>
+</details>
+</details>
+<details class="group">
+<summary>📐 design <span class="tally">· 8 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at design where the owner reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>8: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">bc63</code> Method, <code>junctions.design</code> in <code>.tableaux/tasks/bc63.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.design</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>🧱 implementation <span class="tally">· 3 junctions · 3 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at implementation where the owner reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>3: <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.implementation</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at implementation, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>🌍 validate <span class="tally">· 8 junctions · 3 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at validate where the owner reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>later</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>later</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>later</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>later</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td>later</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>8: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">bc63</code> Method, <code>junctions.validate</code> in <code>.tableaux/tasks/bc63.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.validate</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+</dl>
+</details>
+</details>
+<h3>Counts by gate</h3>
+<div class="scroll"><table>
+<caption>Counts by gate for nbyoung@nbyoung.com</caption>
+<thead><tr><th scope="col">Gate</th><th scope="col" class="numh">Tasks standing here</th><th scope="col" class="numh">Contributes</th><th scope="col" class="numh">of which next</th><th scope="col" class="numh">Reviews</th><th scope="col" class="numh">of which next</th></tr></thead>
+<tbody>
+<tr><th scope="row">📝 defined</th><td class="num">7</td><td class="num">0</td><td class="num">0</td><td class="num">7</td><td class="num">0</td></tr>
+<tr><th scope="row">📌 mockup</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">20</td><td class="num">20</td></tr>
+<tr><th scope="row">🔧 function</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">📐 design</th><td class="num">3</td><td class="num">0</td><td class="num">0</td><td class="num">8</td><td class="num">0</td></tr>
+<tr><th scope="row">🧱 implementation</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">3</td></tr>
+<tr><th scope="row">📏 unit</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🔗 integrate</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🌍 validate</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">8</td><td class="num">3</td></tr>
+<tr><th scope="row">🚀 release</th><td class="num">0</td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+</tbody>
+<tfoot><tr><th scope="row">Total</th><td class="num">10</td><td class="num">8</td><td class="num">0</td><td class="num">46</td><td class="num">26</td></tr></tfoot>
+</table></div>
+<h3>Authority</h3>
+<p>Over <code class="id">437e</code> Tableaux tooling and its 36 descendants: every task. See <a href="authority.html">the authority delegation view</a>.</p>
+<details class="prov"><summary>Provenance: the file behind this authority</summary><p><code>assignee</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>6b6c99a</code>: the root is an ancestor of every other task.</p></details>
+</details>
+<details class="detail" id="p-noreply" open>
+<summary>noreply@anthropic.com <span class="tally">· agent · 27 tasks assigned · 28 to contribute next · 2 to review next</span></summary>
+<p>🤖 An agent: every junction where this email contributes states a model. Assignee of 25 leaf tasks and of the two parents <code class="id">bc86</code> and <code class="id">5fe3</code>.</p>
+<h3>Tasks assigned: 27</h3>
+<div class="scroll"><table>
+<caption>Tasks assigned to noreply@anthropic.com, in display order</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Under</th><th scope="col">Status</th><th scope="col">Next junction</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td><code class="id">bc63</code></td><td>🧱 implementation 🟢 nominal</td><td>🌍 validate 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td><code class="id">2034</code></td><td>📐 design 🟢 nominal</td><td>🧱 implementation 🤖<span class="sr"> an agent contributes and reviews its own work</span></td></tr>
+<tr><th scope="row"><code class="id">bc86</code></th><td>Markdown views</td><td><code class="id">2034</code></td><td>📝 defined 🟢 nominal, rolled up from <code class="id">99f0</code></td><td>parent: states defaults</td></tr>
+<tr><th scope="row">…</th><td><details class="fold"><summary>10 children: <code class="id">99f0</code> <code class="id">05a9</code> <code class="id">a9ce</code> <code class="id">bb7c</code> <code class="id">c74a</code> <code class="id">efff</code> <code class="id">ab8e</code> <code class="id">c545</code> <code class="id">d615</code> <code class="id">b14e</code></summary><ul><li><code class="id">99f0</code> Gate definition view in Markdown</li><li><code class="id">05a9</code> Task definition view in Markdown</li><li><code class="id">a9ce</code> Authority delegation view in Markdown</li><li><code class="id">bb7c</code> Task assignment view in Markdown</li><li><code class="id">c74a</code> Contributor work queue view in Markdown</li><li><code class="id">efff</code> Work-blockage tree view in Markdown</li><li><code class="id">ab8e</code> Global tableau view in Markdown</li><li><code class="id">c545</code> Contextual tableau view in Markdown</li><li><code class="id">d615</code> History view in Markdown</li><li><code class="id">b14e</code> Audit view in Markdown</li></ul></details></td><td><code class="id">bc86</code></td><td>each 📝 defined 🟢 nominal</td><td>each 📌 mockup 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+<tr><th scope="row"><code class="id">5fe3</code></th><td>HTML views</td><td><code class="id">2034</code></td><td>📝 defined 🟢 nominal, rolled up from <code class="id">a6f7</code></td><td>parent: states defaults</td></tr>
+<tr><th scope="row">…</th><td><details class="fold"><summary>10 children: <code class="id">a6f7</code> <code class="id">7dff</code> <code class="id">b1b7</code> <code class="id">ea51</code> <code class="id">7783</code> <code class="id">5471</code> <code class="id">32e7</code> <code class="id">69eb</code> <code class="id">3194</code> <code class="id">a8b4</code></summary><ul><li><code class="id">a6f7</code> Gate definition view in Html</li><li><code class="id">7dff</code> Task definition view in Html</li><li><code class="id">b1b7</code> Authority delegation view in Html</li><li><code class="id">ea51</code> Task assignment view in Html</li><li><code class="id">7783</code> Contributor work queue view in Html</li><li><code class="id">5471</code> Work-blockage tree view in Html</li><li><code class="id">32e7</code> Global tableau view in Html</li><li><code class="id">69eb</code> Contextual tableau view in Html</li><li><code class="id">3194</code> History view in Html</li><li><code class="id">a8b4</code> Audit view in Html</li></ul></details></td><td><code class="id">5fe3</code></td><td>each 📝 defined 🟢 nominal</td><td>each 📌 mockup 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td><code class="id">bc63</code></td><td>📏 unit 🟢 nominal</td><td>🌍 validate 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code class="id">bc63</code></td><td>🧱 implementation 🟢 nominal</td><td>📏 unit 🤖<span class="sr"> an agent contributes and reviews its own work</span></td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td><code class="id">bc63</code></td><td>🧱 implementation 🟢 nominal</td><td>🌍 validate 🤖👀<span class="sr"> an agent contributes, a person reviews</span></td></tr>
+</tbody>
+</table></div>
+<p class="fold">🤖👀 an agent contributes and a person reviews · 🤖 an agent contributes and reviews its own work · 🪆 a subproject does the work.</p>
+<details class="prov"><summary>Provenance: the file behind each assignment</summary><dl class="fields">
+<dt>Assignee</dt><dd>27: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">bc86</code> <code class="id">5fe3</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code> and the 20 mockups</dd><dt>Stated in</dt><dd><code>assignee</code> in each task's own file, <code>.tableaux/tasks/ID.yaml</code>, commit <code>6b6c99a</code></dd>
+</dl></details>
+<h3>Contributes: 79 junctions, 28 next</h3>
+<details class="group">
+<summary>📝 defined <span class="tally">· 32 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at defined where the agent contributes: the first 3 of 32</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">99f0</code></th><td>Gate definition view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+</tbody>
+</table></div>
+<details class="fold"><summary>… and 29 more: <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code> <code class="id">77b2</code> <code class="id">6103</code> <code class="id">c6e8</code> <code class="id">595e</code>, 9 under <code class="id">bc86</code> Markdown views, 10 under <code class="id">5fe3</code> HTML views; each passed</summary>
+<div class="scroll"><table>
+<caption>The other 29 junctions at defined where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">05a9</code></th><td>Task definition view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a9ce</code></th><td>Authority delegation view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">bb7c</code></th><td>Task assignment view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c74a</code></th><td>Contributor work queue view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">efff</code></th><td>Work-blockage tree view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ab8e</code></th><td>Global tableau view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c545</code></th><td>Contextual tableau view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">d615</code></th><td>History view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b14e</code></th><td>Audit view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a6f7</code></th><td>Gate definition view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7dff</code></th><td>Task definition view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b1b7</code></th><td>Authority delegation view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ea51</code></th><td>Task assignment view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7783</code></th><td>Contributor work queue view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">5471</code></th><td>Work-blockage tree view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">32e7</code></th><td>Global tableau view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">69eb</code></th><td>Contextual tableau view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">3194</code></th><td>History view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a8b4</code></th><td>Audit view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">77b2</code></th><td>tablo: backend library and plumbing</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">6103</code></th><td>tabloio: command line, output and input</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c6e8</code></th><td>tablotui: terminal user interface</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">595e</code></th><td>tableaud: local daemon and HTML</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+</tbody>
+</table></div>
+</details>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>25: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">99f0</code> <code class="id">05a9</code> <code class="id">a9ce</code> <code class="id">bb7c</code> <code class="id">c74a</code> <code class="id">efff</code> <code class="id">ab8e</code> <code class="id">c545</code> <code class="id">d615</code> <code class="id">b14e</code> <code class="id">a6f7</code> <code class="id">7dff</code> <code class="id">b1b7</code> <code class="id">ea51</code> <code class="id">7783</code> <code class="id">5471</code> <code class="id">32e7</code> <code class="id">69eb</code> <code class="id">3194</code> <code class="id">a8b4</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+<dl class="fields">
+<dt>Tasks</dt><dd>7: <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7166</code> <code class="id">77b2</code> <code class="id">6103</code> <code class="id">c6e8</code> <code class="id">595e</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>📌 mockup <span class="tally">· 20 junctions · 20 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at mockup where the agent contributes: the first 3 of 20</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">99f0</code></th><td>Gate definition view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">05a9</code></th><td>Task definition view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">a9ce</code></th><td>Authority delegation view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+<details class="fold"><summary>… and 17 more: 7 under <code class="id">bc86</code> Markdown views, 10 under <code class="id">5fe3</code> HTML views; each next</summary>
+<div class="scroll"><table>
+<caption>The other 17 junctions at mockup where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">bb7c</code></th><td>Task assignment view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">c74a</code></th><td>Contributor work queue view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">efff</code></th><td>Work-blockage tree view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">ab8e</code></th><td>Global tableau view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">c545</code></th><td>Contextual tableau view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">d615</code></th><td>History view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">b14e</code></th><td>Audit view in Markdown</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">a6f7</code></th><td>Gate definition view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7dff</code></th><td>Task definition view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">b1b7</code></th><td>Authority delegation view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">ea51</code></th><td>Task assignment view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7783</code></th><td>Contributor work queue view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">5471</code></th><td>Work-blockage tree view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">32e7</code></th><td>Global tableau view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">69eb</code></th><td>Contextual tableau view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">3194</code></th><td>History view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">a8b4</code></th><td>Audit view in Html</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+</details>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>20: the 20 mockups under <code class="id">bc86</code> and <code class="id">5fe3</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.mockup</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.mockup</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+</dl>
+</details>
+</details>
+<details class="group">
+<summary>📐 design <span class="tally">· 8 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at design where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td><code>claude-fable</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>8: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">bc63</code> Method, <code>junctions.design</code> in <code>.tableaux/tasks/bc63.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.design</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>🧱 implementation <span class="tally">· 8 junctions · 4 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at implementation where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td><code>claude-sonnet</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td><code>claude-sonnet</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td><code>claude-sonnet</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>5: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.implementation</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at implementation, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+<dl class="fields">
+<dt>Tasks</dt><dd>3: <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.implementation</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at implementation, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>📏 unit <span class="tally">· 2 junctions · 1 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at unit where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>2: <code class="id">e3cb</code> <code class="id">fcec</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.unit</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at unit, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group">
+<summary>🔗 integrate <span class="tally">· 1 junction · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at integrate where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code>claude-sonnet</code></td><td>noreply@anthropic.com</td><td>later</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>1: <code class="id">fcec</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.integrate</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at integrate, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>🌍 validate <span class="tally">· 8 junctions · 3 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at validate where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td><code>claude-opus</code></td><td>nbyoung@nbyoung.com</td><td>later</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>8: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">bc63</code> Method, <code>junctions.validate</code> in <code>.tableaux/tasks/bc63.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.validate</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+</dl>
+</details>
+</details>
+<h3>Models by gate</h3>
+<p>One email stands for four models; the junction names the model.</p>
+<div class="scroll"><table>
+<caption>The model the agent runs at each gate</caption>
+<thead><tr><th scope="col">Gate</th><th scope="col">Model</th><th scope="col">Stated by</th><th scope="col" class="numh">Junctions</th><th scope="col" class="numh">Next</th><th scope="col">Note</th></tr></thead>
+<tbody>
+<tr><th scope="row">📝 defined</th><td><code>claude-haiku</code></td><td><code class="id">437e</code></td><td class="num">32</td><td class="num">0</td><td></td></tr>
+<tr><th scope="row">📌 mockup</th><td><code>claude-opus</code></td><td><code class="id">437e</code></td><td class="num">20</td><td class="num">20</td><td></td></tr>
+<tr><th scope="row">🔧 function</th><td><code>claude-sonnet</code></td><td><code class="id">437e</code></td><td class="num">0</td><td class="num">0</td><td>no task has a function junction of its own: each is exempt or recursive</td></tr>
+<tr><th scope="row">📐 design</th><td><code>claude-fable</code></td><td><code class="id">bc63</code></td><td class="num">8</td><td class="num">0</td><td><code class="id">437e</code> states <code>claude-opus</code>; <code class="id">bc63</code> restates the model for the Method branch, and every task with a design junction of its own sits under it</td></tr>
+<tr><th scope="row">🧱 implementation</th><td><code>claude-sonnet</code></td><td><code class="id">437e</code></td><td class="num">8</td><td class="num">4</td><td></td></tr>
+<tr><th scope="row">📏 unit</th><td><code>claude-sonnet</code></td><td><code class="id">437e</code></td><td class="num">2</td><td class="num">1</td><td></td></tr>
+<tr><th scope="row">🔗 integrate</th><td><code>claude-sonnet</code></td><td><code class="id">437e</code></td><td class="num">1</td><td class="num">0</td><td></td></tr>
+<tr><th scope="row">🌍 validate</th><td><code>claude-opus</code></td><td><code class="id">bc63</code></td><td class="num">8</td><td class="num">3</td><td><code class="id">437e</code> states <code>claude-sonnet</code>; <code class="id">bc63</code> restates the model for the Method branch, and every task with a validate junction of its own sits under it</td></tr>
+</tbody>
+</table></div>
+<p>At 🚀 release the owner contributes, so no model applies.</p>
+<h3>Reviews: 33 junctions, 2 next</h3>
+<p>Every one is the agent's own work: <code class="id">437e</code> states no reviewer at these gates, so the assignee reviews, and the agent is the assignee.</p>
+<details class="group">
+<summary>📝 defined <span class="tally">· 25 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at defined where the agent reviews: the first 3 of 25</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">99f0</code></th><td>Gate definition view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+<details class="fold"><summary>… and 22 more: <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code>, 9 under <code class="id">bc86</code> Markdown views, 10 under <code class="id">5fe3</code> HTML views; each passed</summary>
+<div class="scroll"><table>
+<caption>The other 22 junctions at defined where the agent reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">05a9</code></th><td>Task definition view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a9ce</code></th><td>Authority delegation view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">bb7c</code></th><td>Task assignment view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c74a</code></th><td>Contributor work queue view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">efff</code></th><td>Work-blockage tree view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ab8e</code></th><td>Global tableau view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c545</code></th><td>Contextual tableau view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">d615</code></th><td>History view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b14e</code></th><td>Audit view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a6f7</code></th><td>Gate definition view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7dff</code></th><td>Task definition view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b1b7</code></th><td>Authority delegation view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ea51</code></th><td>Task assignment view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7783</code></th><td>Contributor work queue view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">5471</code></th><td>Work-blockage tree view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">32e7</code></th><td>Global tableau view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">69eb</code></th><td>Contextual tableau view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">3194</code></th><td>History view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a8b4</code></th><td>Audit view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+</details>
+<p class="fold">At 📝 defined the authorisation stands as the review.</p>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>25: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">99f0</code> <code class="id">05a9</code> <code class="id">a9ce</code> <code class="id">bb7c</code> <code class="id">c74a</code> <code class="id">efff</code> <code class="id">ab8e</code> <code class="id">c545</code> <code class="id">d615</code> <code class="id">b14e</code> <code class="id">a6f7</code> <code class="id">7dff</code> <code class="id">b1b7</code> <code class="id">ea51</code> <code class="id">7783</code> <code class="id">5471</code> <code class="id">32e7</code> <code class="id">69eb</code> <code class="id">3194</code> <code class="id">a8b4</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>🧱 implementation <span class="tally">· 5 junctions · 1 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at implementation where the agent reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td><strong>next</strong></td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>5: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.implementation</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at implementation, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group" open>
+<summary>📏 unit <span class="tally">· 2 junctions · 1 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at unit where the agent reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td><strong>next</strong></td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>2: <code class="id">e3cb</code> <code class="id">fcec</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.unit</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at unit, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<details class="group">
+<summary>🔗 integrate <span class="tally">· 1 junction · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at integrate where the agent reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>later</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>1: <code class="id">fcec</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.integrate</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at integrate, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
+<h3>Counts by gate</h3>
+<div class="scroll"><table>
+<caption>Counts by gate for noreply@anthropic.com</caption>
+<thead><tr><th scope="col">Gate</th><th scope="col" class="numh">Tasks standing here</th><th scope="col" class="numh">Contributes</th><th scope="col" class="numh">of which next</th><th scope="col" class="numh">Reviews</th><th scope="col" class="numh">of which next</th></tr></thead>
+<tbody>
+<tr><th scope="row">📝 defined</th><td class="num">22</td><td class="num">32</td><td class="num">0</td><td class="num">25</td><td class="num">0</td></tr>
+<tr><th scope="row">📌 mockup</th><td class="num">0</td><td class="num">20</td><td class="num">20</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🔧 function</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">📐 design</th><td class="num">1</td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🧱 implementation</th><td class="num">3</td><td class="num">8</td><td class="num">4</td><td class="num">5</td><td class="num">1</td></tr>
+<tr><th scope="row">📏 unit</th><td class="num">1</td><td class="num">2</td><td class="num">1</td><td class="num">2</td><td class="num">1</td></tr>
+<tr><th scope="row">🔗 integrate</th><td class="num">0</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">0</td></tr>
+<tr><th scope="row">🌍 validate</th><td class="num">0</td><td class="num">8</td><td class="num">3</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🚀 release</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+</tbody>
+<tfoot><tr><th scope="row">Total</th><td class="num">27</td><td class="num">79</td><td class="num">28</td><td class="num">33</td><td class="num">2</td></tr></tfoot>
+</table></div>
+<h3>Authority</h3>
+<p>Over <code class="id">bc86</code> Markdown views and its 10 children, and over <code class="id">5fe3</code> HTML views and its 10 children. A leaf gives no authority. See <a href="authority.html">the authority delegation view</a>.</p>
+<details class="prov"><summary>Provenance: the files behind this authority</summary><p><code>assignee</code> in <code>.tableaux/tasks/bc86.yaml</code> and <code>.tableaux/tasks/5fe3.yaml</code>, commit <code>6b6c99a</code>: each is the parent of its ten mockups.</p></details>
+</details>
+
+<h2 id="sources">Commits and commands</h2>
+<details class="prov">
+<summary>Provenance: the commits behind every line named above, and the commands that reproduce them</summary>
+<div class="scroll"><table>
+<caption>The commits that state the positions</caption>
+<thead><tr><th scope="col">Lines</th><th scope="col">Commit</th><th scope="col">Date</th><th scope="col">Author</th><th scope="col">Committer</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>assignee</code> in all 37 task files; <code>junctions.release</code> in <code class="id">437e</code></th><td><code>6b6c99a</code> Plan the Tableaux tooling</td><td>2026-09-29</td><td>nbyoung@nbyoung.com</td><td>nbyoung@nbyoung.com</td></tr>
+<tr><th scope="row"><code>junctions.defined</code> to <code>junctions.validate</code> in <code class="id">437e</code>; <code>junctions.design</code> and <code>junctions.validate</code> in <code class="id">bc63</code></th><td><code>320cf2b</code> Name a model family per gate (D7)</td><td>2026-09-30</td><td>noreply@anthropic.com</td><td>nbyoung@nbyoung.com</td></tr>
+</tbody>
+</table></div>
+<p><code>320cf2b</code> reaches the trunk through the merge <code>8eb0cae</code> by nbyoung@nbyoung.com on 2026-09-30. The four submodule pins come from the tree at <code>3cdae52</code>.</p>
+<pre>git show 3cdae52:.tableaux/tasks/437e.yaml              # the defaults every task inherits
+git show 3cdae52:.tableaux/tasks/bc63.yaml              # the Method branch restates design and validate
+git blame -s 3cdae52 -- .tableaux/tasks/437e.yaml       # the commit behind each junction line
+git grep -n '^assignee:' 3cdae52 -- .tableaux/tasks     # every assignee
+git ls-tree 3cdae52 subprojects/                        # the four pins</pre>
+</details>
+
+<h2 id="see-also">See also</h2>
+<ul>
+  <li><a href="queue.html">Queue</a>: what each person does next, in order</li>
+  <li><a href="authority.html">Authority</a>: the subtrees and who accepts what</li>
+  <li><a href="task.html">Task</a>: one task with every junction</li>
+  <li><a href="tableau.html">Tableau</a>: the whole project by gate</li>
+  <li><a href="context.html">My corner</a>: a person’s tasks among their neighbours</li>
+  <li><a href="blockage.html">Blockage</a>: what waits on what</li>
+  <li><a href="history.html">History</a>: who did what, when</li>
+  <li><a href="audit.html">Audit</a>: the model each commit ran against the model its junction states</li>
+  <li><a href="gates.html">Gates</a>: the legend for every symbol</li>
+</ul>
+</main>
+<footer class="site">
+  <p>Mockup of the Task assignment view (task <code class="id">ea51</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
