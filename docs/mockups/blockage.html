@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work-blockage tree · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+.empty { font-size: 1.125rem; margin: .5rem 0 .25rem; }
+ul.tree li { margin: .2rem 0; }
+ul.tree details.detail > summary { font-weight: 400; }
+ul.tree details.detail > summary .what { font-weight: 600; }
+.who, .holds { white-space: nowrap; }
+.holds { font-variant-numeric: tabular-nums; }
+.also { color: var(--muted); font-size: .875rem; }
+ul.reqs { margin: .25rem 0; padding-left: 1.25rem; }
+ul.reqs li { margin: .3rem 0; }
+section.illus { border: 2px dashed var(--prov-line); border-radius: .25rem; margin-top: 2rem; padding: 0 1rem .75rem; }
+section.illus .label { background: var(--mark); display: inline-block; font-weight: 600; padding: .1rem .5rem; }
+pre { background: var(--band); font-family: var(--mono); font-size: .8125rem; margin: .5rem 0; overflow-x: auto; padding: .5rem .75rem; }
+details.prov ul { margin: .25rem 0; padding-left: 1.25rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html" aria-current="page">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · task <code>437e</code> · every person · every gate</p>
+</header>
+<main id="main">
+  <h1>Work-blockage tree</h1>
+  <p class="question">What waits on what? Each cause names the one action that resolves it and the one person who takes it.</p>
+  <p class="muted">Task <code class="id">437e</code>, the whole tree · person: every person · window: every gate · opens at detail for the owner. The <a href="gates.html">gate definition</a> explains each symbol.</p>
+
+  <!-- glance: visible without any interaction -->
+  <h2 id="causes">Causes</h2>
+  <p class="empty"><strong>No cause holds any task.</strong></p>
+  <p>Next: 10 requirements are not yet due, and 8 of them are not met.</p>
+
+  <!-- detail: the owner arrives with every detail open and every provenance closed -->
+  <details class="detail" open>
+    <summary>The tree is empty: how each kind of cause reads</summary>
+    <div class="scroll">
+    <table>
+      <caption>The five kinds of cause on <code>main</code> at <code>3cdae52</code></caption>
+      <thead><tr><th scope="col">Kind of cause</th><th scope="col">The project at the ref</th><th scope="col">Causes</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Unmet requirement</th><td>32 entries: 22 due and met, 10 not yet due</td><td class="num">0</td></tr>
+        <tr><th scope="row">Status with a reason, or off nominal</th><td>32 leaves, four read through their snapshots: all <span aria-hidden="true">🟢</span> nominal, no <span aria-hidden="true">⛔</span> blocked or <span aria-hidden="true">🪫</span> overloaded</td><td class="num">0</td></tr>
+        <tr><th scope="row">Review outstanding</th><td>No status carries <span aria-hidden="true">👓</span> review</td><td class="num">0</td></tr>
+        <tr><th scope="row">Authorisation outstanding</th><td>37 tasks, all authorised</td><td class="num">0</td></tr>
+        <tr><th scope="row">Subproject snapshot not advanced</th><td>4 pins, each at the tip of its subproject's trunk</td><td class="num">0</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </details>
+
+  <h2 id="next">Next: requirements not yet due</h2>
+  <p>A requirement that is not yet due is no wait. It comes due when its task's next gate reaches the gate the entry names in <code>to</code>. The list follows display order.</p>
+  <ul class="tree">
+<li id="next-77b2"><details class="detail" open>
+<summary><a class="id" href="task.html">77b2<span class="sr"> in the task view</span></a> <span class="what">tablo: backend library and plumbing</span> stands at <span aria-hidden="true">📝</span> defined; next <span aria-hidden="true">📌</span> mockup, <span aria-hidden="true">🪆</span> a subproject does the work. Its snapshot stands at <span aria-hidden="true">📝</span> defined.</summary>
+<ul class="reqs">
+<li>at <span aria-hidden="true">🧱</span> implementation it requires <a class="id" href="task.html">e3cb<span class="sr"> in the task view</span></a> Schema files at <span aria-hidden="true">🧱</span> implementation, “The schema files it embeds”. <strong>Met</strong>: <code class="id">e3cb</code> stands at <span aria-hidden="true">📏</span> unit. Due when <code class="id">77b2</code> stands at <span aria-hidden="true">📐</span> design.</li>
+<li>at <span aria-hidden="true">📐</span> design it requires <a class="id" href="task.html">e9c6<span class="sr"> in the task view</span></a> Abstract views at <span aria-hidden="true">🧱</span> implementation, “The abstract views it derives”. <strong>Not met</strong>: <code class="id">e9c6</code> stands at <span aria-hidden="true">📐</span> design. Due when <code class="id">77b2</code> stands at <span aria-hidden="true">🔧</span> function.</li>
+<li>at <span aria-hidden="true">📏</span> unit it requires <a class="id" href="task.html">fcec<span class="sr"> in the task view</span></a> Conformance corpus at <span aria-hidden="true">🧱</span> implementation, “The corpus it conforms to”. <strong>Met</strong>: <code class="id">fcec</code> stands at <span aria-hidden="true">🧱</span> implementation. Due when <code class="id">77b2</code> stands at <span aria-hidden="true">🧱</span> implementation.</li>
+</ul>
+<details class="prov">
+<summary>Provenance of <code class="id">77b2</code> and what it requires</summary>
+<p>The requirement entries, in <code>.tableaux/tasks/77b2.yaml</code>. <code>6b6c99a</code> Plan the Tableaux tooling, 2026-09-29, author and committer nbyoung@nbyoung.com, wrote the file and no later commit changes it, so it also decides the authorisation.</p>
+<pre>- { id: "e3cb", from: implementation, to: implementation, text: The schema files it embeds }
+- { id: "e9c6", from: implementation, to: design, text: The abstract views it derives }
+- { id: "fcec", from: implementation, to: unit, text: The corpus it conforms to }</pre>
+<dl class="fields">
+<dt>Status file</dt><dd><code>.tableaux/status/77b2.yaml</code> holds only <code>gate: defined</code>, since the next junction is recursive</dd>
+<dt>Date and recorder</dt><dd>2026-09-30, noreply@anthropic.com</dd>
+<dt>Deciding commit</dt><dd><code>e66abe2</code> Record the defined gate for the subproject tasks, author and committer noreply@anthropic.com, <code>Model: claude-haiku-4-5-20251001</code></dd>
+<dt>Linkage</dt><dd><code>subprojects/tablo</code>, a submodule pinned at <code>00f8f68</code>, the tip of its trunk <code>main</code></dd>
+<dt>Pin set by</dt><dd><code>552d38f</code>, 2026-10-02, nbyoung@nbyoung.com, old <code>816f2a0</code></dd>
+<dt>Snapshot</dt><dd>the subproject root <code class="id">b2c1</code> reads <span aria-hidden="true">📝</span> defined <span aria-hidden="true">🟢</span> nominal there, rolled up from <code class="id">4b4f</code> Conformance</dd>
+</dl>
+<p>The tasks it requires:</p><ul>
+<li><code class="id">e3cb</code> Schema files: <code>.tableaux/status/e3cb.yaml</code>, <span aria-hidden="true">📏</span> unit <span aria-hidden="true">🟢</span> nominal · 2026-09-30, noreply@anthropic.com · <code>5cbec7c</code> Record e3cb at unit, nominal</li>
+<li><code class="id">e9c6</code> Abstract views: <code>.tableaux/status/e9c6.yaml</code>, <span aria-hidden="true">📐</span> design <span aria-hidden="true">🟢</span> nominal · 2026-09-30, noreply@anthropic.com · <code>879b447</code> Advance the abstract views task to its design gate · reviewed by <code>0704a09</code>, <code>Reviewed: e9c6 design</code>, nbyoung@nbyoung.com</li>
+<li><code class="id">fcec</code> Conformance corpus: <code>.tableaux/status/fcec.yaml</code>, <span aria-hidden="true">🧱</span> implementation <span aria-hidden="true">🟢</span> nominal · 2026-09-30, noreply@anthropic.com · <code>60495c2</code> Record all three corpus corrections at implementation</li>
+</ul>
+</details>
+</details></li>
+<li id="next-6103"><details class="detail" open>
+<summary><a class="id" href="task.html">6103<span class="sr"> in the task view</span></a> <span class="what">tabloio: command line, output and input</span> stands at <span aria-hidden="true">📝</span> defined; next <span aria-hidden="true">📌</span> mockup, <span aria-hidden="true">🪆</span> a subproject does the work. Its snapshot stands at <span aria-hidden="true">🔧</span> function.</summary>
+<ul class="reqs">
+<li>at <span aria-hidden="true">🧱</span> implementation it requires <a class="id" href="task.html">77b2<span class="sr"> in the task view</span></a> tablo at <span aria-hidden="true">🧱</span> implementation, “The library and plumbing it calls”. <strong>Not met</strong>: <code class="id">77b2</code> stands at <span aria-hidden="true">📝</span> defined. Due when <code class="id">6103</code> stands at <span aria-hidden="true">📐</span> design.</li>
+<li>at <span aria-hidden="true">📐</span> design it requires <a class="id" href="task.html">bc86<span class="sr"> in the task view</span></a> Markdown views at <span aria-hidden="true">📌</span> mockup, “The Markdown mockups it reproduces”. <strong>Not met</strong>: <code class="id">bc86</code> stands at <span aria-hidden="true">📝</span> defined. Due when <code class="id">6103</code> stands at <span aria-hidden="true">🔧</span> function.</li>
+</ul>
+<details class="prov">
+<summary>Provenance of <code class="id">6103</code> and what it requires</summary>
+<p>The requirement entries, in <code>.tableaux/tasks/6103.yaml</code>. <code>6b6c99a</code> Plan the Tableaux tooling, 2026-09-29, author and committer nbyoung@nbyoung.com, wrote the file and no later commit changes it, so it also decides the authorisation.</p>
+<pre>- { id: "77b2", from: implementation, to: implementation, text: The library and plumbing it calls }
+- { id: "bc86", from: mockup, to: design, text: The Markdown mockups it reproduces }</pre>
+<dl class="fields">
+<dt>Status file</dt><dd><code>.tableaux/status/6103.yaml</code> holds only <code>gate: defined</code>, since the next junction is recursive</dd>
+<dt>Date and recorder</dt><dd>2026-09-30, noreply@anthropic.com</dd>
+<dt>Deciding commit</dt><dd><code>e66abe2</code> Record the defined gate for the subproject tasks, author and committer noreply@anthropic.com, <code>Model: claude-haiku-4-5-20251001</code></dd>
+<dt>Linkage</dt><dd><code>subprojects/tabloio</code>, a submodule pinned at <code>4593882</code>, the tip of its trunk <code>main</code></dd>
+<dt>Pin set by</dt><dd><code>1c0f04d</code>, 2026-10-02, nbyoung@nbyoung.com, old <code>cb9ff8f</code></dd>
+<dt>Snapshot</dt><dd>the subproject root <code class="id">07e0</code> reads <span aria-hidden="true">🔧</span> function <span aria-hidden="true">🟢</span> nominal there</dd>
+</dl>
+<p>The tasks it requires:</p><ul>
+<li><code class="id">77b2</code> tablo: <code>.tableaux/status/77b2.yaml</code>, <span aria-hidden="true">📝</span> defined · 2026-09-30, noreply@anthropic.com · <code>e66abe2</code></li>
+<li><code class="id">bc86</code> Markdown views: a parent, <span aria-hidden="true">📝</span> defined <span aria-hidden="true">🟢</span> nominal, rolled up from <code class="id">99f0</code> Gate definition view in Markdown · <code>.tableaux/status/99f0.yaml</code> · 2026-09-29, noreply@anthropic.com, committer nbyoung@nbyoung.com · <code>1a17bfc</code> Record the defined gate for the views and mockups</li>
+</ul>
+</details>
+</details></li>
+<li id="next-c6e8"><details class="detail" open>
+<summary><a class="id" href="task.html">c6e8<span class="sr"> in the task view</span></a> <span class="what">tablotui: terminal user interface</span> stands at <span aria-hidden="true">📝</span> defined; next <span aria-hidden="true">📌</span> mockup, <span aria-hidden="true">🪆</span> a subproject does the work. Its snapshot stands at <span aria-hidden="true">🔧</span> function.</summary>
+<ul class="reqs">
+<li>at <span aria-hidden="true">🧱</span> implementation it requires <a class="id" href="task.html">77b2<span class="sr"> in the task view</span></a> tablo at <span aria-hidden="true">🧱</span> implementation, “The library it embeds”. <strong>Not met</strong>: <code class="id">77b2</code> stands at <span aria-hidden="true">📝</span> defined. Due when <code class="id">c6e8</code> stands at <span aria-hidden="true">📐</span> design.</li>
+<li>at <span aria-hidden="true">📐</span> design it requires <a class="id" href="task.html">bc86<span class="sr"> in the task view</span></a> Markdown views at <span aria-hidden="true">📌</span> mockup, “The Markdown mockups that fix the textual layout”. <strong>Not met</strong>: <code class="id">bc86</code> stands at <span aria-hidden="true">📝</span> defined. Due when <code class="id">c6e8</code> stands at <span aria-hidden="true">🔧</span> function.</li>
+<li>at <span aria-hidden="true">📐</span> design it requires <a class="id" href="task.html">5fe3<span class="sr"> in the task view</span></a> HTML views at <span aria-hidden="true">📌</span> mockup, “The HTML mockups that fix the disclosure levels”. <strong>Not met</strong>: <code class="id">5fe3</code> stands at <span aria-hidden="true">📝</span> defined. Due when <code class="id">c6e8</code> stands at <span aria-hidden="true">🔧</span> function.</li>
+</ul>
+<details class="prov">
+<summary>Provenance of <code class="id">c6e8</code> and what it requires</summary>
+<p>The requirement entries, in <code>.tableaux/tasks/c6e8.yaml</code>. <code>6b6c99a</code> Plan the Tableaux tooling, 2026-09-29, author and committer nbyoung@nbyoung.com, wrote the file and no later commit changes it, so it also decides the authorisation.</p>
+<pre>- { id: "77b2", from: implementation, to: implementation, text: The library it embeds }
+- { id: "bc86", from: mockup, to: design, text: The Markdown mockups that fix the textual layout }
+- { id: "5fe3", from: mockup, to: design, text: The HTML mockups that fix the disclosure levels }</pre>
+<dl class="fields">
+<dt>Status file</dt><dd><code>.tableaux/status/c6e8.yaml</code> holds only <code>gate: defined</code>, since the next junction is recursive</dd>
+<dt>Date and recorder</dt><dd>2026-09-30, noreply@anthropic.com</dd>
+<dt>Deciding commit</dt><dd><code>e66abe2</code> Record the defined gate for the subproject tasks, author and committer noreply@anthropic.com, <code>Model: claude-haiku-4-5-20251001</code></dd>
+<dt>Linkage</dt><dd><code>subprojects/tablotui</code>, a submodule pinned at <code>a2878b5</code>, the tip of its trunk <code>main</code></dd>
+<dt>Pin set by</dt><dd><code>fa4551e</code>, 2026-10-04, nbyoung@nbyoung.com, old <code>334df71</code></dd>
+<dt>Snapshot</dt><dd>the subproject root <code class="id">40e8</code> reads <span aria-hidden="true">🔧</span> function <span aria-hidden="true">🟢</span> nominal there</dd>
+</dl>
+<p>The tasks it requires:</p><ul>
+<li><code class="id">77b2</code> tablo: <code>.tableaux/status/77b2.yaml</code>, <span aria-hidden="true">📝</span> defined · 2026-09-30, noreply@anthropic.com · <code>e66abe2</code></li>
+<li><code class="id">bc86</code> Markdown views: a parent, <span aria-hidden="true">📝</span> defined <span aria-hidden="true">🟢</span> nominal, rolled up from <code class="id">99f0</code> Gate definition view in Markdown · <code>.tableaux/status/99f0.yaml</code> · 2026-09-29, noreply@anthropic.com, committer nbyoung@nbyoung.com · <code>1a17bfc</code> Record the defined gate for the views and mockups</li>
+<li><code class="id">5fe3</code> HTML views: a parent, <span aria-hidden="true">📝</span> defined <span aria-hidden="true">🟢</span> nominal, rolled up from <code class="id">a6f7</code> Gate definition view in Html · <code>.tableaux/status/a6f7.yaml</code> · 2026-09-29, noreply@anthropic.com, committer nbyoung@nbyoung.com · <code>1a17bfc</code> Record the defined gate for the views and mockups</li>
+</ul>
+</details>
+</details></li>
+<li id="next-595e"><details class="detail" open>
+<summary><a class="id" href="task.html">595e<span class="sr"> in the task view</span></a> <span class="what">tableaud: local daemon and HTML</span> stands at <span aria-hidden="true">📝</span> defined; next <span aria-hidden="true">📌</span> mockup, <span aria-hidden="true">🪆</span> a subproject does the work. Its snapshot stands at <span aria-hidden="true">🔧</span> function.</summary>
+<ul class="reqs">
+<li>at <span aria-hidden="true">🧱</span> implementation it requires <a class="id" href="task.html">77b2<span class="sr"> in the task view</span></a> tablo at <span aria-hidden="true">🧱</span> implementation, “The library it embeds”. <strong>Not met</strong>: <code class="id">77b2</code> stands at <span aria-hidden="true">📝</span> defined. Due when <code class="id">595e</code> stands at <span aria-hidden="true">📐</span> design.</li>
+<li>at <span aria-hidden="true">📐</span> design it requires <a class="id" href="task.html">5fe3<span class="sr"> in the task view</span></a> HTML views at <span aria-hidden="true">📌</span> mockup, “The HTML mockups it reproduces”. <strong>Not met</strong>: <code class="id">5fe3</code> stands at <span aria-hidden="true">📝</span> defined. Due when <code class="id">595e</code> stands at <span aria-hidden="true">🔧</span> function.</li>
+</ul>
+<details class="prov">
+<summary>Provenance of <code class="id">595e</code> and what it requires</summary>
+<p>The requirement entries, in <code>.tableaux/tasks/595e.yaml</code>. <code>6b6c99a</code> Plan the Tableaux tooling, 2026-09-29, author and committer nbyoung@nbyoung.com, wrote the file and no later commit changes it, so it also decides the authorisation.</p>
+<pre>- { id: "77b2", from: implementation, to: implementation, text: The library it embeds }
+- { id: "5fe3", from: mockup, to: design, text: The HTML mockups it reproduces }</pre>
+<dl class="fields">
+<dt>Status file</dt><dd><code>.tableaux/status/595e.yaml</code> holds only <code>gate: defined</code>, since the next junction is recursive</dd>
+<dt>Date and recorder</dt><dd>2026-09-30, noreply@anthropic.com</dd>
+<dt>Deciding commit</dt><dd><code>e66abe2</code> Record the defined gate for the subproject tasks, author and committer noreply@anthropic.com, <code>Model: claude-haiku-4-5-20251001</code></dd>
+<dt>Linkage</dt><dd><code>subprojects/tableaud</code>, a submodule pinned at <code>e6ec4ec</code>, the tip of its trunk <code>main</code></dd>
+<dt>Pin set by</dt><dd><code>3cdae52</code>, 2026-10-05, nbyoung@nbyoung.com, old <code>cffbfa6</code></dd>
+<dt>Snapshot</dt><dd>the subproject root <code class="id">8608</code> reads <span aria-hidden="true">🔧</span> function <span aria-hidden="true">🟢</span> nominal there</dd>
+</dl>
+<p>The tasks it requires:</p><ul>
+<li><code class="id">77b2</code> tablo: <code>.tableaux/status/77b2.yaml</code>, <span aria-hidden="true">📝</span> defined · 2026-09-30, noreply@anthropic.com · <code>e66abe2</code></li>
+<li><code class="id">5fe3</code> HTML views: a parent, <span aria-hidden="true">📝</span> defined <span aria-hidden="true">🟢</span> nominal, rolled up from <code class="id">a6f7</code> Gate definition view in Html · <code>.tableaux/status/a6f7.yaml</code> · 2026-09-29, noreply@anthropic.com, committer nbyoung@nbyoung.com · <code>1a17bfc</code> Record the defined gate for the views and mockups</li>
+</ul>
+<p>No cause stands, so no command resolves one. These reproduce the facts above:</p>
+<pre>git log -1 --format='%h %as %ae %ce' -- .tableaux/status/595e.yaml   # date and recorder of a status
+git log -1 --format='%h %as %ae' -- .tableaux/tasks/595e.yaml        # the commit that states the requirements
+git ls-tree 3cdae52 subprojects/                                     # the four pins
+git log -1 --format='%h %as %ae' -- subprojects/tableaud             # the commit that set a pin
+git -C subprojects/tableaud rev-parse main                           # the trunk tip a pin compares with
+tabloio blockage --ref 3cdae52 --level provenance                    # this rendering</pre>
+</details>
+</details></li>
+  </ul>
+  <p>Three snapshots stand ahead of their status files: <code class="id">6103</code>, <code class="id">c6e8</code> and <code class="id">595e</code> read <span aria-hidden="true">📝</span> defined in this project and <span aria-hidden="true">🔧</span> function in their subprojects. Once each status file names <span aria-hidden="true">🔧</span> function, its requirements at <span aria-hidden="true">📐</span> design come due and read unmet: <code class="id">bc86</code> then holds <code class="id">6103</code> and <code class="id">c6e8</code>, and <code class="id">5fe3</code> holds <code class="id">c6e8</code> and <code class="id">595e</code>.</p>
+
+  <section class="illus" aria-labelledby="illustration">
+  <h2 id="illustration">Illustration: a tree with causes</h2>
+  <p><span class="label">Illustrative, not the project at the ref.</span> No commit holds this state and no command renders it. It takes the real tasks, people, junctions and requirement entries, and assumes three changes to the statuses, so that the form of a non-empty tree shows: a review outstanding, a hold two levels deep, and a task held under two causes.</p>
+  <p>The assumed changes:</p>
+  <ol>
+    <li>The status files of <code class="id">6103</code>, <code class="id">c6e8</code> and <code class="id">595e</code> name <span aria-hidden="true">🔧</span> function, where their snapshots stand at the ref.</li>
+    <li>Nine of the ten HTML mockups pass <span aria-hidden="true">📌</span> mockup. <code class="id">5471</code> Work-blockage tree view in Html stands at <span aria-hidden="true">📝</span> defined <span aria-hidden="true">🟢</span> nominal <span aria-hidden="true">👓</span> review: the agent hands it off.</li>
+    <li>Nine of the ten Markdown mockups pass <span aria-hidden="true">📌</span> mockup. <code class="id">efff</code> Work-blockage tree view in Markdown stands at <span aria-hidden="true">📝</span> defined <span aria-hidden="true">🟢</span> nominal with no reason.</li>
+  </ol>
+  <p>Two causes, largest first. Each cause unfolds to the tasks it holds, and each of those to what it holds in turn.</p>
+  <ul class="tree">
+    <li id="cause-1" class="mine"><details class="detail" open>
+      <summary>1. <span class="what"><a class="id" href="task.html">5471<span class="sr"> in the task view</span></a> Work-blockage tree view in Html awaits review at <span aria-hidden="true">📌</span> mockup <span aria-hidden="true">👓</span></span> · <span class="who"><span aria-hidden="true">👀</span> nbyoung@nbyoung.com reviews</span> · <span class="holds">holds 4</span></summary>
+      <p>Action: nbyoung@nbyoung.com accepts the mockup with a commit that carries <code>Reviewed: 5471 mockup</code>.</p>
+      <ul>
+        <li><details open>
+          <summary><a class="id" href="task.html">5471<span class="sr"> in the task view</span></a> Work-blockage tree view in Html at <span aria-hidden="true">📌</span> mockup: the review holds the task itself.</summary>
+          <ul>
+            <li><details open>
+              <summary><a class="id" href="task.html">5fe3<span class="sr"> in the task view</span></a> <strong>HTML views</strong> at <span aria-hidden="true">📌</span> mockup: a parent; <code class="id">5471</code> is its one child that has not passed the gate.</summary>
+              <ul>
+                <li><a class="id" href="task.html">c6e8<span class="sr"> in the task view</span></a> tablotui at <span aria-hidden="true">📐</span> design: requires <code class="id">5fe3</code> at <span aria-hidden="true">📌</span> mockup, “The HTML mockups that fix the disclosure levels”. Unmet. <a class="also" href="#cause-2">Also under cause 2.</a></li>
+                <li><a class="id" href="task.html">595e<span class="sr"> in the task view</span></a> tableaud at <span aria-hidden="true">📐</span> design: requires <code class="id">5fe3</code> at <span aria-hidden="true">📌</span> mockup, “The HTML mockups it reproduces”. Unmet.</li>
+              </ul>
+            </details></li>
+          </ul>
+        </details></li>
+      </ul>
+      <details class="prov">
+        <summary>Provenance of cause 1</summary>
+        <dl class="fields">
+          <dt>The status</dt><dd><code>.tableaux/status/5471.yaml</code> reads <code>gate: defined</code>, <code>state: nominal</code>, <code>reason: review</code>. Its date and recorder come from the hand-off commit, which this illustration does not have: <code>&lt;date&gt;</code>, noreply@anthropic.com, <code>&lt;commit&gt;</code>.</dd>
+          <dt>The junction</dt><dd><code class="id">5471</code> at <span aria-hidden="true">📌</span> mockup: contributor noreply@anthropic.com, model <code>claude-opus</code>, reviewer nbyoung@nbyoung.com, all three from <code class="id">437e</code> Tableaux tooling.</dd>
+          <dt>The review</dt><dd>No commit carries <code>Reviewed: 5471 mockup</code>.</dd>
+          <dt>The requirement entries</dt><dd><code>.tableaux/tasks/c6e8.yaml</code>: <code>{ id: "5fe3", from: mockup, to: design, text: The HTML mockups that fix the disclosure levels }</code>. <code>.tableaux/tasks/595e.yaml</code>: <code>{ id: "5fe3", from: mockup, to: design, text: The HTML mockups it reproduces }</code>.</dd>
+          <dt>The deciding commits</dt><dd><code class="id">5471</code>, <code class="id">5fe3</code>, <code class="id">c6e8</code> and <code class="id">595e</code> are authorised by <code>6b6c99a</code> Plan the Tableaux tooling, 2026-09-29, author and committer nbyoung@nbyoung.com.</dd>
+          <dt>The linkages</dt><dd><code class="id">c6e8</code> reads <code>subprojects/tablotui</code> at <code>a2878b5</code>; <code class="id">595e</code> reads <code>subprojects/tableaud</code> at <code>e6ec4ec</code>.</dd>
+        </dl>
+        <p>The command that resolves the cause:</p>
+        <pre>tabloio review 5471 mockup
+git commit --allow-empty --trailer 'Reviewed: 5471 mockup' -m 'Accept the work-blockage tree mockup in HTML'</pre>
+      </details>
+    </details></li>
+    <li id="cause-2"><details class="detail" open>
+      <summary>2. <span class="what"><a class="id" href="task.html">efff<span class="sr"> in the task view</span></a> Work-blockage tree view in Markdown has not passed <span aria-hidden="true">📌</span> mockup</span> · <span class="who"><span aria-hidden="true">🤖</span> noreply@anthropic.com contributes</span> · <span class="holds">holds 3</span></summary>
+      <p>Action: noreply@anthropic.com draws the mockup and hands it off with the reason <code>review</code>.</p>
+      <ul>
+        <li><details open>
+          <summary><a class="id" href="task.html">bc86<span class="sr"> in the task view</span></a> <strong>Markdown views</strong> at <span aria-hidden="true">📌</span> mockup: a parent; <code class="id">efff</code> is its one child that has not passed the gate.</summary>
+          <ul>
+            <li><a class="id" href="task.html">6103<span class="sr"> in the task view</span></a> tabloio at <span aria-hidden="true">📐</span> design: requires <code class="id">bc86</code> at <span aria-hidden="true">📌</span> mockup, “The Markdown mockups it reproduces”. Unmet.</li>
+            <li><a class="id" href="task.html">c6e8<span class="sr"> in the task view</span></a> tablotui at <span aria-hidden="true">📐</span> design: requires <code class="id">bc86</code> at <span aria-hidden="true">📌</span> mockup, “The Markdown mockups that fix the textual layout”. Unmet. <a class="also" href="#cause-1">Also under cause 1.</a></li>
+          </ul>
+        </details></li>
+      </ul>
+    </details></li>
+  </ul>
+  <p>A count names the distinct tasks under its cause at every depth, a parent included. <code class="id">c6e8</code> appears under both causes, so the two counts sum to seven and the tree holds six tasks. The step from a child to its parent follows the roll-up: VIEWS.md does not state it, and this illustration proposes it, since every requirement the subprojects state on the mockups names a parent. The list of requirements not yet due follows the tree, in the form <a href="#next">the list above</a> shows.</p>
+  <p class="muted">The highlighted cause is one the viewer resolves. The owner arrives with every cause unfolded to its full tree and every provenance closed; a contributor arrives with the causes that hold their own work unfolded and the others closed.</p>
+  </section>
+
+  <h2 id="see-also">See also</h2>
+  <p><a href="queue.html">The work queue</a> lists the same waits per person as work waiting. <a href="audit.html">The audit</a> reports an unmet requirement by rule. <a href="task.html">The task definition</a> shows one task's requirements both ways. <a href="tableau.html">The global tableau</a> shows where every task stands, and <a href="history.html">the history</a> every pin event. The other views: <a href="context.html">contextual tableau</a>, <a href="assignment.html">task assignment</a>, <a href="authority.html">authority delegation</a>.</p>
+</main>
+<footer class="site">
+  <p>Mockup of the Work-blockage tree view (task <code class="id">5471</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
