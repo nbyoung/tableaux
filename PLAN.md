@@ -107,7 +107,7 @@ In this plan the owner holds owner, authority, assignee and reviewer, and the ag
 
 ## Views
 
-Every view answers one question, takes the same focusing parameters (a task, a person, a gate window or a list of columns, a switch for the historical junctions, a ref or a ref range, and the role that sets the disclosure level) and renders in both formats.
+Every view answers one question, takes the same focusing parameters (a task, a person, a ref or a ref range, and the role that sets the disclosure level) and renders in both formats. The two tableaux, which lay the gates out as columns, also take a gate window or a list of columns and a switch for the historical junctions.
 
 | View                   | Question                                    | Roles                                 | Markdown                                                   | HTML                                                                    |
 |------------------------|---------------------------------------------|---------------------------------------|------------------------------------------------------------|-------------------------------------------------------------------------|
