@@ -2,7 +2,7 @@
 
 What waits on what? This view roots the waiting work at its causes and names, for each cause, the one action that resolves it and the one person who takes it.
 
-Project Tableaux tooling · ref `main` at `3cdae52`, 2026-10-05 · viewer nbyoung@nbyoung.com, the owner · task `437e`, the whole tree · person: every person · window: every gate. The [gate definition](gates.md) explains each symbol.
+Project Tableaux tooling · ref `main` at `3cdae52`, 2026-10-05 · viewer nbyoung@nbyoung.com, the owner · task `437e`, the whole tree · person: every person. The [gate definition](gates.md) explains each symbol.
 
 The sections below show the three levels in order, each as the complete output of one rendering. The project holds no cause at this ref, so a fourth section, [an illustrative tree](#illustration-a-tree-with-causes), shows the form of a tree that holds some; it is not the project at the ref.
 
