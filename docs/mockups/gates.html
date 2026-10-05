@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gate definition · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+table.legend tbody th { font-weight: 400; }
+table.legend th.ord, th.ord { text-align: right; width: 2.5rem; }
+table.legend th.gate { width: 4.5rem; }
+table.legend td.cell { font-size: 1.25rem; line-height: 1.2; }
+table.legend details { margin: 0; }
+table.legend details p, table.legend dl.fields { margin: .15rem 0 .25rem; }
+tr:target > td, tr:target > th { background: var(--mark); }
+pre { overflow-x: auto; margin: .5rem 0; }
+aside.illustration { border: 1px dashed var(--line); margin: 1rem 0 0; padding: 0 .75rem .75rem; }
+aside.illustration h3 { font-size: 1rem; margin: .75rem 0 .25rem; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html" aria-current="page">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · task: none, then <code class="id">e9c6</code> · columns: all ten gates · level: detail</p>
+</header>
+<main id="main">
+  <h1>Gate definition</h1>
+  <p class="question">What do the columns and symbols mean?</p>
+  <p>This page is the legend of the Tableaux tooling plan, and every other view links here. It shows the project-wide legend, then the legend for one task, <code class="id">e9c6</code>. It shows all ten gates; with a window or a column list it shows those gates only.</p>
+  <p class="muted">The page opens at detail for the owner, as for every role with an email in the project. An observer, and every reader of a static export, arrives with each row folded to its symbol, name and key. Provenance stays folded until the reader asks.</p>
+
+  <!-- glance: each row's symbol, name and key, visible with every fold closed -->
+  <!-- detail: <details class="detail"> per item, open for the owner -->
+  <section id="gates" aria-labelledby="gates-h">
+  <h2 id="gates-h">Gates</h2>
+  <div class="scroll">
+  <table class="legend">
+    <caption>A tableau shows one column per gate, in this order, under the gate's symbol. A task's status names the gate the task has last completed.</caption>
+    <thead><tr><th scope="col" class="ord">#</th><th scope="col" class="gate">Symbol</th><th scope="col">Gate, with its criteria</th><th scope="col">Key</th></tr></thead>
+    <tbody>
+      <tr id="gate-undefined">
+        <td class="num">1</td>
+        <td class="cell">❔</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Undefined</summary>
+            <p>No one has started work on the definition</p>
+          </details>
+        </th>
+        <td><code>undefined</code></td>
+      </tr>
+      <tr id="gate-defined">
+        <td class="num">2</td>
+        <td class="cell">📝</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Defined</summary>
+            <p>Title, description, assignee and references exist</p>
+          </details>
+        </th>
+        <td><code>defined</code></td>
+      </tr>
+      <tr id="gate-mockup">
+        <td class="num">3</td>
+        <td class="cell">📌</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Mockup</summary>
+            <p>A non-technical mockup of the outcome exists</p>
+          </details>
+        </th>
+        <td><code>mockup</code></td>
+      </tr>
+      <tr id="gate-function">
+        <td class="num">4</td>
+        <td class="cell">🔧</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Functional prototype</summary>
+            <p>A technical demonstration of function exists</p>
+            <!-- provenance: the representative gate carries its own -->
+            <details class="prov">
+              <summary>Source of this gate</summary>
+              <p>Entry 4 of <code>gates</code> in <code>.tableaux/gates.yaml</code>, which <code class="id">e91ba68</code> last changed on 2026-10-02; see <a href="#provenance">Provenance</a>.</p>
+            </details>
+          </details>
+        </th>
+        <td><code>function</code></td>
+      </tr>
+      <tr id="gate-design">
+        <td class="num">5</td>
+        <td class="cell">📐</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Design</summary>
+            <p>A model and sufficient tests exist</p>
+          </details>
+        </th>
+        <td><code>design</code></td>
+      </tr>
+      <tr id="gate-implementation">
+        <td class="num">6</td>
+        <td class="cell">🧱</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Implementation</summary>
+            <p>Artifacts suffice for unit, integration and validation tests</p>
+          </details>
+        </th>
+        <td><code>implementation</code></td>
+      </tr>
+      <tr id="gate-unit">
+        <td class="num">7</td>
+        <td class="cell">📏</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Unit test</summary>
+            <p>All prescribed tests pass</p>
+          </details>
+        </th>
+        <td><code>unit</code></td>
+      </tr>
+      <tr id="gate-integrate">
+        <td class="num">8</td>
+        <td class="cell">🔗</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Integration</summary>
+            <p>Assembled with neighbouring components</p>
+          </details>
+        </th>
+        <td><code>integrate</code></td>
+      </tr>
+      <tr id="gate-validate">
+        <td class="num">9</td>
+        <td class="cell">🌍</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Validation</summary>
+            <p>Passes user and field tests</p>
+          </details>
+        </th>
+        <td><code>validate</code></td>
+      </tr>
+      <tr id="gate-release">
+        <td class="num">10</td>
+        <td class="cell">🚀</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>Release</summary>
+            <p>All variants documented and approved</p>
+          </details>
+        </th>
+        <td><code>release</code></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="prov">
+    <summary>Source of the gates</summary>
+    <p><code>gates</code> in <code>.tableaux/gates.yaml</code>, which <code class="id">e91ba68</code> last changed on 2026-10-02; see <a href="#provenance">Provenance</a>.</p>
+  </details>
+  </section>
+
+  <section id="states" aria-labelledby="states-h">
+  <h2 id="states-h">States</h2>
+  <div class="scroll">
+  <table class="legend">
+    <caption>A state says how a task stands towards its next gate. A parent takes the state of its most severe child, and a state of severity 0 steps aside.</caption>
+    <thead><tr><th scope="col" class="gate">Symbol</th><th scope="col">State, with its severity and synopsis</th></tr></thead>
+    <tbody>
+      <tr id="state-undefined">
+        <td class="cell">⚪</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>undefined</code></summary>
+            <dl class="fields"><dt>Severity</dt><dd>0</dd><dt>Synopsis</dt><dd>The work has not yet been defined</dd></dl>
+          </details>
+        </th>
+      </tr>
+      <tr id="state-nominal">
+        <td class="cell">🟢</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>nominal</code></summary>
+            <dl class="fields"><dt>Severity</dt><dd>1</dd><dt>Synopsis</dt><dd>The work is proceeding as expected</dd></dl>
+          </details>
+        </th>
+      </tr>
+      <tr id="state-at_risk">
+        <td class="cell">🟡</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>at_risk</code></summary>
+            <dl class="fields"><dt>Severity</dt><dd>2</dd><dt>Synopsis</dt><dd>The work is at risk of stalling</dd></dl>
+          </details>
+        </th>
+      </tr>
+      <tr id="state-stalled">
+        <td class="cell">🔴</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>stalled</code></summary>
+            <dl class="fields"><dt>Severity</dt><dd>3</dd><dt>Synopsis</dt><dd>Practically all progress has stalled</dd></dl>
+          </details>
+        </th>
+      </tr>
+      <tr id="state-complete">
+        <td class="cell">✅</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>complete</code></summary>
+            <dl class="fields"><dt>Severity</dt><dd>0</dd><dt>Synopsis</dt><dd>All deliverables satisfy their requirements</dd></dl>
+          </details>
+        </th>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="prov">
+    <summary>Source of the states</summary>
+    <p><code>states</code> in <code>.tableaux/gates.yaml</code>, which <code class="id">e91ba68</code> last changed on 2026-10-02; see <a href="#provenance">Provenance</a>.</p>
+  </details>
+  </section>
+
+  <section id="reasons" aria-labelledby="reasons-h">
+  <h2 id="reasons-h">Reasons</h2>
+  <div class="scroll">
+  <table class="legend">
+    <caption>A reason explains a state, and its symbol stands beside the state's symbol.</caption>
+    <thead><tr><th scope="col" class="gate">Symbol</th><th scope="col">Reason, with its synopsis</th></tr></thead>
+    <tbody>
+      <tr id="reason-overloaded">
+        <td class="cell">🪫</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>overloaded</code></summary>
+            <p>The assigned resource is overloaded</p>
+          </details>
+        </th>
+      </tr>
+      <tr id="reason-blocked">
+        <td class="cell">⛔</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>blocked</code></summary>
+            <p>An external resource is unavailable</p>
+          </details>
+        </th>
+      </tr>
+      <tr id="reason-review">
+        <td class="cell">👓</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary><code>review</code></summary>
+            <p>The work waits for its reviewer</p>
+            <p>The method reserves <code>review</code>: the contributor has handed the next junction's work to its reviewer, and the <a href="queue.html">queue</a> lists the review as owed. 👓 beside a state says the work waits for its reviewer; 👀 in a cell says <a href="#mark-reviewer">a reviewer accepts</a> the work there.</p>
+            <details class="prov">
+              <summary>Source of this reason</summary>
+              <p>Entry 3 of <code>reasons</code> in <code>.tableaux/gates.yaml</code>, which <code class="id">e91ba68</code> last changed on 2026-10-02; see <a href="#provenance">Provenance</a>. The reserved meaning stands in <code>README.md</code>, Gates.</p>
+            </details>
+          </details>
+        </th>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="prov">
+    <summary>Source of the reasons</summary>
+    <p><code>reasons</code> in <code>.tableaux/gates.yaml</code>, which <code class="id">e91ba68</code> last changed on 2026-10-02; see <a href="#provenance">Provenance</a>; the reserved meaning of <code>review</code> in <code>README.md</code>, Gates.</p>
+  </details>
+  </section>
+
+  <section id="junction-marks" aria-labelledby="marks-h">
+  <h2 id="marks-h">Junction marks</h2>
+  <div class="scroll">
+  <table class="legend">
+    <caption>A junction is the meeting of a task and a gate, one cell of a tableau. The marks belong to the method, not to this project.</caption>
+    <thead><tr><th scope="col" class="gate">Mark</th><th scope="col">Meaning, with the junction that shows it</th></tr></thead>
+    <tbody>
+      <tr id="mark-person">
+        <td class="cell">🧑</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>A person contributes</summary>
+            <p>Plain; the contributor is a person</p>
+          </details>
+        </th>
+      </tr>
+      <tr id="mark-agent">
+        <td class="cell">🤖</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>An agent contributes</summary>
+            <p>Plain; the junction states a <code>model</code></p>
+          </details>
+        </th>
+      </tr>
+      <tr id="mark-reviewer">
+        <td class="cell">👀</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>A reviewer accepts</summary>
+            <p>Plain; the reviewer accepts the work at the gate</p>
+          </details>
+        </th>
+      </tr>
+      <tr id="mark-subproject">
+        <td class="cell">🪆</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>A subproject does the work</summary>
+            <p>Recursive; another Tableaux project does the work</p>
+          </details>
+        </th>
+      </tr>
+      <tr id="mark-exempt">
+        <td class="cell">—</td>
+        <th scope="row">
+          <details class="detail" open>
+            <summary>The gate does not apply</summary>
+            <p>Not applicable; the entry exempts the task from the gate</p>
+          </details>
+        </th>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <details class="prov">
+    <summary>Source of the junction marks</summary>
+    <p><code>README.md</code>, Junctions, at language 0.3.1; no project file states the marks.</p>
+  </details>
+  </section>
+
+  <section id="provenance" aria-labelledby="prov-h">
+  <h2 id="prov-h">Provenance</h2>
+  <!-- provenance of the whole legend: on demand, so closed on arrival -->
+  <details class="prov">
+    <summary>The language version, the trunk and the commits behind the legend</summary>
+    <div class="scroll">
+    <table>
+      <caption>What the project states about its language</caption>
+      <thead><tr><th scope="col">Fact</th><th scope="col">Value</th><th scope="col">Source</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Language version</th><td>0.3.1</td><td><code>tableaux</code> in <code>.tableaux/version.yaml</code></td></tr>
+        <tr><th scope="row">Trunk</th><td><code>main</code></td><td><code>trunk</code> in <code>.tableaux/version.yaml</code></td></tr>
+        <tr><th scope="row">Ref</th><td><code class="id">3cdae52</code>, 2026-10-05, on the trunk</td><td>The ref parameter</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="scroll">
+    <table>
+      <caption>The commit that last changed each file</caption>
+      <thead><tr><th scope="col">File</th><th scope="col">Last changed by</th><th scope="col">Date</th><th scope="col">Author</th><th scope="col">Committer</th><th scope="col">Subject</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><code>.tableaux/gates.yaml</code></th><td><code class="id">e91ba68</code></td><td>2026-10-02</td><td>Claude Opus 5.5, noreply@anthropic.com</td><td>Claude Opus 5.5, noreply@anthropic.com</td><td>Mark four gates with symbols that need no variation selector</td></tr>
+        <tr><th scope="row"><code>.tableaux/version.yaml</code></th><td><code class="id">d95294b</code></td><td>2026-09-30</td><td>Claude Fable 5.1, noreply@anthropic.com</td><td>Claude Fable 5.1, noreply@anthropic.com</td><td>Raise the language to 0.3.1</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>Reproduce:</p>
+    <pre><code>git show 3cdae52:.tableaux/gates.yaml
+git show 3cdae52:.tableaux/version.yaml
+git log -1 --format='%h %as %an &lt;%ae&gt; / %cn &lt;%ce&gt; %s' 3cdae52 -- .tableaux/gates.yaml
+git log -1 --format='%h %as %an &lt;%ae&gt; / %cn &lt;%ce&gt; %s' 3cdae52 -- .tableaux/version.yaml</code></pre>
+  </details>
+  </section>
+
+  <section id="task" aria-labelledby="task-h">
+  <h2 id="task-h">Detail for one task</h2>
+  <p>The task parameter adds one fact to each gate: how the junction of that task at the gate expands the criteria. This section takes <code class="id">e9c6</code> Abstract views, a task under the Method branch <code class="id">bc63</code>. The states, reasons and junction marks do not change with the task. A link from the <a href="task.html">task</a>, <a href="queue.html">queue</a> or <a href="context.html">context</a> page names the task; this page has no task chooser of its own.</p>
+  <details class="detail" open>
+    <summary><code class="id">e9c6</code> Abstract views: six gates apply, four do not, and no junction states a reference</summary>
+    <div class="scroll">
+    <table>
+      <caption>The gates as the junctions of <code class="id">e9c6</code> expand them</caption>
+      <thead><tr><th scope="col" class="ord">#</th><th scope="col" class="gate">Symbol</th><th scope="col">Gate</th><th scope="col">Key</th><th scope="col">Criteria</th><th scope="col">For <code class="id">e9c6</code></th></tr></thead>
+      <tbody>
+        <tr><td class="num">1</td><td class="cell">❔</td><th scope="row"><a href="#gate-undefined">Undefined</a></th><td><code>undefined</code></td><td>No one has started work on the definition</td><td>Applies; no reference</td></tr>
+        <tr><td class="num">2</td><td class="cell">📝</td><th scope="row"><a href="#gate-defined">Defined</a></th><td><code>defined</code></td><td>Title, description, assignee and references exist</td><td>Applies; no reference</td></tr>
+        <tr class="muted"><td class="num">3</td><td class="cell">📌</td><th scope="row"><a href="#gate-mockup">Mockup</a></th><td><code>mockup</code></td><td>A non-technical mockup of the outcome exists</td><td><a href="#mark-exempt">— The gate does not apply</a></td></tr>
+        <tr class="muted"><td class="num">4</td><td class="cell">🔧</td><th scope="row"><a href="#gate-function">Functional prototype</a></th><td><code>function</code></td><td>A technical demonstration of function exists</td><td><a href="#mark-exempt">— The gate does not apply</a></td></tr>
+        <tr><td class="num">5</td><td class="cell">📐</td><th scope="row"><a href="#gate-design">Design</a></th><td><code>design</code></td><td>A model and sufficient tests exist</td><td>Applies; no reference</td></tr>
+        <tr><td class="num">6</td><td class="cell">🧱</td><th scope="row"><a href="#gate-implementation">Implementation</a></th><td><code>implementation</code></td><td>Artifacts suffice for unit, integration and validation tests</td><td>Applies; no reference</td></tr>
+        <tr class="muted"><td class="num">7</td><td class="cell">📏</td><th scope="row"><a href="#gate-unit">Unit test</a></th><td><code>unit</code></td><td>All prescribed tests pass</td><td><a href="#mark-exempt">— The gate does not apply</a></td></tr>
+        <tr class="muted"><td class="num">8</td><td class="cell">🔗</td><th scope="row"><a href="#gate-integrate">Integration</a></th><td><code>integrate</code></td><td>Assembled with neighbouring components</td><td><a href="#mark-exempt">— The gate does not apply</a></td></tr>
+        <tr><td class="num">9</td><td class="cell">🌍</td><th scope="row"><a href="#gate-validate">Validation</a></th><td><code>validate</code></td><td>Passes user and field tests</td><td>Applies; no reference</td></tr>
+        <tr><td class="num">10</td><td class="cell">🚀</td><th scope="row"><a href="#gate-release">Release</a></th><td><code>release</code></td><td>All variants documented and approved</td><td>Applies; no reference</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>No junction of <code class="id">e9c6</code> states a reference, and no junction of its ancestors <code class="id">2034</code>, <code class="id">bc63</code> and <code class="id">437e</code> does, so each of the six gates that apply reads by its criteria alone. No task of this project states a junction reference at this ref. The Method branch <code class="id">bc63</code> says how specification work reads the gates in its description, not in a junction reference, and the <a href="task.html">task</a> view shows that description.</p>
+    <details class="prov">
+      <summary>Source of the entries of <code class="id">e9c6</code></summary>
+      <p><code>.tableaux/tasks/e9c6.yaml</code> states the four not-applicable entries itself, and <code class="id">6b6c99a</code>, 2026-09-29, by Norman Young, nbyoung@nbyoung.com, as author and committer, last changed that file.</p>
+    </details>
+  </details>
+
+  <aside class="illustration" aria-labelledby="illustration">
+    <h3 id="illustration">Illustration: a gate with a reference</h3>
+    <p>This example is not this project. It shows the form of a gate that a junction reference expands, with the one junction reference the repository holds: the conformance corpus entry <code>weather-station</code>, task <code class="id">9f31</code> Sensor board, at the <code>performance</code> gate of the gate set <code>SYNTAX.md</code> shows.</p>
+    <div class="scroll">
+    <table>
+      <caption>Illustration only: one gate of the weather station as the junction of <code class="id">9f31</code> expands it</caption>
+      <thead><tr><th scope="col" class="gate">Symbol</th><th scope="col">Gate</th><th scope="col">Key</th><th scope="col">Criteria</th><th scope="col">For <code class="id">9f31</code></th></tr></thead>
+      <tbody>
+        <tr><td class="cell">⚡</td><th scope="row">Performance prototype</th><td><code>performance</code></td><td>Target performance shown in the deliverable's technology</td><td>Applies; reference: Power budget, <code>docs/sensor-board.md#power-budget</code>, stated by <code class="id">9f31</code></td></tr>
+      </tbody>
+    </table>
+    </div>
+  </aside>
+  </section>
+</main>
+<footer class="site">
+  <p>Mockup of the Gate definition view (task <code class="id">a6f7</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
