@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Task definition · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+.params { color: var(--muted); font-size: .875rem; margin: .25rem 0; }
+h3 { font-size: 1rem; margin: 1.25rem 0 .25rem; }
+dl.glance { background: var(--band); border: 1px solid var(--line); padding: .5rem .75rem; }
+strong.mine { font-weight: 600; padding: 0 .15rem; }
+tr.na > th, tr.na > td { color: var(--muted); }
+tr.here > th { border-left: 3px solid var(--accent); }
+tbody th { font-weight: 400; }
+details.fold > summary { color: var(--muted); }
+details.detail { border-top: 1px solid var(--line); padding-top: .35rem; margin-top: .75rem; }
+details.detail details.prov, section > details.prov { margin: .5rem 0; }
+pre { overflow-x: auto; background: var(--band); padding: .5rem .75rem; margin: .5rem 0; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html" aria-current="page">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · task <code class="id">e9c6</code> · every gate</p>
+</header>
+<main id="main">
+  <h1>Task definition</h1>
+  <p class="question">What is this task and where does it stand?</p>
+  <p class="params">Task <a class="id" href="task.html?task=e9c6">e9c6</a> · person nbyoung@nbyoung.com · every gate in view · the page opens at detail for the owner. <strong class="mine">A marked email</strong> is a position that nbyoung@nbyoung.com holds in the task.</p>
+  <p class="params">This static mockup holds one page. Every task id links to <code>task.html?task=…</code>, the page that the daemon serves for that task; here each such link opens this same file.</p>
+  <p class="params"><a href="gates.html">The gate definition</a> is the legend for every symbol here. <a class="id" href="task.html?task=e9c6">e9c6</a> is the full example; the view also carries <a href="#shapes">two other shapes</a>, a parent and a task with recursive junctions, which this page shows more briefly.</p>
+
+  <!-- glance: visible without any interaction -->
+  <section aria-labelledby="t-e9c6">
+  <h2 id="t-e9c6"><a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</h2>
+  <dl class="fields glance">
+    <dt>Task</dt><dd><a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</dd>
+    <dt>Assignee</dt><dd>noreply@anthropic.com</dd>
+    <dt>Parent</dt><dd><a class="id" href="task.html?task=2034">2034</a> Views, order 1</dd>
+    <dt>Status</dt><dd>📐 design · 🟢 nominal</dd>
+    <dt>Note</dt><dd>VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place</dd>
+    <dt>Recorded</dt><dd>2026-09-30 by noreply@anthropic.com</dd>
+  </dl>
+  <details class="prov">
+    <summary>Status commit</summary>
+    <p>The status file is <code>.tableaux/status/e9c6.yaml</code>. Its deciding commit is the newest commit that changes the file; no commit carries <code>Reaffirmed: e9c6</code>.</p>
+    <dl class="fields">
+      <dt>Commit</dt><dd><code>879b447</code> Advance the abstract views task to its design gate</dd>
+      <dt>Date</dt><dd>2026-09-30</dd>
+      <dt>Author</dt><dd>Claude Fable 5.1, noreply@anthropic.com</dd>
+      <dt>Committer</dt><dd>Claude Fable 5.1, noreply@anthropic.com</dd>
+      <dt>Trailers</dt><dd><code>Model: claude-fable-5-1</code></dd>
+    </dl>
+    <p><code>git log -1 --format='%h %as %ae' 3cdae52 -- .tableaux/status/e9c6.yaml</code></p>
+  </details>
+
+  <!-- detail: open, as the owner arrives -->
+  <details class="detail" open>
+    <summary>Description</summary>
+    <p>VIEWS.md defines each view independently of any format: its question, the roles it serves, the data it draws from the project and the history, the parameters that focus it (a task, a person, a gate window or a list of columns, a ref) and its progressive-disclosure levels. The views are the gate definition, the task definition, authority delegation, task assignment, the contributor work queue, the work-blockage tree, the global tableau, the contextual tableau, the history and the audit.</p>
+    <p>References:</p>
+    <ul>
+      <li><a href="../../PLAN.md#views">Proposed views</a></li>
+    </ul>
+    <details class="prov">
+      <summary>Task file</summary>
+      <p>The task file is <code>.tableaux/tasks/e9c6.yaml</code>.</p>
+    </details>
+  </details>
+
+  <details class="detail" open>
+    <summary>Place in the tree</summary>
+    <dl class="fields">
+      <dt>Path</dt><dd><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling › <a class="id" href="task.html?task=bc63">bc63</a> Method › <a class="id" href="task.html?task=2034">2034</a> Views › <a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</dd>
+      <dt>Order</dt><dd>1 of 3 under <a class="id" href="task.html?task=2034">2034</a>: before <a class="id" href="task.html?task=bc86">bc86</a> Markdown views and <a class="id" href="task.html?task=5fe3">5fe3</a> HTML views</dd>
+      <dt>Children</dt><dd>None; the task is a leaf and keeps its own status</dd>
+      <dt>Authorities</dt><dd><strong class="mine">nbyoung@nbyoung.com</strong> by <a class="id" href="task.html?task=2034">2034</a> Views, by <a class="id" href="task.html?task=bc63">bc63</a> Method and by <a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, nearest first</dd>
+      <dt>Authorised</dt><dd>Yes</dd>
+    </dl>
+    <p><a href="authority.html">The authority delegation view</a> shows the whole chain of delegation.</p>
+    <details class="prov">
+      <summary>Authorisation commit</summary>
+      <p>The deciding commit is the newest commit on the first-parent history of the trunk, <code>main</code>, that changes the task file or carries <code>Authorised: e9c6</code>. No commit carries that trailer, so the commit that creates the file decides.</p>
+      <dl class="fields">
+        <dt>Commit</dt><dd><code>6b6c99a</code> Plan the Tableaux tooling</dd>
+        <dt>Date</dt><dd>2026-09-29</dd>
+        <dt>Author</dt><dd>Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong></dd>
+        <dt>Committer</dt><dd>Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong></dd>
+        <dt>Authority</dt><dd>The author is an authority, as the assignee of <a class="id" href="task.html?task=2034">2034</a>, of <a class="id" href="task.html?task=bc63">bc63</a> and of <a class="id" href="task.html?task=437e">437e</a> at that commit, so the task is authorised</dd>
+      </dl>
+      <p><code>git log --first-parent -1 --format='%h %as %ae %ce' 3cdae52 -- .tableaux/tasks/e9c6.yaml</code></p>
+    </details>
+  </details>
+
+  <details class="detail" open>
+    <summary>Requires</summary>
+    <p>The task requires one task.</p>
+    <div class="scroll">
+    <table>
+      <caption>The requirement of e9c6, with its condition</caption>
+      <thead><tr><th scope="col">Task</th><th scope="col">Edge</th><th scope="col">What passes</th><th scope="col">Its status</th><th scope="col">Condition</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><a class="id" href="task.html?task=c2ad">c2ad</a> Roles</th><td>design → design</td><td>The role names the views refer to</td><td>🧱 implementation 🟢 nominal</td><td>met</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>The edge reads "from the gate <a class="id" href="task.html?task=c2ad">c2ad</a> completes, to the gate of <a class="id" href="task.html?task=e9c6">e9c6</a> whose work needs it". The requirement is met, since <a class="id" href="task.html?task=c2ad">c2ad</a> stands past design, and due, since the next gate of <a class="id" href="task.html?task=e9c6">e9c6</a>, implementation, lies past design.</p>
+    <details class="prov">
+      <summary>Where the condition reads from</summary>
+      <p>The entry sits in <code>.tableaux/tasks/e9c6.yaml</code> and names <a class="id" href="task.html?task=c2ad">c2ad</a> by <code>id</code>, so the tool reads <a class="id" href="task.html?task=c2ad">c2ad</a> in this project at the same commit, <code>3cdae52</code>. The status of <a class="id" href="task.html?task=c2ad">c2ad</a> is <code>.tableaux/status/c2ad.yaml</code> as commit <code>3d8ce0e</code> records it, 2026-09-30, by noreply@anthropic.com. No requirement of this task crosses projects, so no linkage fixes another commit; <a class="id" href="task.html?task=595e">595e</a> below shows one that does.</p>
+    </details>
+  </details>
+
+  <details class="detail" open>
+    <summary>Dependents</summary>
+    <p>Twenty-one tasks require <a class="id" href="task.html?task=e9c6">e9c6</a>: twenty at their mockup gate, all met, and one at its design gate, not yet due. <a href="blockage.html">The work-blockage tree</a> shows what waits on what across the project.</p>
+    <div class="scroll">
+    <table>
+      <caption>The tasks that require e9c6, folded where rows repeat</caption>
+      <thead><tr><th scope="col">Task</th><th scope="col">Edge</th><th scope="col">What passes</th><th scope="col">Condition</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><a class="id" href="task.html?task=99f0">99f0</a> Gate definition view in Markdown</th><td>design → mockup</td><td>The abstract definition of the view</td><td>met</td></tr>
+        <tr><th scope="row"><a class="id" href="task.html?task=05a9">05a9</a> Task definition view in Markdown</th><td>design → mockup</td><td>The abstract definition of the view</td><td>met</td></tr>
+        <tr><th scope="row"><a class="id" href="task.html?task=a9ce">a9ce</a> Authority delegation view in Markdown</th><td>design → mockup</td><td>The abstract definition of the view</td><td>met</td></tr>
+        <tr><td>
+          <details class="fold">
+            <summary>… and 17 more with the same edge, text and condition</summary>
+            <ul class="tree">
+              <li><a class="id" href="task.html?task=bb7c">bb7c</a> Task assignment view in Markdown</li>
+              <li><a class="id" href="task.html?task=c74a">c74a</a> Contributor work queue view in Markdown</li>
+              <li><a class="id" href="task.html?task=efff">efff</a> Work-blockage tree view in Markdown</li>
+              <li><a class="id" href="task.html?task=ab8e">ab8e</a> Global tableau view in Markdown</li>
+              <li><a class="id" href="task.html?task=c545">c545</a> Contextual tableau view in Markdown</li>
+              <li><a class="id" href="task.html?task=d615">d615</a> History view in Markdown</li>
+              <li><a class="id" href="task.html?task=b14e">b14e</a> Audit view in Markdown</li>
+              <li><a class="id" href="task.html?task=a6f7">a6f7</a> Gate definition view in Html</li>
+              <li><a class="id" href="task.html?task=7dff">7dff</a> Task definition view in Html</li>
+              <li><a class="id" href="task.html?task=b1b7">b1b7</a> Authority delegation view in Html</li>
+              <li><a class="id" href="task.html?task=ea51">ea51</a> Task assignment view in Html</li>
+              <li><a class="id" href="task.html?task=7783">7783</a> Contributor work queue view in Html</li>
+              <li><a class="id" href="task.html?task=5471">5471</a> Work-blockage tree view in Html</li>
+              <li><a class="id" href="task.html?task=32e7">32e7</a> Global tableau view in Html</li>
+              <li><a class="id" href="task.html?task=69eb">69eb</a> Contextual tableau view in Html</li>
+              <li><a class="id" href="task.html?task=3194">3194</a> History view in Html</li>
+              <li><a class="id" href="task.html?task=a8b4">a8b4</a> Audit view in Html</li>
+            </ul>
+          </details>
+        </td><td>design → mockup</td><td>The abstract definition of the view</td><td>met</td></tr>
+        <tr><th scope="row"><a class="id" href="task.html?task=77b2">77b2</a> tablo: backend library and plumbing</th><td>implementation → design</td><td>The abstract views it derives</td><td>not met, not yet due</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>The fold keeps every row that differs from its neighbours. The twenty mockups are the leaves of <a class="id" href="task.html?task=bc86">bc86</a> Markdown views and <a class="id" href="task.html?task=5fe3">5fe3</a> HTML views; each stands at 📝 defined with mockup next, so its requirement is due, and <a class="id" href="task.html?task=e9c6">e9c6</a> stands at design, so it is met. <a class="id" href="task.html?task=77b2">77b2</a> needs <a class="id" href="task.html?task=e9c6">e9c6</a> at implementation for its own design gate; <a class="id" href="task.html?task=77b2">77b2</a> has mockup next, so the requirement is not yet due.</p>
+    <details class="prov">
+      <summary>Where the dependents read from</summary>
+      <p>Each edge sits in the dependent's own file, <code>.tableaux/tasks/&lt;id&gt;.yaml</code>, under <code>requires</code>; the tool reads the reverse relation from all of them.</p>
+      <p><code>grep -l 'id: "e9c6"' .tableaux/tasks/*.yaml</code></p>
+    </details>
+  </details>
+
+  <details class="detail" open>
+    <summary>Junctions</summary>
+    <p>The task passes through five gates after undefined: defined, design, implementation, validate and release. Its first applicable gate is defined and its last is release.</p>
+    <div class="scroll">
+    <table>
+      <caption>Every junction of e9c6, resolved</caption>
+      <thead><tr><th scope="col">Gate</th><th scope="col" class="gate">Marks</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">Stands</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">❔ undefined</th><td class="cell"></td><td></td><td></td><td></td><td>passed</td></tr>
+        <tr><th scope="row">📝 defined</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes</span></td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>the assignee, noreply@anthropic.com</td><td>passed</td></tr>
+        <tr class="na"><th scope="row">📌 mockup</th><td class="cell"><span aria-hidden="true">—</span><span class="sr">the gate does not apply</span></td><td></td><td></td><td></td><td>does not apply</td></tr>
+        <tr class="na"><th scope="row">🔧 function</th><td class="cell"><span aria-hidden="true">—</span><span class="sr">the gate does not apply</span></td><td></td><td></td><td></td><td>does not apply</td></tr>
+        <tr class="here"><th scope="row">📐 design</th><td class="cell"><span aria-hidden="true">🤖👀</span><span class="sr">an agent contributes, a reviewer accepts</span></td><td>noreply@anthropic.com</td><td><code>claude-fable</code></td><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td>passed, reviewed; the status stands here</td></tr>
+        <tr><th scope="row">🧱 implementation</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes</span></td><td>noreply@anthropic.com</td><td><code>claude-sonnet</code></td><td>the assignee, noreply@anthropic.com</td><td>next</td></tr>
+        <tr class="na"><th scope="row">📏 unit</th><td class="cell"><span aria-hidden="true">—</span><span class="sr">the gate does not apply</span></td><td></td><td></td><td></td><td>does not apply</td></tr>
+        <tr class="na"><th scope="row">🔗 integrate</th><td class="cell"><span aria-hidden="true">—</span><span class="sr">the gate does not apply</span></td><td></td><td></td><td></td><td>does not apply</td></tr>
+        <tr><th scope="row">🌍 validate</th><td class="cell"><span aria-hidden="true">🤖👀</span><span class="sr">an agent contributes, a reviewer accepts</span></td><td>noreply@anthropic.com</td><td><code>claude-opus</code></td><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td>later</td></tr>
+        <tr><th scope="row">🚀 release</th><td class="cell"><span aria-hidden="true">🧑</span><span class="sr">a person contributes</span></td><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td></td><td></td><td>later; the last gate</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="fold">🤖 an agent contributes · 👀 a reviewer accepts · 🧑 a person contributes · — the gate does not apply. The undefined gate has no work of its own. No junction of this task states references, so each gate's own criteria apply as <a href="gates.html">the gate definition</a> gives them.</p>
+
+    <details class="prov">
+      <summary>Where each junction field comes from</summary>
+      <p>A junction resolves field by field: from the task's own entry, then from its ancestors' entries nearest first, then from the plain default. The tool looks in this order:</p>
+      <ol>
+        <li><a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views, <code>.tableaux/tasks/e9c6.yaml</code>: states mockup, function, unit and integrate, each <code>applies: false</code>.</li>
+        <li><a class="id" href="task.html?task=2034">2034</a> Views, <code>.tableaux/tasks/2034.yaml</code>: states no junction.</li>
+        <li><a class="id" href="task.html?task=bc63">bc63</a> Method, <code>.tableaux/tasks/bc63.yaml</code>: states design and validate, each with a contributor and a model.</li>
+        <li><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, <code>.tableaux/tasks/437e.yaml</code>: states every gate from defined to release.</li>
+        <li>The plain default: the assignee does the work, and nobody reviews it.</li>
+      </ol>
+      <div class="scroll">
+      <table>
+        <caption>Each resolved field of e9c6 and the task whose entry supplies it</caption>
+        <thead><tr><th scope="col">Gate</th><th scope="col">Field</th><th scope="col">Value</th><th scope="col">Supplied by</th></tr></thead>
+        <tbody>
+          <tr><th scope="row" rowspan="3">📝 defined</th><td>contributor</td><td>noreply@anthropic.com</td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling</td></tr>
+          <tr><td>model</td><td><code>claude-haiku</code></td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling</td></tr>
+          <tr><td>reviewer</td><td>noreply@anthropic.com</td><td>No entry; an agent with no stated reviewer takes the assignee</td></tr>
+          <tr><th scope="row">📌 mockup</th><td>applies</td><td>false</td><td><a class="id" href="task.html?task=e9c6">e9c6</a>, its own entry</td></tr>
+          <tr><th scope="row">🔧 function</th><td>applies</td><td>false</td><td><a class="id" href="task.html?task=e9c6">e9c6</a>, its own entry</td></tr>
+          <tr><th scope="row" rowspan="3">📐 design</th><td>contributor</td><td>noreply@anthropic.com</td><td><a class="id" href="task.html?task=bc63">bc63</a> Method</td></tr>
+          <tr><td>model</td><td><code>claude-fable</code></td><td><a class="id" href="task.html?task=bc63">bc63</a> Method</td></tr>
+          <tr><td>reviewer</td><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling</td></tr>
+          <tr><th scope="row" rowspan="3">🧱 implementation</th><td>contributor</td><td>noreply@anthropic.com</td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling</td></tr>
+          <tr><td>model</td><td><code>claude-sonnet</code></td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling</td></tr>
+          <tr><td>reviewer</td><td>noreply@anthropic.com</td><td>No entry; an agent with no stated reviewer takes the assignee</td></tr>
+          <tr><th scope="row">📏 unit</th><td>applies</td><td>false</td><td><a class="id" href="task.html?task=e9c6">e9c6</a>, its own entry</td></tr>
+          <tr><th scope="row">🔗 integrate</th><td>applies</td><td>false</td><td><a class="id" href="task.html?task=e9c6">e9c6</a>, its own entry</td></tr>
+          <tr><th scope="row" rowspan="3">🌍 validate</th><td>contributor</td><td>noreply@anthropic.com</td><td><a class="id" href="task.html?task=bc63">bc63</a> Method</td></tr>
+          <tr><td>model</td><td><code>claude-opus</code></td><td><a class="id" href="task.html?task=bc63">bc63</a> Method</td></tr>
+          <tr><td>reviewer</td><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling</td></tr>
+          <tr><th scope="row">🚀 release</th><td>contributor</td><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>At design and at validate two ancestors supply one junction: <a class="id" href="task.html?task=bc63">bc63</a> restates the contributor and the model, which hide those of <a class="id" href="task.html?task=437e">437e</a> (<code>claude-opus</code> at design, <code>claude-sonnet</code> at validate), and the reviewer still comes from <a class="id" href="task.html?task=437e">437e</a>.</p>
+    </details>
+
+    <details class="prov">
+      <summary>Reviews</summary>
+      <div class="scroll">
+      <table>
+        <caption>The reviewed junctions the status passes, and what accepts each</caption>
+        <thead><tr><th scope="col">Gate</th><th scope="col">Reviewer</th><th scope="col">Accepted by</th><th scope="col">Effect</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">📝 defined</th><td>noreply@anthropic.com</td><td>The authorisation, <code>6b6c99a</code>, 2026-09-29</td><td>The authorisation stands as the review of defined</td></tr>
+          <tr><th scope="row">📐 design</th><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td><code>0704a09</code> Accept the abstract views design, 2026-09-30, author and committer Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong>, with <code>Reviewed: e9c6 design</code></td><td>The reviewer accepts; the status passes design</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>Commit <code>5958858</code>, 2026-09-29, author Claude Fable 5.1, noreply@anthropic.com, committer Norman Young, nbyoung@nbyoung.com, also carries <code>Reviewed: e9c6 defined</code>. It comes from the assignee, the agent's reviewer at defined, and has no effect, because the authorisation stands as the review there.</p>
+      <p><code>git log --format='%h %as %ae %ce' -E --grep='^Reviewed: e9c6 ' 3cdae52</code></p>
+    </details>
+
+    <details class="prov">
+      <summary>Models</summary>
+      <div class="scroll">
+      <table>
+        <caption>The Model trailer of each commit at a junction, against the model the junction states</caption>
+        <thead><tr><th scope="col">Commit</th><th scope="col">Junction</th><th scope="col">The junction states</th><th scope="col"><code>Model:</code> trailer</th><th scope="col">Reading</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>1a17bfc</code></th><td>📝 defined</td><td><code>claude-haiku</code></td><td>none</td><td>Exempt: the project states language 0.1.0 at that commit, before the trailer exists</td></tr>
+          <tr><th scope="row"><code>0fed913</code></th><td>📐 design</td><td><code>claude-fable</code></td><td><code>claude-fable-5-1</code></td><td>Agrees</td></tr>
+          <tr><th scope="row"><code>26defc7</code></th><td>📐 design</td><td><code>claude-fable</code></td><td><code>claude-fable-5-1</code></td><td>Agrees</td></tr>
+          <tr><th scope="row"><code>879b447</code></th><td>📐 design</td><td><code>claude-fable</code></td><td><code>claude-fable-5-1</code></td><td>Agrees</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>The reviewer's commit <code>0704a09</code> carries <code>Model: claude-opus-5-5</code>; the junction's model names the contributor's agent, so the view compares nothing there.</p>
+    </details>
+  </details>
+
+  <details class="prov">
+    <summary>Newest events</summary>
+    <p>The task has seven events. The newest five, newest first:</p>
+    <div class="scroll">
+    <table>
+      <caption>The newest events of e9c6</caption>
+      <thead><tr><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">By</th><th scope="col">Event</th><th scope="col">What it records</th></tr></thead>
+      <tbody>
+        <tr><td>2026-09-30</td><th scope="row"><code>879b447</code></th><td>noreply@anthropic.com</td><td>status</td><td>📐 design 🟢 nominal: VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place</td></tr>
+        <tr><td>2026-09-30</td><th scope="row"><code>0704a09</code></th><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td>reviewed</td><td>📐 design</td></tr>
+        <tr><td>2026-09-30</td><th scope="row"><code>26defc7</code></th><td>noreply@anthropic.com</td><td>status</td><td>📝 defined 🟢 nominal 👓 review: The revised VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's acceptance at the design gate</td></tr>
+        <tr><td>2026-09-30</td><th scope="row"><code>0fed913</code></th><td>noreply@anthropic.com</td><td>status</td><td>📝 defined 🟢 nominal 👓 review: The VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's review at the design gate</td></tr>
+        <tr><td>2026-09-29</td><th scope="row"><code>5958858</code></th><td>noreply@anthropic.com</td><td>reviewed</td><td>📝 defined</td></tr>
+        <tr><td colspan="5" class="fold">… and 2 earlier: <code>1a17bfc</code> status, <code>6b6c99a</code> task</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p><a href="history.html">The history view</a> lists every event with the status after each. Two commands list them all:</p>
+    <pre><code>git log --format='%as %h %ae' 3cdae52 -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml
+git log --format='%as %h %ae' -E --grep='^(Authorised|Reaffirmed): e9c6$' --grep='^Reviewed: e9c6 ' 3cdae52</code></pre>
+  </details>
+  </section>
+
+  <section aria-labelledby="shapes">
+  <h2 id="shapes">The two other shapes</h2>
+  <p>Each task below is the page the daemon serves for another task, cut to what differs from <a class="id" href="task.html?task=e9c6">e9c6</a>. Every part that does not appear here has the form the full example gives it. Both stay closed below their glance, and each holds its provenance inside its detail.</p>
+
+  <h3 id="t-5fe3">A parent: <a class="id" href="task.html?task=5fe3">5fe3</a> HTML views</h3>
+  <p>A parent has no status file. The view shows the roll-up and the child it comes from, and reads the junctions as defaults the children inherit.</p>
+  <dl class="fields glance">
+    <dt>Task</dt><dd><a class="id" href="task.html?task=5fe3">5fe3</a> HTML views</dd>
+    <dt>Assignee</dt><dd>noreply@anthropic.com</dd>
+    <dt>Parent</dt><dd><a class="id" href="task.html?task=2034">2034</a> Views, order 3</dd>
+    <dt>Status</dt><dd>📝 defined · 🟢 nominal, rolled up from <a class="id" href="task.html?task=a6f7">a6f7</a> Gate definition view in Html</dd>
+    <dt>Note</dt><dd>Mockup waits for Abstract views (e9c6) at design</dd>
+    <dt>Recorded</dt><dd>2026-09-29, the oldest date among its children; a roll-up has no recorder</dd>
+  </dl>
+  <details class="detail">
+    <summary>Detail, the parts that differ</summary>
+    <dl class="fields">
+      <dt>Children</dt><dd>Ten, each at 📝 defined 🟢 nominal: <a class="id" href="task.html?task=a6f7">a6f7</a> <a class="id" href="task.html?task=7dff">7dff</a> <a class="id" href="task.html?task=b1b7">b1b7</a> <a class="id" href="task.html?task=ea51">ea51</a> <a class="id" href="task.html?task=7783">7783</a> <a class="id" href="task.html?task=5471">5471</a> <a class="id" href="task.html?task=32e7">32e7</a> <a class="id" href="task.html?task=69eb">69eb</a> <a class="id" href="task.html?task=3194">3194</a> <a class="id" href="task.html?task=a8b4">a8b4</a>, in display order</dd>
+      <dt>Requires</dt><dd>Nothing</dd>
+      <dt>Dependents</dt><dd><a class="id" href="task.html?task=c6e8">c6e8</a> tablotui: terminal user interface, mockup → design, "The HTML mockups that fix the disclosure levels", not met, not yet due; <a class="id" href="task.html?task=595e">595e</a> tableaud: local daemon and HTML, mockup → design, "The HTML mockups it reproduces", not met, not yet due</dd>
+    </dl>
+    <div class="scroll">
+    <table>
+      <caption>The junctions of 5fe3, as the defaults its children inherit</caption>
+      <thead><tr><th scope="col">Gate</th><th scope="col" class="gate">Marks</th><th scope="col">The children inherit</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">📝 defined</th><td class="cell"><span aria-hidden="true">🤖</span><span class="sr">an agent contributes</span></td><td>noreply@anthropic.com on <code>claude-haiku</code>; each child's assignee reviews</td></tr>
+        <tr><th scope="row">📌 mockup</th><td class="cell"><span aria-hidden="true">🤖👀</span><span class="sr">an agent contributes, a reviewer accepts</span></td><td>noreply@anthropic.com on <code>claude-opus</code>; reviewer <strong class="mine">nbyoung@nbyoung.com</strong></td></tr>
+        <tr class="na"><th scope="row">🔧 function to 🚀 release</th><td class="cell"><span aria-hidden="true">—</span><span class="sr">the gate does not apply</span></td><td>The seven gates from function to release do not apply</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <details class="prov">
+      <summary>Provenance, the parts that differ</summary>
+      <div class="scroll">
+      <table>
+        <caption>How the status of 5fe3 rolls up, and the commits behind it</caption>
+        <thead><tr><th scope="col">Step</th><th scope="col">Result</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Children considered</th><td>All ten; each is nominal, which has severity 1</td></tr>
+          <tr><th scope="row">Gate</th><td>📝 defined, the earliest among them</td></tr>
+          <tr><th scope="row">State and note</th><td>Those of <a class="id" href="task.html?task=a6f7">a6f7</a>: the ten tie at nominal, and <a class="id" href="task.html?task=a6f7">a6f7</a> is the first in display order, order 1</td></tr>
+          <tr><th scope="row">Date</th><td>2026-09-29, the oldest among them</td></tr>
+          <tr><th scope="row">Commit behind <a class="id" href="task.html?task=a6f7">a6f7</a></th><td><code>1a17bfc</code> Record the defined gate for the views and mockups, 2026-09-29, author Claude Fable 5.1, noreply@anthropic.com, committer Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong></td></tr>
+          <tr><th scope="row">Junction fields</th><td>defined and mockup from <a class="id" href="task.html?task=437e">437e</a> Tableaux tooling; function to release from <a class="id" href="task.html?task=5fe3">5fe3</a>, its own entries</td></tr>
+          <tr><th scope="row">Authorisation</th><td><code>6b6c99a</code> Plan the Tableaux tooling, 2026-09-29, author and committer Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p>A parent's events replay those of its children; <a href="history.html">the history view</a> shows them.</p>
+    </details>
+  </details>
+
+  <h3 id="t-595e">Recursive junctions: <a class="id" href="task.html?task=595e">595e</a> tableaud: local daemon and HTML</h3>
+  <p>Every junction of <a class="id" href="task.html?task=595e">595e</a> after defined is recursive: the subproject <code>tableaud</code> does the work. The status file holds only the gate, and the state, the note and the date come from the subproject's task, read at the commit the junction's <code>url</code> fixes.</p>
+  <dl class="fields glance">
+    <dt>Task</dt><dd><a class="id" href="task.html?task=595e">595e</a> tableaud: local daemon and HTML</dd>
+    <dt>Assignee</dt><dd><strong class="mine">nbyoung@nbyoung.com</strong></dd>
+    <dt>Parent</dt><dd><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, order 5</dd>
+    <dt>Status</dt><dd>📝 defined · 🟢 nominal, 🪆 from the subproject <code>subprojects/tableaud</code></dd>
+    <dt>Note</dt><dd>prototype/49ce serves the ten views with a stdlib HEAD and .tableaux watcher, ETag 304 polling through htmx, a Source interface and a loopback Host check</dd>
+    <dt>Recorded</dt><dd>The gate on 2026-09-30 by noreply@anthropic.com; the state, the note and the date, 2026-09-30, by the subproject</dd>
+  </dl>
+  <details class="detail">
+    <summary>Detail, the parts that differ</summary>
+    <div class="scroll">
+    <table>
+      <caption>The junctions of 595e</caption>
+      <thead><tr><th scope="col">Gate</th><th scope="col" class="gate">Marks</th><th scope="col">Junction</th><th scope="col">Stands</th></tr></thead>
+      <tbody>
+        <tr class="here"><th scope="row">📝 defined</th><td class="cell"><span aria-hidden="true">🤖👀</span><span class="sr">an agent contributes, a reviewer accepts</span></td><td>noreply@anthropic.com on <code>claude-haiku</code>; reviewer the assignee, <strong class="mine">nbyoung@nbyoung.com</strong></td><td>passed; the status stands here</td></tr>
+        <tr><th scope="row">📌 mockup</th><td class="cell"><span aria-hidden="true">🪆</span><span class="sr">a subproject does the work</span></td><td>Subproject <code>subprojects/tableaud</code>, its root task <a class="id" href="task.html?task=8608&amp;project=subprojects/tableaud">8608</a> tableaud</td><td>next</td></tr>
+        <tr><th scope="row">🔧 function to 🚀 release</th><td class="cell"><span aria-hidden="true">🪆</span><span class="sr">a subproject does the work</span></td><td>The same subproject and task at each of the seven gates</td><td>later</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="fold">🪆 a subproject does the work.</p>
+    <div class="scroll">
+    <table>
+      <caption>The subproject snapshot that gives 595e its state</caption>
+      <thead><tr><th scope="col">Subproject snapshot</th><th scope="col">Value</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Task</th><td><a class="id" href="task.html?task=8608&amp;project=subprojects/tableaud">8608</a> tableaud, the root of the subproject, assignee <strong class="mine">nbyoung@nbyoung.com</strong></td></tr>
+        <tr><th scope="row">Its status</th><td>🔧 function · 🟢 nominal, rolled up from its child <a class="id" href="task.html?task=49ce&amp;project=subprojects/tableaud">49ce</a> Server</td></tr>
+        <tr><th scope="row">Its note</th><td>prototype/49ce serves the ten views with a stdlib HEAD and .tableaux watcher, ETag 304 polling through htmx, a Source interface and a loopback Host check</td></tr>
+        <tr><th scope="row">Its date</th><td>2026-09-30, the oldest among its children, from <a class="id" href="task.html?task=7425&amp;project=subprojects/tableaud">7425</a> Bootstrap</td></tr>
+        <tr><th scope="row">Its children</th><td><a class="id" href="task.html?task=7425&amp;project=subprojects/tableaud">7425</a> Bootstrap at 🧱 implementation; <a class="id" href="task.html?task=49ce&amp;project=subprojects/tableaud">49ce</a> Server, <a class="id" href="task.html?task=097c&amp;project=subprojects/tableaud">097c</a> HTML views, <a class="id" href="task.html?task=db74&amp;project=subprojects/tableaud">db74</a> Progressive disclosure, <a class="id" href="task.html?task=6160&amp;project=subprojects/tableaud">6160</a> Static export and <a class="id" href="task.html?task=5a2f&amp;project=subprojects/tableaud">5a2f</a> Accessibility and theming at 🔧 function; all 🟢 nominal</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>The subproject's root stands at function, and <a class="id" href="task.html?task=595e">595e</a> records defined: the contributor advances the gate of <a class="id" href="task.html?task=595e">595e</a> by hand.</p>
+    <div class="scroll">
+    <table>
+      <caption>The requirements of 595e, with their conditions</caption>
+      <thead><tr><th scope="col">Requires</th><th scope="col">Edge</th><th scope="col">What passes</th><th scope="col">Condition</th></tr></thead>
+      <tbody>
+        <tr><th scope="row"><a class="id" href="task.html?task=77b2">77b2</a> tablo: backend library and plumbing</th><td>implementation → implementation</td><td>The library it embeds</td><td>not met, not yet due</td></tr>
+        <tr><th scope="row"><a class="id" href="task.html?task=5fe3">5fe3</a> HTML views</th><td>mockup → design</td><td>The HTML mockups it reproduces</td><td>not met, not yet due</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>No task requires <a class="id" href="task.html?task=595e">595e</a>.</p>
+    <details class="prov">
+      <summary>Provenance, the parts that differ</summary>
+      <div class="scroll">
+      <table>
+        <caption>The linkage of 595e to its subproject, and the commits behind it</caption>
+        <thead><tr><th scope="col">Linkage</th><th scope="col">Value</th></tr></thead>
+        <tbody>
+          <tr><th scope="row"><code>url</code></th><td><code>subprojects/tableaud</code>, stated in <code>.tableaux/tasks/595e.yaml</code> at each of the eight junctions</td></tr>
+          <tr><th scope="row">Form of the <code>url</code></th><td>A path that is a Git submodule, so the submodule's pin fixes the commit</td></tr>
+          <tr><th scope="row">Pin</th><td><code>e6ec4ec</code>, in full <code>e6ec4ecc8c30fbaf85a392f186cc0b9caa8e4c8e</code></td></tr>
+          <tr><th scope="row"><code>commit</code> field</th><td>Not stated; nothing restates the pin in the task file</td></tr>
+          <tr><th scope="row">The pinned commit</th><td><code>e6ec4ec</code> Accept the accessibility and theming function prototype, 2026-10-05, author and committer Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong>, on the subproject's trunk <code>main</code></td></tr>
+          <tr><th scope="row"><code>id</code></th><td>Not stated; the junction reads the subproject's root, <a class="id" href="task.html?task=8608&amp;project=subprojects/tableaud">8608</a></td></tr>
+          <tr><th scope="row">Pin set by</th><td><code>3cdae52</code> Advance tableaud to the eight function prototypes, 2026-10-05, author and committer Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong>: the pin moves from <code>cffbfa6</code> to <code>e6ec4ec</code></td></tr>
+          <tr><th scope="row">Gate recorded by</th><td><code>e66abe2</code> Record the defined gate for the subproject tasks, 2026-09-30, author and committer Claude Haiku 4.5, noreply@anthropic.com, <code>Model: claude-haiku-4-5-20251001</code>, which agrees with <code>claude-haiku</code></td></tr>
+          <tr><th scope="row">Authorisation</th><td><code>6b6c99a</code> Plan the Tableaux tooling, 2026-09-29, author and committer Norman Young, <strong class="mine">nbyoung@nbyoung.com</strong></td></tr>
+        </tbody>
+      </table>
+      </div>
+      <pre><code>git ls-tree 3cdae52 subprojects/tableaud
+git -C subprojects/tableaud show e6ec4ec:.tableaux/tasks/8608.yaml</code></pre>
+      <p>The two requirements name their tasks by <code>id</code>, so the tool reads <a class="id" href="task.html?task=77b2">77b2</a> and <a class="id" href="task.html?task=5fe3">5fe3</a> in this project at <code>3cdae52</code>. Neither crosses projects.</p>
+      <p>The task has eleven events of its own in this repository, and takes in the subproject's events up to the pin. The newest three of its own, newest first:</p>
+      <div class="scroll">
+      <table>
+        <caption>The newest events of 595e in this repository</caption>
+        <thead><tr><th scope="col">Date</th><th scope="col">Commit</th><th scope="col">By</th><th scope="col">Event</th><th scope="col">What it records</th></tr></thead>
+        <tbody>
+          <tr><td>2026-10-05</td><th scope="row"><code>3cdae52</code></th><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td>pin</td><td><code>subprojects/tableaud</code> from <code>cffbfa6</code> to <code>e6ec4ec</code></td></tr>
+          <tr><td>2026-10-02</td><th scope="row"><code>552d38f</code></th><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td>pin</td><td><code>subprojects/tableaud</code> from <code>b06cad0</code> to <code>cffbfa6</code></td></tr>
+          <tr><td>2026-10-02</td><th scope="row"><code>fb8c0b2</code></th><td><strong class="mine">nbyoung@nbyoung.com</strong></td><td>pin</td><td><code>subprojects/tableaud</code> from <code>2061a7f</code> to <code>b06cad0</code></td></tr>
+          <tr><td colspan="5" class="fold">… and 8 earlier: 6 pin, 1 status, 1 task</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <pre><code>git log --format='%as %h %ae' 3cdae52 -- .tableaux/tasks/595e.yaml .tableaux/status/595e.yaml subprojects/tableaud</code></pre>
+    </details>
+  </details>
+  </section>
+
+  <p class="params">An observer arrives with every fold closed and reads the glance alone; a contributor, a reviewer and an authority arrive as the owner does, at detail. The neighbouring views: <a href="context.html">my corner</a>, <a href="queue.html">the work queue</a>, whose brief this page expands for an agent, <a href="assignment.html">the task assignment</a>, <a href="tableau.html">the global tableau</a> and <a href="audit.html">the audit</a>.</p>
+</main>
+<footer class="site">
+  <p>Mockup of the Task definition view (task <a class="id" href="task.html?task=7dff">7dff</a>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
