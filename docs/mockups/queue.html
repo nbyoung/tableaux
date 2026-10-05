@@ -1,0 +1,1785 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contributor work queue · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+ol.items { list-style: none; margin: 0 0 .5rem; padding: 0; border-top: 1px solid var(--line); }
+ol.items > li { border-bottom: 1px solid var(--line); padding: .3rem .25rem; display: grid;
+  grid-template-columns: minmax(14rem, 1fr) 10.5rem 9.5rem 10.5rem; gap: 0 1rem; align-items: baseline; }
+ol.items > li > details { grid-column: 1 / -1; margin: 0; }
+ol.items > li.run { display: block; }
+ol.items ol.items { margin: .25rem 0 0 1rem; }
+ol.items details.detail > summary { font-weight: 400; font-size: .875rem; color: var(--muted); }
+.q-gate, .q-model, .q-since { white-space: nowrap; }
+.q-cause { font-size: .875rem; }
+h3 { font-size: 1rem; margin: 1.25rem 0 .35rem; }
+p.rule { color: var(--muted); font-size: .875rem; margin: .25rem 0 .5rem; }
+p.arrival { border-left: 3px solid var(--accent); padding-left: .75rem; }
+section.illus { border: 1px dashed var(--prov-line); margin-top: 2rem; padding: 0 .75rem .5rem; }
+section.illus h2 { margin-top: .75rem; }
+dl.fields dd + dd { grid-column: 2; }
+label.brief { display: block; margin: .5rem 0 .25rem; }
+textarea.brief { display: block; width: 100%; max-width: 44rem; font: .8125rem/1.4 var(--mono);
+  background: var(--bg); color: var(--fg); border: 1px solid var(--prov-line); padding: .5rem; resize: vertical; }
+@media (max-width: 40rem) {
+  ol.items > li { grid-template-columns: 1fr 1fr; }
+  ol.items > li > .q-task { grid-column: 1 / -1; }
+  dl.fields dd + dd { grid-column: 1; }
+}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html" aria-current="page">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · person noreply@anthropic.com, then nbyoung@nbyoung.com · task <span class="id">437e</span>, the root</p>
+</header>
+<main id="main">
+  <h1>Contributor work queue</h1>
+  <p class="question">What do I do next?</p>
+<p>For one person, the items where that person acts, in five kinds and in this order: reviews owed, authorisations owed, work ready, reaffirmations, work waiting. Reviews come first because each one unblocks the work of others. Within a kind the items follow display order; reaffirmations run oldest first.</p>
+<dl class="fields">
+  <dt>ref</dt>
+  <dd><code>main</code> at <code>3cdae52</code>, 2026-10-05</dd>
+  <dt>viewer</dt>
+  <dd>nbyoung@nbyoung.com, the owner, who dispatches the agent</dd>
+  <dt>person</dt>
+  <dd>noreply@anthropic.com, the agent, as its dispatcher names it; then nbyoung@nbyoung.com, the viewer by default</dd>
+  <dt>task</dt>
+  <dd><a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a>, the root, so the whole project</dd>
+  <dt>level</dt>
+  <dd>glance, detail and provenance</dd>
+  <dt>brief</dt>
+  <dd>at provenance: <a class="id" href="task.html?task=c74a">c74a</a> at mockup</dd>
+</dl>
+<p><a href="gates.html">The gate definition</a> is the legend of every gate, state and reason symbol. 🤖 marks an agent contributor, 👀 a reviewer and 🪆 a junction that a subproject carries. <a href="task.html">The task view</a> shows any one task in full, <a href="blockage.html">the work-blockage tree</a> what waits on what, <a href="assignment.html">the task assignment</a> what each person carries, <a href="context.html">the contextual tableau</a> a person's corner, <a href="tableau.html">the global tableau</a> the whole project, <a href="authority.html">the authority delegation</a> who may accept what, <a href="history.html">the history</a> the events and <a href="audit.html">the audit</a> where files and history disagree.</p>
+<p class="arrival">This page is drawn as the owner, who dispatches the agent, arrives from a link to one item: <a href="#ready-c74a"><span class="id">c74a</span> at mockup</a> stands open at detail with its brief, the fold that holds it stands open, and every other item rests at glance. A person who opens their own queue with no item named arrives with the first item open at detail. An agent takes no page: its dispatcher pastes the brief as text. Every work-ready item has a brief; this mockup draws one, at <span class="id">c74a</span>, and gives the command for each other.</p>
+
+<!-- glance: the lines of each list; detail: the Detail fold of each line; provenance: the brief inside the detail -->
+<h2 id="agent">Queue of noreply@anthropic.com</h2>
+<p class="rule">60 items: 0 reviews owed, 0 authorisations owed, 28 work ready, 32 reaffirmations, 0 work waiting. A run of five or more items that are alike but for the task shows its first three and folds the rest. Each line gives the task, the gate, the model the junction states and the date of the status. A reaffirmation gives the gate its status names and the age of the status at the ref.</p>
+<h3 id="agent-review">1. Reviews owed: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind reviews owed</span></summary>
+  <p>No status carries the reason 👓 review. The person is the reviewer at 2 next junctions, <a class="id" href="task.html?task=e9c6">e9c6</a> at implementation and <a class="id" href="task.html?task=fcec">fcec</a> at unit, and reviews its own work there.</p>
+</details>
+<h3 id="agent-auth">2. Authorisations owed: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind authorisations owed</span></summary>
+  <p>All 37 tasks stand authorised. The person has authority over the 20 tasks under <a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> and <a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a>; <a href="authority.html">the authority delegation view</a> shows each deciding commit.</p>
+</details>
+<h3 id="agent-ready">3. Work ready: 28</h3>
+<ol class="items">
+  <li id="ready-c2ad">
+    <span class="q-task"><a href="task.html?task=c2ad"><span class="id">c2ad</span> Roles</a></span>
+    <span class="q-gate">🌍 validate</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of c2ad, work ready at validate</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>🌍 validate, Validation: Passes user and field tests</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=bc63"><span class="id">bc63</span> Method</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>PLAN.md#roles</code>, Proposed roles</dd>
+        <dt>Requires</dt>
+        <dd>nothing</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Also required by</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to design, The role names the views refer to: met</dd>
+        <dt>Status</dt>
+        <dd>🧱 implementation 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>3d8ce0e</code>: The Roles text is on the trunk and covers all seven roles; the validate gate awaits the owner</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief c2ad validate</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-e9c6">
+    <span class="q-task"><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a></span>
+    <span class="q-gate">🧱 implementation</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-sonnet</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of e9c6, work ready at implementation</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>🧱 implementation, Implementation: Artifacts suffice for unit, integration and validation tests</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-sonnet</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 noreply@anthropic.com, the assignee, since the junction states no reviewer; the agent reviews itself</dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>PLAN.md#views</code>, Proposed views</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=c2ad"><span class="id">c2ad</span> Roles</a> from design to design, The role names the views refer to: met</dd>
+        <dt>Unblocks</dt>
+        <dd><a href="task.html?task=77b2"><span class="id">77b2</span> tablo: backend library and plumbing</a> at design, The abstract views it derives</dd>
+        <dt>Also required by</dt>
+        <dd>20 tasks, <code>99f0</code> to <code>a8b4</code>, from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>879b447</code>: VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief e9c6 implementation</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-99f0">
+    <span class="q-task"><a href="task.html?task=99f0"><span class="id">99f0</span> Gate definition view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 99f0, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/gates.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 99f0 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-05a9">
+    <span class="q-task"><a href="task.html?task=05a9"><span class="id">05a9</span> Task definition view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 05a9, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/task.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 05a9 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-a9ce">
+    <span class="q-task"><a href="task.html?task=a9ce"><span class="id">a9ce</span> Authority delegation view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of a9ce, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/authority.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief a9ce mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li class="run">
+  <details open>
+  <summary><span class="fold">… and 17 more at 📌 mockup, model <code>claude-opus</code>, 2026-09-29</span></summary>
+  <ol class="items">
+  <li id="ready-bb7c">
+    <span class="q-task"><a href="task.html?task=bb7c"><span class="id">bb7c</span> Task assignment view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of bb7c, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/assignment.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief bb7c mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-c74a">
+    <span class="q-task mine"><a href="task.html?task=c74a"><span class="id">c74a</span> Contributor work queue view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail" open>
+      <summary>Detail<span class="sr"> of c74a, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/queue.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief c74a mockup</code></dd>
+      </dl>
+      <details class="prov" open>
+        <summary>Provenance: the brief</summary>
+        <p>The provenance level of the queue is the brief: one item, written so that an agent starts from it alone. It is plain text that survives a paste into a prompt. This one briefs <a href="task.html?task=c74a"><span class="id">c74a</span> Contributor work queue view in Markdown</a> at 📌 mockup, the task that delivers the Markdown mockup of this view. Its six parts follow the order that VIEWS.md fixes. The box holds the whole brief and no markup: focus it, select all and copy.</p>
+        <label class="brief" for="brief-c74a">The brief of <span class="id">c74a</span> at mockup, as plain text</label>
+        <textarea class="brief" id="brief-c74a" readonly rows="79" cols="80" wrap="off" spellcheck="false">Brief: c74a Contributor work queue view in Markdown at mockup
+
+This brief stands alone. It is one item of the work queue of
+noreply@anthropic.com on main at 3cdae52, 2026-10-05: work ready.
+
+1. The item
+
+  Task         c74a Contributor work queue view in Markdown
+  Gate         📌 mockup, Mockup: A non-technical mockup of the outcome exists
+  Contributor  noreply@anthropic.com   (Tableaux tooling, 437e)
+  Model        claude-opus             (Tableaux tooling, 437e)
+  Reviewer     nbyoung@nbyoung.com     (Tableaux tooling, 437e)
+
+  The model is the plan's statement. Run on a model that matches it, as an
+  identifier or by prefix, and record the model you in fact run in the
+  Model: trailer.
+
+2. The task
+
+  For one contributor, the junctions where they act next: work at a gate
+  whose requirements are met, reviews they owe, authorisations they owe, and
+  statuses they last reaffirmed longest ago. Each item carries the gate
+  criteria, the junction references and the requirement texts, so an agent
+  can start from the queue alone. It serves contributors, reviewers and
+  authorities. The mockup, docs/mockups/queue.md, depicts this project.
+
+  Reference: docs/mockups/queue.md, The mockup
+  Junction references: none
+  Under: Tableaux tooling › Method › Views › Markdown views
+
+  Tableaux tooling (437e), whose entry sends this work to you: Software that
+  supports planning and tracking with Tableaux: the method itself, a backend
+  that parses, validates, audits and derives views from a project, and one
+  front end per mode of use. The effort dog-foods the method to refine and
+  validate it as a means to maximise human productivity through agentic
+  assistance. Agents contribute at every gate, each on the model the
+  junction names; people review at the strategic junctions this task states,
+  and every task inherits them.
+
+3. The requirements
+
+  Requires: e9c6 Abstract views from design to mockup, The abstract
+  definition of the view: met
+  Unblocks: nothing; no task requires c74a
+  Its parent bc86 Markdown views at mockup is required by:
+    6103 tabloio: command line, output and input at design, The Markdown
+    mockups it reproduces
+    c6e8 tablotui: terminal user interface at design, The Markdown mockups
+    that fix the textual layout
+
+4. The status
+
+  📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, 1a17bfc:
+  Mockup waits for Abstract views (e9c6) at design
+
+5. The commit you make when done
+
+  Commit docs/mockups/queue.md and .tableaux/status/c74a.yaml, as
+  noreply@anthropic.com, on a branch off main. Do not merge. The reviewer
+  nbyoung@nbyoung.com accepts this gate, so hand the work off: the status
+  stays at the gate it stands at and takes the reason review.
+
+    gate: defined
+    state: nominal
+    reason: review
+    note: &lt;one line that says what waits on the branch&gt;
+
+  End the commit message with one paragraph of two trailers:
+
+    Model: &lt;the identifier your harness reports, matching claude-opus&gt;
+    Co-Authored-By: &lt;your model's display name&gt; &lt;noreply@anthropic.com&gt;
+
+  The reviewer merges the branch and passes the gate with a commit that
+  carries the trailer Reviewed: c74a mockup
+
+6. The commands that reproduce this brief and show the task
+
+  tabloio queue --person noreply@anthropic.com --ref 3cdae52 --brief c74a mockup
+  tabloio task c74a --ref 3cdae52</textarea>
+        <p>Command: <code>tabloio queue --person noreply@anthropic.com --ref 3cdae52 --brief c74a mockup</code></p>
+      </details>
+    </details>
+  </li>
+  <li id="ready-efff">
+    <span class="q-task"><a href="task.html?task=efff"><span class="id">efff</span> Work-blockage tree view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of efff, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/blockage.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief efff mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-ab8e">
+    <span class="q-task"><a href="task.html?task=ab8e"><span class="id">ab8e</span> Global tableau view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of ab8e, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/tableau.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief ab8e mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-c545">
+    <span class="q-task"><a href="task.html?task=c545"><span class="id">c545</span> Contextual tableau view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of c545, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/context.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief c545 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-d615">
+    <span class="q-task"><a href="task.html?task=d615"><span class="id">d615</span> History view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of d615, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/history.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief d615 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-b14e">
+    <span class="q-task"><a href="task.html?task=b14e"><span class="id">b14e</span> Audit view in Markdown</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of b14e, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/audit.md</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief b14e mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-a6f7">
+    <span class="q-task"><a href="task.html?task=a6f7"><span class="id">a6f7</span> Gate definition view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of a6f7, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/gates.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief a6f7 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-7dff">
+    <span class="q-task"><a href="task.html?task=7dff"><span class="id">7dff</span> Task definition view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7dff, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/task.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 7dff mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-b1b7">
+    <span class="q-task"><a href="task.html?task=b1b7"><span class="id">b1b7</span> Authority delegation view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of b1b7, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/authority.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief b1b7 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-ea51">
+    <span class="q-task"><a href="task.html?task=ea51"><span class="id">ea51</span> Task assignment view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of ea51, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/assignment.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief ea51 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-7783">
+    <span class="q-task"><a href="task.html?task=7783"><span class="id">7783</span> Contributor work queue view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7783, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/queue.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 7783 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-5471">
+    <span class="q-task"><a href="task.html?task=5471"><span class="id">5471</span> Work-blockage tree view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 5471, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/blockage.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 5471 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-32e7">
+    <span class="q-task"><a href="task.html?task=32e7"><span class="id">32e7</span> Global tableau view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 32e7, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/tableau.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 32e7 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-69eb">
+    <span class="q-task"><a href="task.html?task=69eb"><span class="id">69eb</span> Contextual tableau view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 69eb, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/context.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 69eb mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-3194">
+    <span class="q-task"><a href="task.html?task=3194"><span class="id">3194</span> History view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 3194, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/history.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 3194 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-a8b4">
+    <span class="q-task"><a href="task.html?task=a8b4"><span class="id">a8b4</span> Audit view in Html</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of a8b4, work ready at mockup</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/audit.html</code>, The mockup</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The HTML mockups that fix the disclosure levels</dd>
+        <dd><a href="task.html?task=5fe3"><span class="id">5fe3</span> HTML views</a> at mockup is required by <a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a> at design, The HTML mockups it reproduces</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief a8b4 mockup</code></dd>
+      </dl>
+    </details>
+  </li>
+  </ol>
+  </details>
+  </li>
+  <li id="ready-e3cb">
+    <span class="q-task"><a href="task.html?task=e3cb"><span class="id">e3cb</span> Schema files</a></span>
+    <span class="q-gate">🌍 validate</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of e3cb, work ready at validate</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>🌍 validate, Validation: Passes user and field tests</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=bc63"><span class="id">bc63</span> Method</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>SYNTAX.md</code>, The schemas in place</dd>
+        <dt>Requires</dt>
+        <dd>nothing</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Also required by</dt>
+        <dd><a href="task.html?task=fcec"><span class="id">fcec</span> Conformance corpus</a> from implementation to implementation, The schema files the corpus validates against: met</dd>
+        <dd><a href="task.html?task=77b2"><span class="id">77b2</span> tablo: backend library and plumbing</a> from implementation to implementation, The schema files it embeds: met</dd>
+        <dt>Status</dt>
+        <dd>📏 unit 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>5cbec7c</code>: schemas/check.sh (files agree with SYNTAX.md, version 0.2.1) and schemas/load.py (files load as JSON Schema 2020-12) pass; every .tableaux file validates</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief e3cb validate</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-fcec">
+    <span class="q-task"><a href="task.html?task=fcec"><span class="id">fcec</span> Conformance corpus</a></span>
+    <span class="q-gate">📏 unit</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-sonnet</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of fcec, work ready at unit</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📏 unit, Unit test: All prescribed tests pass</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-sonnet</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 noreply@anthropic.com, the assignee, since the junction states no reviewer; the agent reviews itself</dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>README.md</code>, The examples the corpus starts from</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=e3cb"><span class="id">e3cb</span> Schema files</a> from implementation to implementation, The schema files the corpus validates against: met</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Also required by</dt>
+        <dd><a href="task.html?task=77b2"><span class="id">77b2</span> tablo: backend library and plumbing</a> from implementation to unit, The corpus it conforms to: met</dd>
+        <dt>Status</dt>
+        <dd>🧱 implementation 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>60495c2</code>: The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief fcec unit</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-ac33">
+    <span class="q-task"><a href="task.html?task=ac33"><span class="id">ac33</span> Agent identity</a></span>
+    <span class="q-gate">🧱 implementation</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-sonnet</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of ac33, work ready at implementation</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>🧱 implementation, Implementation: Artifacts suffice for unit, integration and validation tests</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-sonnet</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, the assignee, since the junction states no reviewer</dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>PLAN.md#findings</code>, Findings F1, F2, F10 and F20</dd>
+        <dt>Requires</dt>
+        <dd>nothing</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>6762222</code>: The model plan-and-record rule (F20) is on the trunk; F1, F2 and F10 remain for design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief ac33 implementation</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-9f3f">
+    <span class="q-task"><a href="task.html?task=9f3f"><span class="id">9f3f</span> Subproject linkage</a></span>
+    <span class="q-gate">🧱 implementation</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-sonnet</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 9f3f, work ready at implementation</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>🧱 implementation, Implementation: Artifacts suffice for unit, integration and validation tests</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-sonnet</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, the assignee, since the junction states no reviewer</dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>PLAN.md#findings</code>, Findings F3 to F5</dd>
+        <dt>Requires</dt>
+        <dd>nothing</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>43d68e4</code>: The subproject linkage rule (F3, F5, F12) is on the trunk at language 0.3.0; tablo and the subprojects follow</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 9f3f implementation</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-7861">
+    <span class="q-task"><a href="task.html?task=7861"><span class="id">7861</span> Productivity evidence</a></span>
+    <span class="q-gate">🌍 validate</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7861, work ready at validate</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>🌍 validate, Validation: Passes user and field tests</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=bc63"><span class="id">bc63</span> Method</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>PLAN.md#review-policy</code>, The review policy under test</dd>
+        <dt>Requires</dt>
+        <dd>nothing</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Status</dt>
+        <dd>🧱 implementation 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>c6f2655</code>: The full report, its 23 tests and an example over five repositories are on the trunk</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 7861 validate</code></dd>
+      </dl>
+    </details>
+  </li>
+  <li id="ready-7166">
+    <span class="q-task"><a href="task.html?task=7166"><span class="id">7166</span> Language clarifications</a></span>
+    <span class="q-gate">🧱 implementation</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-sonnet</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7166, work ready at implementation</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>🧱 implementation, Implementation: Artifacts suffice for unit, integration and validation tests</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-sonnet</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, the assignee, since the junction states no reviewer</dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>PLAN.md#findings</code>, Findings F7 to F9 and F19</dd>
+        <dt>Requires</dt>
+        <dd>nothing</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal, 2026-09-30, noreply@anthropic.com, <code>d9396b4</code>: The trunk clarification (F19) is on the trunk; F7 and F9 remain for design</dd>
+        <dt>Brief</dt>
+        <dd><code>tabloio queue --person noreply@anthropic.com --ref main --brief 7166 implementation</code></dd>
+      </dl>
+    </details>
+  </li>
+</ol>
+<h3 id="agent-reaff">4. Reaffirmations: 32</h3>
+<p class="rule">Oldest first, by the author time of each status file's deciding commit, as that commit states it (UTC−04:00); statuses of one commit follow display order. No status carries a <code>Reaffirmed:</code> trailer at the ref, so each date is that of the file's last change. To confirm a status without change: <code>git commit --allow-empty --trailer 'Reaffirmed: &lt;id&gt;' -m 'Weekly review: no change'</code>.</p>
+<ol class="items">
+  <li id="reaff-99f0">
+    <span class="q-task"><a href="task.html?task=99f0"><span class="id">99f0</span> Gate definition view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 99f0, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-05a9">
+    <span class="q-task"><a href="task.html?task=05a9"><span class="id">05a9</span> Task definition view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 05a9, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-a9ce">
+    <span class="q-task"><a href="task.html?task=a9ce"><span class="id">a9ce</span> Authority delegation view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of a9ce, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li class="run">
+  <details>
+  <summary><span class="fold">… and 17 more, 📝 defined, 2026-09-29, 6 days</span></summary>
+  <ol class="items">
+  <li id="reaff-bb7c">
+    <span class="q-task"><a href="task.html?task=bb7c"><span class="id">bb7c</span> Task assignment view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of bb7c, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-c74a">
+    <span class="q-task"><a href="task.html?task=c74a"><span class="id">c74a</span> Contributor work queue view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of c74a, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-efff">
+    <span class="q-task"><a href="task.html?task=efff"><span class="id">efff</span> Work-blockage tree view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of efff, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-ab8e">
+    <span class="q-task"><a href="task.html?task=ab8e"><span class="id">ab8e</span> Global tableau view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of ab8e, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-c545">
+    <span class="q-task"><a href="task.html?task=c545"><span class="id">c545</span> Contextual tableau view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of c545, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-d615">
+    <span class="q-task"><a href="task.html?task=d615"><span class="id">d615</span> History view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of d615, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-b14e">
+    <span class="q-task"><a href="task.html?task=b14e"><span class="id">b14e</span> Audit view in Markdown</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of b14e, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-a6f7">
+    <span class="q-task"><a href="task.html?task=a6f7"><span class="id">a6f7</span> Gate definition view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of a6f7, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-7dff">
+    <span class="q-task"><a href="task.html?task=7dff"><span class="id">7dff</span> Task definition view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7dff, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-b1b7">
+    <span class="q-task"><a href="task.html?task=b1b7"><span class="id">b1b7</span> Authority delegation view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of b1b7, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-ea51">
+    <span class="q-task"><a href="task.html?task=ea51"><span class="id">ea51</span> Task assignment view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of ea51, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-7783">
+    <span class="q-task"><a href="task.html?task=7783"><span class="id">7783</span> Contributor work queue view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7783, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-5471">
+    <span class="q-task"><a href="task.html?task=5471"><span class="id">5471</span> Work-blockage tree view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 5471, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-32e7">
+    <span class="q-task"><a href="task.html?task=32e7"><span class="id">32e7</span> Global tableau view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 32e7, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-69eb">
+    <span class="q-task"><a href="task.html?task=69eb"><span class="id">69eb</span> Contextual tableau view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 69eb, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-3194">
+    <span class="q-task"><a href="task.html?task=3194"><span class="id">3194</span> History view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 3194, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-a8b4">
+    <span class="q-task"><a href="task.html?task=a8b4"><span class="id">a8b4</span> Audit view in Html</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29, 6 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of a8b4, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-29 17:46 by noreply@anthropic.com in <code>1a17bfc</code>, Record the defined gate for the views and mockups</dd>
+        <dt>Age</dt>
+        <dd>6 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  </ol>
+  </details>
+  </li>
+  <li id="reaff-7166">
+    <span class="q-task"><a href="task.html?task=7166"><span class="id">7166</span> Language clarifications</a></span>
+    <span class="q-gate">📐 design</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7166, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>The trunk clarification (F19) is on the trunk; F7 and F9 remain for design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 00:57 by noreply@anthropic.com in <code>d9396b4</code>, Advance the language clarifications to their design gate</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-ac33">
+    <span class="q-task"><a href="task.html?task=ac33"><span class="id">ac33</span> Agent identity</a></span>
+    <span class="q-gate">📐 design</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of ac33, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>The model plan-and-record rule (F20) is on the trunk; F1, F2 and F10 remain for design</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 01:25 by noreply@anthropic.com in <code>6762222</code>, Advance the agent identity task to its design gate</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-c2ad">
+    <span class="q-task"><a href="task.html?task=c2ad"><span class="id">c2ad</span> Roles</a></span>
+    <span class="q-gate">🧱 implementation</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of c2ad, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>🧱 implementation 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>The Roles text is on the trunk and covers all seven roles; the validate gate awaits the owner</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 07:33 by noreply@anthropic.com in <code>3d8ce0e</code>, Record the Roles task at its implementation gate</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-e3cb">
+    <span class="q-task"><a href="task.html?task=e3cb"><span class="id">e3cb</span> Schema files</a></span>
+    <span class="q-gate">📏 unit</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of e3cb, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📏 unit 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>schemas/check.sh (files agree with SYNTAX.md, version 0.2.1) and schemas/load.py (files load as JSON Schema 2020-12) pass; every .tableaux file validates</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 07:33 by noreply@anthropic.com in <code>5cbec7c</code>, Record e3cb at unit, nominal</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-7861">
+    <span class="q-task"><a href="task.html?task=7861"><span class="id">7861</span> Productivity evidence</a></span>
+    <span class="q-gate">🧱 implementation</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 7861, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>🧱 implementation 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>The full report, its 23 tests and an example over five repositories are on the trunk</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 07:34 by noreply@anthropic.com in <code>c6f2655</code>, Complete the productivity evidence report</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-fcec">
+    <span class="q-task"><a href="task.html?task=fcec"><span class="id">fcec</span> Conformance corpus</a></span>
+    <span class="q-gate">🧱 implementation</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of fcec, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>🧱 implementation 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 09:32 by noreply@anthropic.com in <code>60495c2</code>, Record all three corpus corrections at implementation</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-9f3f">
+    <span class="q-task"><a href="task.html?task=9f3f"><span class="id">9f3f</span> Subproject linkage</a></span>
+    <span class="q-gate">📐 design</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 9f3f, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>The subproject linkage rule (F3, F5, F12) is on the trunk at language 0.3.0; tablo and the subprojects follow</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 11:54 by noreply@anthropic.com in <code>43d68e4</code>, Advance the subproject linkage task to its design gate</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-77b2">
+    <span class="q-task"><a href="task.html?task=77b2"><span class="id">77b2</span> tablo: backend library and plumbing</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 77b2, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined; the file holds the gate alone, since the next junction, mockup, is 🪆 recursive and <code>subprojects/tablo</code> supplies the state</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 12:53 by noreply@anthropic.com in <code>e66abe2</code>, Record the defined gate for the subproject tasks</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-6103">
+    <span class="q-task"><a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 6103, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined; the file holds the gate alone, since the next junction, mockup, is 🪆 recursive and <code>subprojects/tabloio</code> supplies the state</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 12:53 by noreply@anthropic.com in <code>e66abe2</code>, Record the defined gate for the subproject tasks</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-c6e8">
+    <span class="q-task"><a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of c6e8, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined; the file holds the gate alone, since the next junction, mockup, is 🪆 recursive and <code>subprojects/tablotui</code> supplies the state</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 12:53 by noreply@anthropic.com in <code>e66abe2</code>, Record the defined gate for the subproject tasks</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-595e">
+    <span class="q-task"><a href="task.html?task=595e"><span class="id">595e</span> tableaud: local daemon and HTML</a></span>
+    <span class="q-gate">📝 defined</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 595e, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📝 defined; the file holds the gate alone, since the next junction, mockup, is 🪆 recursive and <code>subprojects/tableaud</code> supplies the state</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 12:53 by noreply@anthropic.com in <code>e66abe2</code>, Record the defined gate for the subproject tasks</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+  <li id="reaff-e9c6">
+    <span class="q-task"><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a></span>
+    <span class="q-gate">📐 design</span>
+    <span class="q-model"></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30, 5 days</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of e9c6, a reaffirmation</span></summary>
+      <dl class="fields">
+        <dt>Status</dt>
+        <dd>📐 design 🟢 nominal</dd>
+        <dt>Note</dt>
+        <dd>VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place</dd>
+        <dt>Recorded</dt>
+        <dd>2026-09-30 15:17 by noreply@anthropic.com in <code>879b447</code>, Advance the abstract views task to its design gate</dd>
+        <dt>Age</dt>
+        <dd>5 days at the ref</dd>
+      </dl>
+    </details>
+  </li>
+</ol>
+<h3 id="agent-waiting">5. Work waiting: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind work waiting</span></summary>
+  <p>Every due requirement is met, and no status carries ⛔ blocked or 🪫 overloaded. <a href="blockage.html">The work-blockage tree</a> shows what waits on what.</p>
+</details>
+
+<h2 id="owner">Queue of nbyoung@nbyoung.com</h2>
+<p class="rule">0 items: the queue is empty. Each kind keeps its line, so that an empty queue reads as an answer and not as a failure. The daemon serves each person's queue as a page of its own; this mockup sets the owner's below the agent's.</p>
+<h3 id="owner-review">1. Reviews owed: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind reviews owed</span></summary>
+  <p>No status carries the reason 👓 review. The person is the reviewer at 26 next junctions, and no contributor hands one off at the ref.</p>
+</details>
+<h3 id="owner-auth">2. Authorisations owed: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind authorisations owed</span></summary>
+  <p>All 37 tasks stand authorised. The person, as the owner, has authority over every task; <a href="authority.html">the authority delegation view</a> shows each deciding commit.</p>
+</details>
+<h3 id="owner-ready">3. Work ready: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind work ready</span></summary>
+  <p>The person contributes at 🚀 release alone, and no task has release as its next gate.</p>
+</details>
+<h3 id="owner-reaff">4. Reaffirmations: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind reaffirmations</span></summary>
+  <p>The person recorded no status. noreply@anthropic.com recorded all 32.</p>
+</details>
+<h3 id="owner-waiting">5. Work waiting: none</h3>
+<details class="detail">
+  <summary>Detail<span class="sr"> of the empty kind work waiting</span></summary>
+  <p>No next junction names the person as contributor. <a href="blockage.html">The work-blockage tree</a> shows what waits on what.</p>
+</details>
+
+<section class="illus" aria-labelledby="illustrative">
+<h2 id="illustrative">Illustrative items, not at the ref</h2>
+<p>The queues above hold no review owed and no work waiting, so these two items show the form of each. Both are real states of this project at earlier commits; neither belongs to a queue at the ref.</p>
+<h3 id="illus-review-h">Illustrative: a review owed item</h3>
+<p class="rule">From the queue of nbyoung@nbyoung.com at commit <code>26defc7</code>, 2026-09-30, on the branch that carries the design.</p>
+<ol class="items">
+  <li id="illus-review">
+    <span class="q-task"><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a></span>
+    <span class="q-gate">📐 design</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-fable</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-30</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of e9c6, review owed at design, illustrative</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📐 design, Design: A model and sufficient tests exist</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-fable</code>, from <a href="task.html?task=bc63"><span class="id">bc63</span> Method</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>PLAN.md#views</code>, Proposed views</dd>
+        <dt>Requires</dt>
+        <dd><a href="task.html?task=c2ad"><span class="id">c2ad</span> Roles</a> from design to design, The role names the views refer to: met</dd>
+        <dt>Unblocks</dt>
+        <dd>20 tasks, <code>99f0</code> to <code>a8b4</code>, at mockup, The abstract definition of the view</dd>
+        <dt>Also required by</dt>
+        <dd><a href="task.html?task=77b2"><span class="id">77b2</span> tablo: backend library and plumbing</a> from implementation to design, The abstract views it derives: not yet met</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal 👓 review, 2026-09-30, noreply@anthropic.com, <code>26defc7</code>: The revised VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's acceptance at the design gate</dd>
+        <dt>To accept</dt>
+        <dd>Merge the branch and commit the trailer <code>Reviewed: e9c6 design</code>: <code>tabloio review e9c6 design</code>. The owner does so four minutes later, in <code>0704a09</code>.</dd>
+      </dl>
+    </details>
+  </li>
+</ol>
+<h3 id="illus-waiting-h">Illustrative: a work waiting item</h3>
+<p class="rule">From the queue of noreply@anthropic.com at commit <code>1b6916e</code>, 2026-09-30, on <code>main</code>, where nineteen more mockup tasks wait alike.</p>
+<ol class="items">
+  <li id="illus-waiting">
+    <span class="q-task"><a href="task.html?task=99f0"><span class="id">99f0</span> Gate definition view in Markdown</a>; <a class="q-cause" href="blockage.html">waits for <span class="id">e9c6</span> at design, in the work-blockage tree</a></span>
+    <span class="q-gate">📌 mockup</span>
+    <span class="q-model">🤖 <span class="sr">agent on model </span><code>claude-opus</code></span>
+    <span class="q-since"><span class="sr">status of </span>2026-09-29</span>
+    <details class="detail">
+      <summary>Detail<span class="sr"> of 99f0, work waiting at mockup, illustrative</span></summary>
+      <dl class="fields">
+        <dt>Gate</dt>
+        <dd>📌 mockup, Mockup: A non-technical mockup of the outcome exists</dd>
+        <dt>Contributor</dt>
+        <dd>🤖 noreply@anthropic.com, an agent on model <code>claude-opus</code>, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>Reviewer</dt>
+        <dd>👀 nbyoung@nbyoung.com, from <a href="task.html?task=437e"><span class="id">437e</span> Tableaux tooling</a></dd>
+        <dt>References</dt>
+        <dd>The junction states none. The task: <code>docs/mockups/gates.md</code>, The mockup</dd>
+        <dt>Waits for</dt>
+        <dd><a href="task.html?task=e9c6"><span class="id">e9c6</span> Abstract views</a> from design to mockup, The abstract definition of the view: unmet; <code>e9c6</code> stands at 📝 defined 🟢 nominal</dd>
+        <dd><a href="blockage.html">The work-blockage tree</a> shows the cause and all that it holds up</dd>
+        <dt>Unblocks</dt>
+        <dd>nothing</dd>
+        <dt>Its parent unblocks</dt>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=6103"><span class="id">6103</span> tabloio: command line, output and input</a> at design, The Markdown mockups it reproduces</dd>
+        <dd><a href="task.html?task=bc86"><span class="id">bc86</span> Markdown views</a> at mockup is required by <a href="task.html?task=c6e8"><span class="id">c6e8</span> tablotui: terminal user interface</a> at design, The Markdown mockups that fix the textual layout</dd>
+        <dt>Status</dt>
+        <dd>📝 defined 🟢 nominal, 2026-09-29, noreply@anthropic.com, <code>1a17bfc</code>: Mockup waits for Abstract views (e9c6) at design</dd>
+        <dt>Do not start</dt>
+        <dd>The item makes no commit until its cause clears.</dd>
+      </dl>
+    </details>
+  </li>
+</ol>
+</section>
+</main>
+<footer class="site">
+  <p>Mockup of the Contributor work queue view (task <code class="id">7783</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
