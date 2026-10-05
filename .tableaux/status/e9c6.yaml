@@ -1,3 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-note: VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place
+note: VIEWS.md defines the ten views on the trunk and agrees with the twenty approved mockups on the gate window; validation checks that tablo and the front ends follow the text
