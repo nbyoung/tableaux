@@ -65,7 +65,6 @@ h3 { font-size: 1rem; margin: 1.25rem 0 .25rem; }
 th.numh { text-align: right; }
 tbody th { font-weight: 400; }
 tfoot th, tfoot td { border-top: 2px solid var(--line); font-weight: 600; }
-tr.folded > th, tr.folded > td { color: var(--muted); }
 ul.notes { margin: .5rem 0; padding-left: 1.25rem; }
 .tally { color: var(--muted); font-weight: 400; }
 details.detail { border-top: 1px solid var(--line); padding: .5rem 0; }
@@ -99,7 +98,7 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 <main id="main">
   <h1>Task assignment</h1>
   <p class="question">What does each person carry?</p>
-  <p class="params">person: every email · task: <code class="id">437e</code>, the root · window: the default, 📌 mockup to 🌍 validate; 📝 defined and 🚀 release fold to counts · level: detail, as the owner arrives · legend: <a href="gates.html">the gate definition</a></p>
+  <p class="params">person: every email · task: <code class="id">437e</code>, the root · level: detail, as the owner arrives · legend: <a href="gates.html">the gate definition</a></p>
 
 <!-- glance: visible without any interaction -->
 <h2 id="people">People</h2>
@@ -122,7 +121,7 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 <h2 id="carries">What each carries</h2>
 <p>A junction is <strong>next</strong> when it is the task's next applicable gate, passed when the status stands at or after it, and later otherwise. A group of more than eight rows shows its first three and folds the rest.</p>
 <p class="fold">The owner arrives with each section open and each gate group that holds a next junction unfolded; every provenance stays folded until asked for. An assignee arrives with their own section open and the others folded, and an observer sees the People table alone.</p>
-<!-- The person, task and window parameters are links: each choice is a page address, so this view needs no script. -->
+<!-- The person and task parameters are links: each choice is a page address, so this view needs no script. -->
 <details class="detail" id="p-nbyoung" open>
 <summary>nbyoung@nbyoung.com <span class="tally">· owner · 10 tasks assigned · 0 to contribute next · 26 to review next</span></summary>
 <p>The owner: the assignee of the root <code class="id">437e</code>, so an authority of every task. A person; no junction states a model for this email.</p>
@@ -171,10 +170,60 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 </tbody>
 </table></div>
 </details>
-<h3>Contributes: 0 junctions in the window, 0 next</h3>
-<p>None in the window. Outside it: 8 at 🚀 release, none next: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code>.</p>
-<details class="prov"><summary>Provenance: the file and the ancestor behind these positions</summary><p>🚀 release, 8 junctions, contributor from <code class="id">437e</code> Tableaux tooling, <code>junctions.release</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>6b6c99a</code>; no model, no reviewer.</p></details>
-<h3>Reviews: 39 junctions in the window, 26 next</h3>
+<h3>Contributes: 8 junctions, 0 next</h3>
+<details class="group">
+<summary>🚀 release <span class="tally">· 8 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at release where the owner contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td>none: a person</td><td>none</td><td>later</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td>none: a person</td><td>none</td><td>later</td></tr>
+</tbody>
+</table></div>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>8: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.release</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>6b6c99a</code>; no model, since a person contributes</dd>
+<dt>Reviewer</dt><dd>none</dd>
+<dt>Reviewer from</dt><dd>none: a person contributes, and no file states a reviewer</dd>
+</dl>
+</details>
+</details>
+<h3>Reviews: 46 junctions, 26 next</h3>
+<details class="group">
+<summary>📝 defined <span class="tally">· 7 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at defined where the owner reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">77b2</code></th><td>tablo: backend library and plumbing</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">6103</code></th><td>tabloio: command line, output and input</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c6e8</code></th><td>tablotui: terminal user interface</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">595e</code></th><td>tableaud: local daemon and HTML</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+<p class="fold">At 📝 defined the authorisation stands as the review.</p>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>7: <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7166</code> <code class="id">77b2</code> <code class="id">6103</code> <code class="id">c6e8</code> <code class="id">595e</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
 <details class="group" open>
 <summary>📌 mockup <span class="tally">· 20 junctions · 20 next</span></summary>
 <div class="scroll"><table>
@@ -294,24 +343,22 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 </dl>
 </details>
 </details>
-<p class="fold">Outside the window: 7 at 📝 defined, all passed; the authorisation stands as the review there.</p>
-<details class="prov"><summary>Provenance: the reviews outside the window</summary><p>📝 defined, 7 junctions, reviewer by the plain default, the assignee.</p></details>
 <h3>Counts by gate</h3>
 <div class="scroll"><table>
-<caption>Counts by gate for nbyoung@nbyoung.com; a folded gate lies outside the window</caption>
-<thead><tr><th scope="col">Gate</th><th scope="col" class="numh">Tasks standing here</th><th scope="col" class="numh">Contributes</th><th scope="col" class="numh">of which next</th><th scope="col" class="numh">Reviews</th><th scope="col" class="numh">of which next</th><th scope="col">Window</th></tr></thead>
+<caption>Counts by gate for nbyoung@nbyoung.com</caption>
+<thead><tr><th scope="col">Gate</th><th scope="col" class="numh">Tasks standing here</th><th scope="col" class="numh">Contributes</th><th scope="col" class="numh">of which next</th><th scope="col" class="numh">Reviews</th><th scope="col" class="numh">of which next</th></tr></thead>
 <tbody>
-<tr class="folded"><th scope="row">📝 defined</th><td class="num">7</td><td class="num">0</td><td class="num">0</td><td class="num">7</td><td class="num">0</td><td>folded</td></tr>
-<tr><th scope="row">📌 mockup</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">20</td><td class="num">20</td><td>in</td></tr>
-<tr><th scope="row">🔧 function</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">📐 design</th><td class="num">3</td><td class="num">0</td><td class="num">0</td><td class="num">8</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">🧱 implementation</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">3</td><td>in</td></tr>
-<tr><th scope="row">📏 unit</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">🔗 integrate</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">🌍 validate</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">8</td><td class="num">3</td><td>in</td></tr>
-<tr class="folded"><th scope="row">🚀 release</th><td class="num">0</td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>folded</td></tr>
+<tr><th scope="row">📝 defined</th><td class="num">7</td><td class="num">0</td><td class="num">0</td><td class="num">7</td><td class="num">0</td></tr>
+<tr><th scope="row">📌 mockup</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">20</td><td class="num">20</td></tr>
+<tr><th scope="row">🔧 function</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">📐 design</th><td class="num">3</td><td class="num">0</td><td class="num">0</td><td class="num">8</td><td class="num">0</td></tr>
+<tr><th scope="row">🧱 implementation</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">3</td><td class="num">3</td></tr>
+<tr><th scope="row">📏 unit</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🔗 integrate</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🌍 validate</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">8</td><td class="num">3</td></tr>
+<tr><th scope="row">🚀 release</th><td class="num">0</td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
 </tbody>
-<tfoot><tr><th scope="row">Total</th><td class="num">10</td><td class="num">8</td><td class="num">0</td><td class="num">46</td><td class="num">26</td><td></td></tr></tfoot>
+<tfoot><tr><th scope="row">Total</th><td class="num">10</td><td class="num">8</td><td class="num">0</td><td class="num">46</td><td class="num">26</td></tr></tfoot>
 </table></div>
 <h3>Authority</h3>
 <p>Over <code class="id">437e</code> Tableaux tooling and its 36 descendants: every task. See <a href="authority.html">the authority delegation view</a>.</p>
@@ -340,7 +387,71 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 <details class="prov"><summary>Provenance: the file behind each assignment</summary><dl class="fields">
 <dt>Assignee</dt><dd>27: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">bc86</code> <code class="id">5fe3</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code> and the 20 mockups</dd><dt>Stated in</dt><dd><code>assignee</code> in each task's own file, <code>.tableaux/tasks/ID.yaml</code>, commit <code>6b6c99a</code></dd>
 </dl></details>
-<h3>Contributes: 47 junctions in the window, 28 next</h3>
+<h3>Contributes: 79 junctions, 28 next</h3>
+<details class="group">
+<summary>📝 defined <span class="tally">· 32 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at defined where the agent contributes: the first 3 of 32</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">99f0</code></th><td>Gate definition view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+</tbody>
+</table></div>
+<details class="fold"><summary>… and 29 more: <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7861</code> <code class="id">7166</code> <code class="id">77b2</code> <code class="id">6103</code> <code class="id">c6e8</code> <code class="id">595e</code>, 9 under <code class="id">bc86</code> Markdown views, 10 under <code class="id">5fe3</code> HTML views; each passed</summary>
+<div class="scroll"><table>
+<caption>The other 29 junctions at defined where the agent contributes</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Model</th><th scope="col">Reviewer</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">05a9</code></th><td>Task definition view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a9ce</code></th><td>Authority delegation view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">bb7c</code></th><td>Task assignment view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c74a</code></th><td>Contributor work queue view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">efff</code></th><td>Work-blockage tree view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ab8e</code></th><td>Global tableau view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c545</code></th><td>Contextual tableau view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">d615</code></th><td>History view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b14e</code></th><td>Audit view in Markdown</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a6f7</code></th><td>Gate definition view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7dff</code></th><td>Task definition view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b1b7</code></th><td>Authority delegation view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ea51</code></th><td>Task assignment view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7783</code></th><td>Contributor work queue view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">5471</code></th><td>Work-blockage tree view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">32e7</code></th><td>Global tableau view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">69eb</code></th><td>Contextual tableau view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">3194</code></th><td>History view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a8b4</code></th><td>Audit view in Html</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ac33</code></th><td>Agent identity</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">9f3f</code></th><td>Subproject linkage</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td><code>claude-haiku</code></td><td>noreply@anthropic.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7166</code></th><td>Language clarifications</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">77b2</code></th><td>tablo: backend library and plumbing</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">6103</code></th><td>tabloio: command line, output and input</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c6e8</code></th><td>tablotui: terminal user interface</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">595e</code></th><td>tableaud: local daemon and HTML</td><td><code>claude-haiku</code></td><td>nbyoung@nbyoung.com</td><td>passed</td></tr>
+</tbody>
+</table></div>
+</details>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>25: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">99f0</code> <code class="id">05a9</code> <code class="id">a9ce</code> <code class="id">bb7c</code> <code class="id">c74a</code> <code class="id">efff</code> <code class="id">ab8e</code> <code class="id">c545</code> <code class="id">d615</code> <code class="id">b14e</code> <code class="id">a6f7</code> <code class="id">7dff</code> <code class="id">b1b7</code> <code class="id">ea51</code> <code class="id">7783</code> <code class="id">5471</code> <code class="id">32e7</code> <code class="id">69eb</code> <code class="id">3194</code> <code class="id">a8b4</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+<dl class="fields">
+<dt>Tasks</dt><dd>7: <code class="id">ac33</code> <code class="id">9f3f</code> <code class="id">7166</code> <code class="id">77b2</code> <code class="id">6103</code> <code class="id">c6e8</code> <code class="id">595e</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>nbyoung@nbyoung.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
 <details class="group" open>
 <summary>📌 mockup <span class="tally">· 20 junctions · 20 next</span></summary>
 <div class="scroll"><table>
@@ -510,15 +621,13 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 </dl>
 </details>
 </details>
-<p class="fold">Outside the window: 32 at 📝 defined, all passed, <code>claude-haiku</code>; none at 🚀 release.</p>
-<details class="prov"><summary>Provenance: the positions outside the window</summary><p>📝 defined, 32 junctions, contributor and model from <code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code>; reviewer by the plain default, the assignee.</p></details>
 <h3>Models by gate</h3>
 <p>One email stands for four models; the junction names the model.</p>
 <div class="scroll"><table>
 <caption>The model the agent runs at each gate</caption>
 <thead><tr><th scope="col">Gate</th><th scope="col">Model</th><th scope="col">Stated by</th><th scope="col" class="numh">Junctions</th><th scope="col" class="numh">Next</th><th scope="col">Note</th></tr></thead>
 <tbody>
-<tr class="folded"><th scope="row">📝 defined</th><td><code>claude-haiku</code></td><td><code class="id">437e</code></td><td class="num">32</td><td class="num">0</td><td>outside the window</td></tr>
+<tr><th scope="row">📝 defined</th><td><code>claude-haiku</code></td><td><code class="id">437e</code></td><td class="num">32</td><td class="num">0</td><td></td></tr>
 <tr><th scope="row">📌 mockup</th><td><code>claude-opus</code></td><td><code class="id">437e</code></td><td class="num">20</td><td class="num">20</td><td></td></tr>
 <tr><th scope="row">🔧 function</th><td><code>claude-sonnet</code></td><td><code class="id">437e</code></td><td class="num">0</td><td class="num">0</td><td>no task has a function junction of its own: each is exempt or recursive</td></tr>
 <tr><th scope="row">📐 design</th><td><code>claude-fable</code></td><td><code class="id">bc63</code></td><td class="num">8</td><td class="num">0</td><td><code class="id">437e</code> states <code>claude-opus</code>; <code class="id">bc63</code> restates the model for the Method branch, and every task with a design junction of its own sits under it</td></tr>
@@ -529,8 +638,60 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 </tbody>
 </table></div>
 <p>At 🚀 release the owner contributes, so no model applies.</p>
-<h3>Reviews: 8 junctions in the window, 2 next</h3>
+<h3>Reviews: 33 junctions, 2 next</h3>
 <p>Every one is the agent's own work: <code class="id">437e</code> states no reviewer at these gates, so the assignee reviews, and the agent is the assignee.</p>
+<details class="group">
+<summary>📝 defined <span class="tally">· 25 junctions · 0 next</span></summary>
+<div class="scroll"><table>
+<caption>Junctions at defined where the agent reviews: the first 3 of 25</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">c2ad</code></th><td>Roles</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e9c6</code></th><td>Abstract views</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">99f0</code></th><td>Gate definition view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+<details class="fold"><summary>… and 22 more: <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code>, 9 under <code class="id">bc86</code> Markdown views, 10 under <code class="id">5fe3</code> HTML views; each passed</summary>
+<div class="scroll"><table>
+<caption>The other 22 junctions at defined where the agent reviews</caption>
+<thead><tr><th scope="col">Task</th><th scope="col">Title</th><th scope="col">Contributor</th><th scope="col">Model</th><th scope="col">When</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code class="id">05a9</code></th><td>Task definition view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a9ce</code></th><td>Authority delegation view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">bb7c</code></th><td>Task assignment view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c74a</code></th><td>Contributor work queue view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">efff</code></th><td>Work-blockage tree view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ab8e</code></th><td>Global tableau view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">c545</code></th><td>Contextual tableau view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">d615</code></th><td>History view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b14e</code></th><td>Audit view in Markdown</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a6f7</code></th><td>Gate definition view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7dff</code></th><td>Task definition view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">b1b7</code></th><td>Authority delegation view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">ea51</code></th><td>Task assignment view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7783</code></th><td>Contributor work queue view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">5471</code></th><td>Work-blockage tree view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">32e7</code></th><td>Global tableau view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">69eb</code></th><td>Contextual tableau view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">3194</code></th><td>History view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">a8b4</code></th><td>Audit view in Html</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">e3cb</code></th><td>Schema files</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">fcec</code></th><td>Conformance corpus</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+<tr><th scope="row"><code class="id">7861</code></th><td>Productivity evidence</td><td>noreply@anthropic.com</td><td><code>claude-haiku</code></td><td>passed</td></tr>
+</tbody>
+</table></div>
+</details>
+<p class="fold">At 📝 defined the authorisation stands as the review.</p>
+<details class="prov">
+<summary>Provenance: the file and the ancestor behind these positions</summary>
+<dl class="fields">
+<dt>Tasks</dt><dd>25: <code class="id">c2ad</code> <code class="id">e9c6</code> <code class="id">99f0</code> <code class="id">05a9</code> <code class="id">a9ce</code> <code class="id">bb7c</code> <code class="id">c74a</code> <code class="id">efff</code> <code class="id">ab8e</code> <code class="id">c545</code> <code class="id">d615</code> <code class="id">b14e</code> <code class="id">a6f7</code> <code class="id">7dff</code> <code class="id">b1b7</code> <code class="id">ea51</code> <code class="id">7783</code> <code class="id">5471</code> <code class="id">32e7</code> <code class="id">69eb</code> <code class="id">3194</code> <code class="id">a8b4</code> <code class="id">e3cb</code> <code class="id">fcec</code> <code class="id">7861</code></dd>
+<dt>Contributor and model from</dt><dd><code class="id">437e</code> Tableaux tooling, <code>junctions.defined</code> in <code>.tableaux/tasks/437e.yaml</code>, commit <code>320cf2b</code></dd>
+<dt>Reviewer</dt><dd>noreply@anthropic.com</dd>
+<dt>Reviewer from</dt><dd>plain default: no file states a reviewer at defined, so the assignee reviews the agent; <code>assignee</code> in each task's own file, commit <code>6b6c99a</code></dd>
+</dl>
+</details>
+</details>
 <details class="group" open>
 <summary>🧱 implementation <span class="tally">· 5 junctions · 1 next</span></summary>
 <div class="scroll"><table>
@@ -593,24 +754,22 @@ pre { background: var(--band); font-family: var(--mono); font-size: .875em; marg
 </dl>
 </details>
 </details>
-<p class="fold">Outside the window: 25 at 📝 defined, all passed, its own work; the authorisation stands as the review there.</p>
-<details class="prov"><summary>Provenance: the reviews outside the window</summary><p>📝 defined, 25 junctions, reviewer by the plain default, the assignee.</p></details>
 <h3>Counts by gate</h3>
 <div class="scroll"><table>
-<caption>Counts by gate for noreply@anthropic.com; a folded gate lies outside the window</caption>
-<thead><tr><th scope="col">Gate</th><th scope="col" class="numh">Tasks standing here</th><th scope="col" class="numh">Contributes</th><th scope="col" class="numh">of which next</th><th scope="col" class="numh">Reviews</th><th scope="col" class="numh">of which next</th><th scope="col">Window</th></tr></thead>
+<caption>Counts by gate for noreply@anthropic.com</caption>
+<thead><tr><th scope="col">Gate</th><th scope="col" class="numh">Tasks standing here</th><th scope="col" class="numh">Contributes</th><th scope="col" class="numh">of which next</th><th scope="col" class="numh">Reviews</th><th scope="col" class="numh">of which next</th></tr></thead>
 <tbody>
-<tr class="folded"><th scope="row">📝 defined</th><td class="num">22</td><td class="num">32</td><td class="num">0</td><td class="num">25</td><td class="num">0</td><td>folded</td></tr>
-<tr><th scope="row">📌 mockup</th><td class="num">0</td><td class="num">20</td><td class="num">20</td><td class="num">0</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">🔧 function</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">📐 design</th><td class="num">1</td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">🧱 implementation</th><td class="num">3</td><td class="num">8</td><td class="num">4</td><td class="num">5</td><td class="num">1</td><td>in</td></tr>
-<tr><th scope="row">📏 unit</th><td class="num">1</td><td class="num">2</td><td class="num">1</td><td class="num">2</td><td class="num">1</td><td>in</td></tr>
-<tr><th scope="row">🔗 integrate</th><td class="num">0</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">0</td><td>in</td></tr>
-<tr><th scope="row">🌍 validate</th><td class="num">0</td><td class="num">8</td><td class="num">3</td><td class="num">0</td><td class="num">0</td><td>in</td></tr>
-<tr class="folded"><th scope="row">🚀 release</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td>folded</td></tr>
+<tr><th scope="row">📝 defined</th><td class="num">22</td><td class="num">32</td><td class="num">0</td><td class="num">25</td><td class="num">0</td></tr>
+<tr><th scope="row">📌 mockup</th><td class="num">0</td><td class="num">20</td><td class="num">20</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🔧 function</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">📐 design</th><td class="num">1</td><td class="num">8</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🧱 implementation</th><td class="num">3</td><td class="num">8</td><td class="num">4</td><td class="num">5</td><td class="num">1</td></tr>
+<tr><th scope="row">📏 unit</th><td class="num">1</td><td class="num">2</td><td class="num">1</td><td class="num">2</td><td class="num">1</td></tr>
+<tr><th scope="row">🔗 integrate</th><td class="num">0</td><td class="num">1</td><td class="num">0</td><td class="num">1</td><td class="num">0</td></tr>
+<tr><th scope="row">🌍 validate</th><td class="num">0</td><td class="num">8</td><td class="num">3</td><td class="num">0</td><td class="num">0</td></tr>
+<tr><th scope="row">🚀 release</th><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
 </tbody>
-<tfoot><tr><th scope="row">Total</th><td class="num">27</td><td class="num">79</td><td class="num">28</td><td class="num">33</td><td class="num">2</td><td></td></tr></tfoot>
+<tfoot><tr><th scope="row">Total</th><td class="num">27</td><td class="num">79</td><td class="num">28</td><td class="num">33</td><td class="num">2</td></tr></tfoot>
 </table></div>
 <h3>Authority</h3>
 <p>Over <code class="id">bc86</code> Markdown views and its 10 children, and over <code class="id">5fe3</code> HTML views and its 10 children. A leaf gives no authority. See <a href="authority.html">the authority delegation view</a>.</p>

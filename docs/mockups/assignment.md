@@ -2,7 +2,7 @@
 
 What does each person carry? This view lists, for each email in the project, the tasks it is assigned, the junctions where it contributes or reviews, and the subtrees it has authority over.
 
-Project Tableaux tooling · ref `main` at `3cdae52`, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · person: every email · task: `437e`, the root · window: the default, 📌 mockup to 🌍 validate. The legend for every symbol is the [gate definition](gates.md).
+Project Tableaux tooling · ref `main` at `3cdae52`, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · person: every email · task: `437e`, the root. The legend for every symbol is the [gate definition](gates.md).
 
 The three sections below are three renderings of the same view, one per level.
 
@@ -56,11 +56,36 @@ The owner: the assignee of the root `437e`, so an authority of every task. A per
 | `c6e8` | 📌 mockup 🪆 | `subprojects/tablotui` | `40e8` 🔧 function 🟢 nominal |
 | `595e` | 📌 mockup 🪆 | `subprojects/tableaud` | `8608` 🔧 function 🟢 nominal |
 
-#### Contributes: 0 junctions in the window, 0 next
+#### Contributes: 8 junctions, 0 next
 
-None in the window. Outside it: 8 at 🚀 release, none next: `c2ad` `e9c6` `e3cb` `fcec` `ac33` `9f3f` `7861` `7166`.
+**🚀 release** · 8 junctions · 0 next
 
-#### Reviews: 39 junctions in the window, 26 next
+| Task | Title | Model | Reviewer | When |
+|---|---|---|---|---|
+| `c2ad` | Roles | none: a person | none | later |
+| `e9c6` | Abstract views | none: a person | none | later |
+| `e3cb` | Schema files | none: a person | none | later |
+| `fcec` | Conformance corpus | none: a person | none | later |
+| `ac33` | Agent identity | none: a person | none | later |
+| `9f3f` | Subproject linkage | none: a person | none | later |
+| `7861` | Productivity evidence | none: a person | none | later |
+| `7166` | Language clarifications | none: a person | none | later |
+
+#### Reviews: 46 junctions, 26 next
+
+**📝 defined** · 7 junctions · 0 next
+
+| Task | Title | Contributor | Model | When |
+|---|---|---|---|---|
+| `ac33` | Agent identity | noreply@anthropic.com | `claude-haiku` | passed |
+| `9f3f` | Subproject linkage | noreply@anthropic.com | `claude-haiku` | passed |
+| `7166` | Language clarifications | noreply@anthropic.com | `claude-haiku` | passed |
+| `77b2` | tablo: backend library and plumbing | noreply@anthropic.com | `claude-haiku` | passed |
+| `6103` | tabloio: command line, output and input | noreply@anthropic.com | `claude-haiku` | passed |
+| `c6e8` | tablotui: terminal user interface | noreply@anthropic.com | `claude-haiku` | passed |
+| `595e` | tableaud: local daemon and HTML | noreply@anthropic.com | `claude-haiku` | passed |
+
+At 📝 defined the authorisation stands as the review.
 
 **📌 mockup** · 20 junctions · 20 next
 
@@ -106,22 +131,20 @@ None in the window. Outside it: 8 at 🚀 release, none next: `c2ad` `e9c6` `e3c
 | `7861` | Productivity evidence | noreply@anthropic.com | `claude-opus` | **next** |
 | `7166` | Language clarifications | noreply@anthropic.com | `claude-opus` | later |
 
-Outside the window: 7 at 📝 defined, all passed; the authorisation stands as the review there.
-
 #### Counts by gate
 
-| Gate | Tasks standing here | Contributes | of which next | Reviews | of which next | Window |
-|---|--:|--:|--:|--:|--:|---|
-| 📝 defined | 7 | 0 | 0 | 7 | 0 | folded |
-| 📌 mockup | 0 | 0 | 0 | 20 | 20 | in |
-| 🔧 function | 0 | 0 | 0 | 0 | 0 | in |
-| 📐 design | 3 | 0 | 0 | 8 | 0 | in |
-| 🧱 implementation | 0 | 0 | 0 | 3 | 3 | in |
-| 📏 unit | 0 | 0 | 0 | 0 | 0 | in |
-| 🔗 integrate | 0 | 0 | 0 | 0 | 0 | in |
-| 🌍 validate | 0 | 0 | 0 | 8 | 3 | in |
-| 🚀 release | 0 | 8 | 0 | 0 | 0 | folded |
-| **Total** | **10** | **8** | **0** | **46** | **26** | |
+| Gate | Tasks standing here | Contributes | of which next | Reviews | of which next |
+|---|--:|--:|--:|--:|--:|
+| 📝 defined | 7 | 0 | 0 | 7 | 0 |
+| 📌 mockup | 0 | 0 | 0 | 20 | 20 |
+| 🔧 function | 0 | 0 | 0 | 0 | 0 |
+| 📐 design | 3 | 0 | 0 | 8 | 0 |
+| 🧱 implementation | 0 | 0 | 0 | 3 | 3 |
+| 📏 unit | 0 | 0 | 0 | 0 | 0 |
+| 🔗 integrate | 0 | 0 | 0 | 0 | 0 |
+| 🌍 validate | 0 | 0 | 0 | 8 | 3 |
+| 🚀 release | 0 | 8 | 0 | 0 | 0 |
+| **Total** | **10** | **8** | **0** | **46** | **26** |
 
 #### Authority
 
@@ -147,7 +170,17 @@ Over `437e` Tableaux tooling and its 36 descendants: every task. See [authority]
 
 🤖👀 an agent contributes and a person reviews · 🤖 an agent contributes and reviews its own work · 🪆 a subproject does the work.
 
-#### Contributes: 47 junctions in the window, 28 next
+#### Contributes: 79 junctions, 28 next
+
+**📝 defined** · 32 junctions · 0 next
+
+| Task | Title | Model | Reviewer | When |
+|---|---|---|---|---|
+| `c2ad` | Roles | `claude-haiku` | noreply@anthropic.com | passed |
+| `e9c6` | Abstract views | `claude-haiku` | noreply@anthropic.com | passed |
+| `99f0` | Gate definition view in Markdown | `claude-haiku` | noreply@anthropic.com | passed |
+
+… and 29 more: `e3cb` `fcec` `ac33` `9f3f` `7861` `7166` `77b2` `6103` `c6e8` `595e`, 9 under `bc86` Markdown views, 10 under `5fe3` HTML views; each passed.
 
 **📌 mockup** · 20 junctions · 20 next
 
@@ -211,13 +244,11 @@ Over `437e` Tableaux tooling and its 36 descendants: every task. See [authority]
 | `7861` | Productivity evidence | `claude-opus` | nbyoung@nbyoung.com | **next** |
 | `7166` | Language clarifications | `claude-opus` | nbyoung@nbyoung.com | later |
 
-Outside the window: 32 at 📝 defined, all passed, `claude-haiku`; none at 🚀 release.
-
 **Models by gate.** One email stands for four models; the junction names the model.
 
 | Gate | Model | Stated by | Junctions | Next | Note |
 |---|---|---|--:|--:|---|
-| 📝 defined | `claude-haiku` | `437e` | 32 | 0 | outside the window |
+| 📝 defined | `claude-haiku` | `437e` | 32 | 0 |  |
 | 📌 mockup | `claude-opus` | `437e` | 20 | 20 |  |
 | 🔧 function | `claude-sonnet` | `437e` | 0 | 0 | no task has a function junction of its own: each is exempt or recursive |
 | 📐 design | `claude-fable` | `bc63` | 8 | 0 | `437e` states `claude-opus`; `bc63` restates the model for the Method branch, and every task with a design junction of its own sits under it |
@@ -228,9 +259,21 @@ Outside the window: 32 at 📝 defined, all passed, `claude-haiku`; none at 🚀
 
 At 🚀 release the owner contributes, so no model applies.
 
-#### Reviews: 8 junctions in the window, 2 next
+#### Reviews: 33 junctions, 2 next
 
 Every one is the agent's own work: `437e` states no reviewer at these gates, so the assignee reviews, and the agent is the assignee.
+
+**📝 defined** · 25 junctions · 0 next
+
+| Task | Title | Contributor | Model | When |
+|---|---|---|---|---|
+| `c2ad` | Roles | noreply@anthropic.com | `claude-haiku` | passed |
+| `e9c6` | Abstract views | noreply@anthropic.com | `claude-haiku` | passed |
+| `99f0` | Gate definition view in Markdown | noreply@anthropic.com | `claude-haiku` | passed |
+
+… and 22 more: `e3cb` `fcec` `7861`, 9 under `bc86` Markdown views, 10 under `5fe3` HTML views; each passed.
+
+At 📝 defined the authorisation stands as the review.
 
 **🧱 implementation** · 5 junctions · 1 next
 
@@ -255,22 +298,20 @@ Every one is the agent's own work: `437e` states no reviewer at these gates, so 
 |---|---|---|---|---|
 | `fcec` | Conformance corpus | noreply@anthropic.com | `claude-sonnet` | later |
 
-Outside the window: 25 at 📝 defined, all passed, its own work; the authorisation stands as the review there.
-
 #### Counts by gate
 
-| Gate | Tasks standing here | Contributes | of which next | Reviews | of which next | Window |
-|---|--:|--:|--:|--:|--:|---|
-| 📝 defined | 22 | 32 | 0 | 25 | 0 | folded |
-| 📌 mockup | 0 | 20 | 20 | 0 | 0 | in |
-| 🔧 function | 0 | 0 | 0 | 0 | 0 | in |
-| 📐 design | 1 | 8 | 0 | 0 | 0 | in |
-| 🧱 implementation | 3 | 8 | 4 | 5 | 1 | in |
-| 📏 unit | 1 | 2 | 1 | 2 | 1 | in |
-| 🔗 integrate | 0 | 1 | 0 | 1 | 0 | in |
-| 🌍 validate | 0 | 8 | 3 | 0 | 0 | in |
-| 🚀 release | 0 | 0 | 0 | 0 | 0 | folded |
-| **Total** | **27** | **79** | **28** | **33** | **2** | |
+| Gate | Tasks standing here | Contributes | of which next | Reviews | of which next |
+|---|--:|--:|--:|--:|--:|
+| 📝 defined | 22 | 32 | 0 | 25 | 0 |
+| 📌 mockup | 0 | 20 | 20 | 0 | 0 |
+| 🔧 function | 0 | 0 | 0 | 0 | 0 |
+| 📐 design | 1 | 8 | 0 | 0 | 0 |
+| 🧱 implementation | 3 | 8 | 4 | 5 | 1 |
+| 📏 unit | 1 | 2 | 1 | 2 | 1 |
+| 🔗 integrate | 0 | 1 | 0 | 1 | 0 |
+| 🌍 validate | 0 | 8 | 3 | 0 | 0 |
+| 🚀 release | 0 | 0 | 0 | 0 | 0 |
+| **Total** | **27** | **79** | **28** | **33** | **2** |
 
 #### Authority
 
@@ -289,16 +330,17 @@ This level adds, to each position of the detail, the file and the ancestor that 
 | Assignee | 10: `437e` `bc63` `2034` `ac33` `9f3f` `7166` `77b2` `6103` `c6e8` `595e` | `assignee` in each task's own file, `.tableaux/tasks/ID.yaml`, commit `6b6c99a` |
 | Authority | `437e` and its 36 descendants | `assignee` in `.tableaux/tasks/437e.yaml`, commit `6b6c99a`: the root is an ancestor of every other task |
 
-Contributes: none in the window. Outside it: 🚀 release, 8 junctions, contributor from `437e` Tableaux tooling, `junctions.release` in `.tableaux/tasks/437e.yaml`, commit `6b6c99a`; no model, no reviewer.
+| Contributes at | Tasks | Contributor and model from | Reviewer | Reviewer from |
+|---|---|---|---|---|
+| 🚀 release | 8: `c2ad` `e9c6` `e3cb` `fcec` `ac33` `9f3f` `7861` `7166` | `437e` Tableaux tooling, `junctions.release` in `.tableaux/tasks/437e.yaml`, commit `6b6c99a`; no model, since a person contributes | none | none: a person contributes, and no file states a reviewer |
 
 | Reviews at | Tasks | Reviewer from | Contributor and model from |
 |---|---|---|---|
+| 📝 defined | 7: `ac33` `9f3f` `7166` `77b2` `6103` `c6e8` `595e` | plain default: no file states a reviewer at defined, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` | `437e` Tableaux tooling, `junctions.defined` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 📌 mockup | 20: the 20 mockups under `bc86` and `5fe3` | `437e` Tableaux tooling, `junctions.mockup` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | `437e` Tableaux tooling, `junctions.mockup` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 📐 design | 8: `c2ad` `e9c6` `e3cb` `fcec` `ac33` `9f3f` `7861` `7166` | `437e` Tableaux tooling, `junctions.design` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | `bc63` Method, `junctions.design` in `.tableaux/tasks/bc63.yaml`, commit `320cf2b` |
 | 🧱 implementation | 3: `ac33` `9f3f` `7166` | plain default: no file states a reviewer at implementation, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` | `437e` Tableaux tooling, `junctions.implementation` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 🌍 validate | 8: `c2ad` `e9c6` `e3cb` `fcec` `ac33` `9f3f` `7861` `7166` | `437e` Tableaux tooling, `junctions.validate` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | `bc63` Method, `junctions.validate` in `.tableaux/tasks/bc63.yaml`, commit `320cf2b` |
-
-Outside the window: 📝 defined, 7 junctions, reviewer by the plain default, the assignee.
 
 No position, since the junction is recursive: each task's own file states it, a recursive junction inherits nothing, and the submodule pin fixes the commit the subproject is read at.
 
@@ -318,6 +360,8 @@ No position, since the junction is recursive: each task's own file states it, a 
 
 | Contributes at | Tasks | Contributor and model from | Reviewer | Reviewer from |
 |---|---|---|---|---|
+| 📝 defined | 25: `c2ad` `e9c6` `99f0` `05a9` `a9ce` `bb7c` `c74a` `efff` `ab8e` `c545` `d615` `b14e` `a6f7` `7dff` `b1b7` `ea51` `7783` `5471` `32e7` `69eb` `3194` `a8b4` `e3cb` `fcec` `7861` | `437e` Tableaux tooling, `junctions.defined` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | noreply@anthropic.com | plain default: no file states a reviewer at defined, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` |
+| 📝 defined | 7: `ac33` `9f3f` `7166` `77b2` `6103` `c6e8` `595e` | `437e` Tableaux tooling, `junctions.defined` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | nbyoung@nbyoung.com | plain default: no file states a reviewer at defined, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` |
 | 📌 mockup | 20: the 20 mockups under `bc86` and `5fe3` | `437e` Tableaux tooling, `junctions.mockup` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | nbyoung@nbyoung.com | `437e` Tableaux tooling, `junctions.mockup` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 📐 design | 8: `c2ad` `e9c6` `e3cb` `fcec` `ac33` `9f3f` `7861` `7166` | `bc63` Method, `junctions.design` in `.tableaux/tasks/bc63.yaml`, commit `320cf2b` | nbyoung@nbyoung.com | `437e` Tableaux tooling, `junctions.design` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 🧱 implementation | 5: `c2ad` `e9c6` `e3cb` `fcec` `7861` | `437e` Tableaux tooling, `junctions.implementation` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | noreply@anthropic.com | plain default: no file states a reviewer at implementation, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` |
@@ -326,15 +370,12 @@ No position, since the junction is recursive: each task's own file states it, a 
 | 🔗 integrate | 1: `fcec` | `437e` Tableaux tooling, `junctions.integrate` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` | noreply@anthropic.com | plain default: no file states a reviewer at integrate, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` |
 | 🌍 validate | 8: `c2ad` `e9c6` `e3cb` `fcec` `ac33` `9f3f` `7861` `7166` | `bc63` Method, `junctions.validate` in `.tableaux/tasks/bc63.yaml`, commit `320cf2b` | nbyoung@nbyoung.com | `437e` Tableaux tooling, `junctions.validate` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 
-Outside the window: 📝 defined, 32 junctions, contributor and model from `437e` Tableaux tooling, `junctions.defined` in `.tableaux/tasks/437e.yaml`, commit `320cf2b`; reviewer by the plain default, the assignee.
-
 | Reviews at | Tasks | Reviewer from | Contributor and model from |
 |---|---|---|---|
+| 📝 defined | 25: `c2ad` `e9c6` `99f0` `05a9` `a9ce` `bb7c` `c74a` `efff` `ab8e` `c545` `d615` `b14e` `a6f7` `7dff` `b1b7` `ea51` `7783` `5471` `32e7` `69eb` `3194` `a8b4` `e3cb` `fcec` `7861` | plain default: no file states a reviewer at defined, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` | `437e` Tableaux tooling, `junctions.defined` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 🧱 implementation | 5: `c2ad` `e9c6` `e3cb` `fcec` `7861` | plain default: no file states a reviewer at implementation, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` | `437e` Tableaux tooling, `junctions.implementation` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 📏 unit | 2: `e3cb` `fcec` | plain default: no file states a reviewer at unit, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` | `437e` Tableaux tooling, `junctions.unit` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
 | 🔗 integrate | 1: `fcec` | plain default: no file states a reviewer at integrate, so the assignee reviews the agent; `assignee` in each task's own file, commit `6b6c99a` | `437e` Tableaux tooling, `junctions.integrate` in `.tableaux/tasks/437e.yaml`, commit `320cf2b` |
-
-Outside the window: 📝 defined, 25 junctions, reviewer by the plain default, the assignee.
 
 ### Commits
 
