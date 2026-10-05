@@ -1,6 +1,6 @@
 # Task definition: `e9c6` Abstract views
 
-The task definition view answers one question: what is this task and where does it stand? This file draws it for task `e9c6` of the Tableaux tooling plan, on `main` at commit `3cdae52`, 2026-10-05, for the viewer nbyoung@nbyoung.com, the owner, with every gate in view. Bold marks each position that nbyoung@nbyoung.com holds in the task.
+The task definition view answers one question: what is this task and where does it stand? This file draws it for task `e9c6` of the Tableaux tooling plan, on `main` at commit `3cdae52`, 2026-10-05, for the viewer nbyoung@nbyoung.com, the owner. Bold marks each position that nbyoung@nbyoung.com holds in the task.
 
 `e9c6` is the full example: a leaf with a requirement, twenty-one dependents, four exempt gates, junction fields that resolve from two ancestors, and a review. The view also carries two other shapes, which [the last section](#the-two-other-shapes) shows more briefly: a parent, `5fe3`, whose status is a roll-up, and a task with recursive junctions, `595e`, whose status comes from a subproject snapshot.
 
