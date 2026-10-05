@@ -10,7 +10,6 @@ This mockup depicts this project, the Tableaux tooling plan, on `main` at `3cdae
 | viewer | nbyoung@nbyoung.com, the owner, who dispatches the agent |
 | person | noreply@anthropic.com, the agent, as its dispatcher names it; then nbyoung@nbyoung.com, the viewer by default |
 | task | `437e` Tableaux tooling, the root, so the whole project |
-| window | every gate |
 | level | glance, detail and provenance |
 | brief | at provenance: `c74a` at mockup |
 
