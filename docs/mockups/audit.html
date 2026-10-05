@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+.sev { border: 1px solid var(--muted); border-radius: .25rem; font-size: .8125rem; padding: 0 .35rem; white-space: nowrap; }
+.sev.error { border: 2px solid var(--fg); font-weight: 700; text-transform: uppercase; }
+.sev.warning { border-color: var(--fg); font-weight: 600; }
+.sev.information { border-style: dashed; color: var(--muted); }
+p.counts { font-size: 1.125rem; margin: .5rem 0; }
+ul.silent { color: var(--muted); font-size: .875rem; margin: .25rem 0; padding-left: 1.25rem; }
+details.detail { border-top: 1px solid var(--line); padding-top: .5rem; }
+details.detail > summary .muted { font-weight: 400; }
+details.prov table { font-size: inherit; }
+details.prov thead th { background: transparent; }
+blockquote { border-left: 3px solid var(--line); margin: .25rem 0; padding-left: .75rem; }
+pre { background: var(--band); font-family: var(--mono); font-size: .8125rem; margin: .5rem 0; overflow-x: auto; padding: .5rem .75rem; }
+details.prov pre { background: var(--bg); }
+ul.ids { display: flex; flex-wrap: wrap; gap: .1rem .75rem; list-style: none; margin: .25rem 0; padding: 0; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html">History</a></li>
+      <li><a href="audit.html" aria-current="page">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner · task <a class="id" href="task.html?task=437e">437e</a>, the root · person: everyone · stale: 7 days · level: provenance, where the audit opens for the owner</p>
+</header>
+<main id="main">
+  <h1>Audit</h1>
+  <p class="question">Where do files and history disagree?</p>
+
+  <!-- glance: visible without any interaction -->
+  <section aria-labelledby="glance">
+    <h2 id="glance">Glance</h2>
+    <p class="counts"><strong>1 error, 3 warnings, 28 items of information</strong>: 32 findings. The error makes the project invalid until it resolves.</p>
+    <div class="scroll">
+    <table>
+      <caption>Findings by kind: errors first, then warnings, then information. Each kind links to its findings below.</caption>
+      <thead>
+        <tr><th scope="col">Severity</th><th scope="col">Rule</th><th scope="col">Kind</th><th scope="col">Findings</th><th scope="col">Tasks</th><th scope="col">Resolver</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="sev error">error</span></td><td>S11</td><th scope="row"><a href="#s11">A status past a reviewed junction with no review</a></th><td class="num">1</td><td><a class="id" href="task.html?task=e3cb">e3cb</a></td><td>noreply@anthropic.com</td></tr>
+        <tr><td><span class="sev warning">warning</span></td><td>H3</td><th scope="row"><a href="#h3">A <code>Model:</code> trailer outside the junction's model</a></th><td class="num">3</td><td><a class="id" href="task.html?task=437e">437e</a>, <a class="id" href="task.html?task=bc63">bc63</a>, <a class="id" href="task.html?task=ac33">ac33</a></td><td class="mine">nbyoung@nbyoung.com</td></tr>
+        <tr><td><span class="sev information">information</span></td><td>H4</td><th scope="row"><a href="#h4">A hand-off the history implies</a></th><td class="num">28</td><td><a class="id" href="task.html?task=99f0">99f0</a> … <a class="id" href="task.html?task=a8b4">a8b4</a>, the twenty mockup tasks; <a class="id" href="task.html?task=c2ad">c2ad</a>, <a class="id" href="task.html?task=e9c6">e9c6</a>, <a class="id" href="task.html?task=e3cb">e3cb</a>, <a class="id" href="task.html?task=fcec">fcec</a>, <a class="id" href="task.html?task=ac33">ac33</a>, <a class="id" href="task.html?task=9f3f">9f3f</a>, <a class="id" href="task.html?task=7861">7861</a>, <a class="id" href="task.html?task=7166">7166</a></td><td>noreply@anthropic.com</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p><strong>Most to resolve:</strong> noreply@anthropic.com, 29 of 32: the error and the 28 items of information. nbyoung@nbyoung.com resolves the 3 warnings; the marked cell is the viewer's.</p>
+    <p class="muted">Silent:</p>
+    <ul class="silent">
+      <li>No task is proposed: the owner's commits decide all 37 task files (<a href="authority.html">authority</a>).</li>
+      <li>Nothing is stale at 7 days: no commit carries <code>Reaffirmed:</code>, and no status is older than six days. The oldest are the twenty mockup tasks', dated 2026-09-29 by <code>1a17bfc</code>.</li>
+      <li>No requirement is unmet (R9): <a class="id" href="task.html?task=e9c6">e9c6</a> stands at <span aria-hidden="true">📐</span> design since <code>879b447</code>, which meets the twenty mockup tasks, and the eight unmet requirements of <a class="id" href="task.html?task=77b2">77b2</a>, <a class="id" href="task.html?task=6103">6103</a>, <a class="id" href="task.html?task=c6e8">c6e8</a> and <a class="id" href="task.html?task=595e">595e</a> are not yet due (<a href="blockage.html">blockage</a>).</li>
+      <li>The four pins sit on their subprojects' trunks (J13), every trailer names a task and a gate that applies (H1), every <code>Reviewed:</code> trailer comes from its junction's reviewer (H2), no status states <span aria-hidden="true">👓</span> review (H5), and every agent commit since language 0.2.1 carries <code>Model:</code> (H6).</li>
+      <li>A clone without the submodules adds one J8 error for each of <a class="id" href="task.html?task=77b2">77b2</a>, <a class="id" href="task.html?task=6103">6103</a>, <a class="id" href="task.html?task=c6e8">c6e8</a> and <a class="id" href="task.html?task=595e">595e</a>; <code>git submodule update --init</code> resolves them.</li>
+    </ul>
+    <p class="fold">Symbols: the <a href="gates.html">gate definition</a> is the legend. Files sit under <code>.tableaux/</code>. A date is the commit's author date.</p>
+  </section>
+
+  <section aria-labelledby="findings">
+    <h2 id="findings">Findings, by the action that resolves them</h2>
+    <p class="fold">The owner arrives with every group open down to its provenance. One purple block serves a whole group: the rule's sentence, one line per commit, and the commands. Thirty-two findings therefore open as three blocks. An authority who is not the owner arrives at detail, with the groups open over that authority's subtree and each block closed.</p>
+
+    <!-- detail: one group per action; `open` because the audit serves the owner -->
+    <details class="detail" id="s11" open>
+      <summary><span class="sev error">error</span> Review · S11 · 1 finding <span class="muted">· noreply@anthropic.com resolves</span></summary>
+      <div class="scroll">
+      <table>
+        <caption>S11: a status past a reviewed junction with no review</caption>
+        <thead>
+          <tr><th scope="col">Task</th><th scope="col">Gate</th><th scope="col">File</th><th scope="col">Message</th><th scope="col">Action</th><th scope="col">Resolver</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row"><a class="id" href="task.html?task=e3cb">e3cb</a> Schema files</th><td><span aria-hidden="true">🧱</span> implementation</td><td><code>status/e3cb.yaml</code></td><td>The status stands at <span aria-hidden="true">📏</span> unit and passes <span aria-hidden="true">🧱</span> implementation, whose reviewer is noreply@anthropic.com; no commit carries the trailer <code>Reviewed: e3cb implementation</code>. <code>fbe3c97</code> writes that line in its body, not among its trailers.</td><td>Review: commit <code>Reviewed: e3cb implementation</code>, or return the status to <span aria-hidden="true">📐</span> design, the last reviewed gate</td><td>noreply@anthropic.com</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <!-- provenance: the representative item, drawn in full -->
+      <details class="prov" open>
+        <summary>Provenance: the rule, three commits and the commands</summary>
+        <dl class="fields">
+          <dt>Rule</dt>
+          <dd><a href="../../corpus/RULES.md">corpus/RULES.md</a> S11, from <a href="../../README.md#status">README.md, Status</a>:
+            <blockquote>A validator rejects a status whose gate passes a reviewed junction that has no such commit.</blockquote></dd>
+          <dt>Junction</dt>
+          <dd><a class="id" href="task.html?task=e3cb">e3cb</a> at <span aria-hidden="true">🧱</span> implementation takes its contributor noreply@anthropic.com and its model <code>claude-sonnet</code> from <a class="id" href="task.html?task=437e">437e</a>. It states no reviewer, so the assignee of <code class="id">e3cb</code>, noreply@anthropic.com, reviews.</dd>
+        </dl>
+        <div class="scroll">
+        <table>
+          <caption>The commits involved (<a href="history.html">history</a>); the committer shows where it differs from the author</caption>
+          <thead>
+            <tr><th scope="col">Commit</th><th scope="col">Date</th><th scope="col">Author</th><th scope="col">Committer</th><th scope="col">Subject</th><th scope="col">Status of e3cb after</th><th scope="col">Trailers</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row"><code>0529170</code></th><td>2026-09-29</td><td>nbyoung@nbyoung.com</td><td></td><td>Accept the schema files design</td><td><span aria-hidden="true">📝</span> defined, <span aria-hidden="true">🟢</span> nominal, <span aria-hidden="true">👓</span> review</td><td><code>Reviewed: e3cb design</code></td></tr>
+            <tr><th scope="row"><code>fbe3c97</code></th><td>2026-09-29</td><td>noreply@anthropic.com</td><td>nbyoung@nbyoung.com</td><td>Advance Roles, schema files and evidence past their design reviews</td><td><span aria-hidden="true">🧱</span> implementation, <span aria-hidden="true">🟢</span> nominal</td><td>None that the method reads; the body holds the line <code>Reviewed: e3cb implementation</code> above a blank line</td></tr>
+            <tr><th scope="row"><code>5cbec7c</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td></td><td>Record e3cb at unit, nominal</td><td><span aria-hidden="true">📏</span> unit, <span aria-hidden="true">🟢</span> nominal</td><td><code>Reviewed: e3cb unit</code>, <code>Model: claude-sonnet-5-5</code></td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p>Git reads a trailer only in the last paragraph of a message. In <code>fbe3c97</code> the last paragraph holds <code>Co-Authored-By:</code> alone, so the reviewer's line counts for nothing.</p>
+<pre># shows the finding: three trailers, none for implementation
+git log --format='%h %(trailers:key=Reviewed)' -E --grep='^Reviewed: e3cb '
+
+# resolves it: noreply@anthropic.com, the reviewer, accepts the gate
+git commit --allow-empty -m 'Accept the schema files implementation' \
+    --trailer 'Reviewed: e3cb implementation' --trailer 'Model: &lt;the model that runs&gt;'</pre>
+      </details>
+    </details>
+
+    <details class="detail" id="h3" open>
+      <summary><span class="sev warning">warning</span> Revise the file · H3 · 3 findings <span class="muted">· nbyoung@nbyoung.com resolves</span></summary>
+      <div class="scroll">
+      <table>
+        <caption>H3: a <code>Model:</code> trailer outside the junction's model; one row per commit</caption>
+        <thead>
+          <tr><th scope="col">Task</th><th scope="col">Gate</th><th scope="col">File</th><th scope="col">Message</th><th scope="col">Action</th><th scope="col">Resolver</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row"><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, <a class="id" href="task.html?task=bc63">bc63</a> Method</th><td><span aria-hidden="true">📝</span> defined</td><td><code>tasks/437e.yaml</code>, <code>tasks/bc63.yaml</code></td><td><code>320cf2b</code> edits both task files under <code>Model: claude-fable-5-1</code>; the junction states <code>claude-haiku</code></td><td>Revise the file: state the model that ran at the junction</td><td class="mine">nbyoung@nbyoung.com</td></tr>
+          <tr><th scope="row"><a class="id" href="task.html?task=ac33">ac33</a> Agent identity</th><td><span aria-hidden="true">📝</span> defined</td><td><code>tasks/ac33.yaml</code></td><td><code>018814a</code> edits the task file under <code>Model: claude-fable-5-1</code>; the junction states <code>claude-haiku</code></td><td>Revise the file: state the model that ran at the junction</td><td class="mine">nbyoung@nbyoung.com</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <details class="prov" open>
+        <summary>Provenance: the rule, two commits and the commands</summary>
+        <dl class="fields">
+          <dt>Rule</dt>
+          <dd><a href="../../corpus/RULES.md">corpus/RULES.md</a> H3, from <a href="../../README.md#junctions">README.md, Junctions</a>:
+            <blockquote>the audit reports a commit at the junction whose trailer names a model outside the one stated</blockquote>
+            A change to a task file is work at <span aria-hidden="true">📝</span> defined (<a href="../../PLAN.md">PLAN.md</a>, decision D8).</dd>
+          <dt>Junction</dt>
+          <dd>Each of the three takes <span aria-hidden="true">📝</span> defined from <a class="id" href="task.html?task=437e">437e</a>: contributor noreply@anthropic.com, model <code>claude-haiku</code>. The model reads as a prefix; <code>claude-fable-5-1</code> lies outside it.</dd>
+        </dl>
+        <div class="scroll">
+        <table>
+          <caption>The commits involved (<a href="history.html">history</a>)</caption>
+          <thead>
+            <tr><th scope="col">Commit</th><th scope="col">Date</th><th scope="col">Author</th><th scope="col">Committer</th><th scope="col">Subject</th><th scope="col">Changes</th><th scope="col">Trailers</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row"><code>018814a</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td>nbyoung@nbyoung.com</td><td>Record the model an agent runs (F20)</td><td><code>tasks/ac33.yaml</code></td><td><code>Model: claude-fable-5-1</code></td></tr>
+            <tr><th scope="row"><code>320cf2b</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td>nbyoung@nbyoung.com</td><td>Name a model family per gate (D7)</td><td><code>tasks/437e.yaml</code>, <code>tasks/bc63.yaml</code></td><td><code>Model: claude-fable-5-1</code></td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p>At <code>018814a</code> the junction still stated <code>claude-fable-5-1</code>; <code>320cf2b</code> states <code>claude-haiku</code> nine minutes later. The audit reads the junction at the ref, so both commits report.</p>
+<pre># shows the finding: the model on each commit that changes the three task files
+git log --format='%h %(trailers:key=Model,valueonly)' -- \
+    .tableaux/tasks/437e.yaml .tableaux/tasks/bc63.yaml .tableaux/tasks/ac33.yaml
+
+# resolves it: nbyoung@nbyoung.com, an authority, states the model that ran, for example in ac33
+#   junctions: { defined: { contributor: noreply@anthropic.com, model: claude-fable } }
+git commit .tableaux/tasks/ac33.yaml -m 'State the model that defines the agent identity task'</pre>
+      </details>
+    </details>
+
+    <details class="detail" id="h4" open>
+      <summary><span class="sev information">information</span> Record the hand-off, or work on · H4 · 28 findings <span class="muted">· noreply@anthropic.com resolves</span></summary>
+      <div class="scroll">
+      <table>
+        <caption>H4: a hand-off the history implies; one row per gate and reason, gates in order</caption>
+        <thead>
+          <tr><th scope="col">Task</th><th scope="col">Gate</th><th scope="col">File</th><th scope="col">Message</th><th scope="col">Action</th><th scope="col">Resolver</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row"><a class="id" href="task.html?task=99f0">99f0</a> … <a class="id" href="task.html?task=a8b4">a8b4</a>, the twenty mockup tasks</th><td><span aria-hidden="true">📌</span> mockup</td><td><code>status/&lt;id&gt;.yaml</code></td><td>The contributor's <code>5958858</code> is the newest event and the status states no <span aria-hidden="true">👓</span> review; nbyoung@nbyoung.com may have a mockup to review</td><td>Record the hand-off: the reason <span aria-hidden="true">👓</span> review when the work is done; or work on</td><td>noreply@anthropic.com</td></tr>
+          <tr><th scope="row"><a class="id" href="task.html?task=ac33">ac33</a> Agent identity, <a class="id" href="task.html?task=9f3f">9f3f</a> Subproject linkage, <a class="id" href="task.html?task=7166">7166</a> Language clarifications</th><td><span aria-hidden="true">🧱</span> implementation</td><td><code>status/&lt;id&gt;.yaml</code></td><td>The contributor's status commit is the newest event (<code>6762222</code>, <code>43d68e4</code>, <code>d9396b4</code>) and the status states no <span aria-hidden="true">👓</span> review; nbyoung@nbyoung.com, the assignee, reviews</td><td>As above</td><td>noreply@anthropic.com</td></tr>
+          <tr><th scope="row"><a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</th><td><span aria-hidden="true">🧱</span> implementation</td><td><code>status/e9c6.yaml</code></td><td>The contributor's <code>879b447</code> is the newest event and the status states no <span aria-hidden="true">👓</span> review; the contributor is its own reviewer here</td><td>Record the gate with <code>Reviewed: e9c6 implementation</code> on the same commit; or work on</td><td>noreply@anthropic.com</td></tr>
+          <tr><th scope="row"><a class="id" href="task.html?task=fcec">fcec</a> Conformance corpus</th><td><span aria-hidden="true">📏</span> unit</td><td><code>status/fcec.yaml</code></td><td>The contributor's <code>60495c2</code> is the newest event and the status states no <span aria-hidden="true">👓</span> review; the contributor is its own reviewer here</td><td>Record the gate with <code>Reviewed: fcec unit</code> on the same commit; or work on</td><td>noreply@anthropic.com</td></tr>
+          <tr><th scope="row"><a class="id" href="task.html?task=c2ad">c2ad</a> Roles, <a class="id" href="task.html?task=e3cb">e3cb</a> Schema files, <a class="id" href="task.html?task=7861">7861</a> Productivity evidence</th><td><span aria-hidden="true">🌍</span> validate</td><td><code>status/&lt;id&gt;.yaml</code></td><td>The contributor's status commit is the newest event (<code>3d8ce0e</code>, <code>5cbec7c</code>, <code>c6f2655</code>) and the status states no <span aria-hidden="true">👓</span> review; nbyoung@nbyoung.com may have a validation to review</td><td>Record the hand-off: the reason <span aria-hidden="true">👓</span> review when the work is done; or work on</td><td>noreply@anthropic.com</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <details class="fold">
+        <summary>The twenty mockup tasks, in display order</summary>
+        <p>Under <a class="id" href="task.html?task=bc86">bc86</a> Markdown views:</p>
+        <ul class="ids"><li><a class="id" href="task.html?task=99f0">99f0</a></li><li><a class="id" href="task.html?task=05a9">05a9</a></li><li><a class="id" href="task.html?task=a9ce">a9ce</a></li><li><a class="id" href="task.html?task=bb7c">bb7c</a></li><li><a class="id" href="task.html?task=c74a">c74a</a></li><li><a class="id" href="task.html?task=efff">efff</a></li><li><a class="id" href="task.html?task=ab8e">ab8e</a></li><li><a class="id" href="task.html?task=c545">c545</a></li><li><a class="id" href="task.html?task=d615">d615</a></li><li><a class="id" href="task.html?task=b14e">b14e</a></li></ul>
+        <p>Under <a class="id" href="task.html?task=5fe3">5fe3</a> HTML views:</p>
+        <ul class="ids"><li><a class="id" href="task.html?task=a6f7">a6f7</a></li><li><a class="id" href="task.html?task=7dff">7dff</a></li><li><a class="id" href="task.html?task=b1b7">b1b7</a></li><li><a class="id" href="task.html?task=ea51">ea51</a></li><li><a class="id" href="task.html?task=7783">7783</a></li><li><a class="id" href="task.html?task=5471">5471</a></li><li><a class="id" href="task.html?task=32e7">32e7</a></li><li><a class="id" href="task.html?task=69eb">69eb</a></li><li><a class="id" href="task.html?task=3194">3194</a></li><li><a class="id" href="task.html?task=a8b4">a8b4</a></li></ul>
+      </details>
+      <details class="prov" open>
+        <summary>Provenance: the rule, nine commits and the commands</summary>
+        <dl class="fields">
+          <dt>Rule</dt>
+          <dd><a href="../../corpus/RULES.md">corpus/RULES.md</a> H4, from <a href="../../README.md#status">README.md, Status</a>:
+            <blockquote>it reports, as information, a task whose next junction has a reviewer, whose newest event is the contributor's and whose status states no <code>review</code>, since the work may be done or in progress</blockquote></dd>
+          <dt>Junctions</dt>
+          <dd>noreply@anthropic.com contributes at each. nbyoung@nbyoung.com reviews <span aria-hidden="true">📌</span> mockup and <span aria-hidden="true">🌍</span> validate, as <a class="id" href="task.html?task=437e">437e</a> states, and <span aria-hidden="true">🧱</span> implementation of <code class="id">ac33</code>, <code class="id">9f3f</code> and <code class="id">7166</code> as their assignee. noreply@anthropic.com is the assignee of <code class="id">e9c6</code> and <code class="id">fcec</code> and so reviews its own work at their next gates.</dd>
+        </dl>
+        <div class="scroll">
+        <table>
+          <caption>The commits involved (<a href="history.html">history</a>): each is the newest event of the tasks it names</caption>
+          <thead>
+            <tr><th scope="col">Commit</th><th scope="col">Date</th><th scope="col">Author</th><th scope="col">Committer</th><th scope="col">Subject</th><th scope="col">Newest event of</th><th scope="col">Next gate</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row"><code>5958858</code></th><td>2026-09-29</td><td>noreply@anthropic.com</td><td>nbyoung@nbyoung.com</td><td>Accept the defined gate of the views and mockups</td><td>the twenty mockup tasks</td><td><span aria-hidden="true">📌</span> mockup</td></tr>
+            <tr><th scope="row"><code>6762222</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td>nbyoung@nbyoung.com</td><td>Advance the agent identity task to its design gate</td><td><code class="id">ac33</code></td><td><span aria-hidden="true">🧱</span> implementation</td></tr>
+            <tr><th scope="row"><code>43d68e4</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td></td><td>Advance the subproject linkage task to its design gate</td><td><code class="id">9f3f</code></td><td><span aria-hidden="true">🧱</span> implementation</td></tr>
+            <tr><th scope="row"><code>d9396b4</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td>nbyoung@nbyoung.com</td><td>Advance the language clarifications to their design gate</td><td><code class="id">7166</code></td><td><span aria-hidden="true">🧱</span> implementation</td></tr>
+            <tr><th scope="row"><code>879b447</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td></td><td>Advance the abstract views task to its design gate</td><td><code class="id">e9c6</code></td><td><span aria-hidden="true">🧱</span> implementation</td></tr>
+            <tr><th scope="row"><code>60495c2</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td></td><td>Record all three corpus corrections at implementation</td><td><code class="id">fcec</code></td><td><span aria-hidden="true">📏</span> unit</td></tr>
+            <tr><th scope="row"><code>3d8ce0e</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td></td><td>Record the Roles task at its implementation gate</td><td><code class="id">c2ad</code></td><td><span aria-hidden="true">🌍</span> validate</td></tr>
+            <tr><th scope="row"><code>5cbec7c</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td></td><td>Record e3cb at unit, nominal</td><td><code class="id">e3cb</code></td><td><span aria-hidden="true">🌍</span> validate</td></tr>
+            <tr><th scope="row"><code>c6f2655</code></th><td>2026-09-30</td><td>noreply@anthropic.com</td><td></td><td>Complete the productivity evidence report</td><td><code class="id">7861</code></td><td><span aria-hidden="true">🌍</span> validate</td></tr>
+          </tbody>
+        </table>
+        </div>
+        <p><code>5958858</code> carries <code>Reviewed: &lt;id&gt; defined</code> for each of the twenty mockup tasks and for <code class="id">e9c6</code>; the eight other commits change one status file each.</p>
+<pre># shows the finding for one task: its newest event and who made it
+git log -1 --format='%as %h %ae' -- .tableaux/tasks/b14e.yaml .tableaux/status/b14e.yaml
+git log -1 --format='%as %h %ae' -E --grep='^(Authorised|Reaffirmed): b14e$' --grep='^Reviewed: b14e '
+
+# resolves it: noreply@anthropic.com, the contributor, hands the finished work off
+#   status/b14e.yaml: add `reason: review`
+git commit .tableaux/status/b14e.yaml -m 'Mark the audit mockup as awaiting review' \
+    --trailer 'Model: &lt;the model that runs&gt;'</pre>
+        <p>Nothing resolves an item whose work is in progress: the information stands until the contributor or the reviewer records the next event.</p>
+      </details>
+    </details>
+  </section>
+
+  <section aria-labelledby="person">
+    <h2 id="person">One person</h2>
+    <p>The <code>person</code> parameter keeps the findings one person resolves. For nbyoung@nbyoung.com, the viewer: <strong>no error, 3 warnings, no information</strong>.</p>
+    <div class="scroll">
+    <table>
+      <caption>person: nbyoung@nbyoung.com · stale: 7 days · the two rows of <a href="#h3">Revise the file</a></caption>
+      <thead>
+        <tr><th scope="col">Rule</th><th scope="col">Severity</th><th scope="col">Task</th><th scope="col">Gate</th><th scope="col">File</th><th scope="col">Message</th><th scope="col">Action</th><th scope="col">Resolver</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>H3</td><td><span class="sev warning">warning</span></td><th scope="row"><a class="id" href="task.html?task=437e">437e</a>, <a class="id" href="task.html?task=bc63">bc63</a></th><td><span aria-hidden="true">📝</span> defined</td><td><code>tasks/437e.yaml</code>, <code>tasks/bc63.yaml</code></td><td><code>320cf2b</code> edits both task files under <code>Model: claude-fable-5-1</code>; the junction states <code>claude-haiku</code></td><td>Revise the file: state the model that ran at the junction</td><td>nbyoung@nbyoung.com</td></tr>
+        <tr><td>H3</td><td><span class="sev warning">warning</span></td><th scope="row"><a class="id" href="task.html?task=ac33">ac33</a></th><td><span aria-hidden="true">📝</span> defined</td><td><code>tasks/ac33.yaml</code></td><td><code>018814a</code> edits the task file under <code>Model: claude-fable-5-1</code>; the junction states <code>claude-haiku</code></td><td>Revise the file: state the model that ran at the junction</td><td>nbyoung@nbyoung.com</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="fold">The other 29 findings belong to noreply@anthropic.com; the same filter with that address lists them, and the <a href="queue.html">queue</a> shows what each person does next.</p>
+  </section>
+</main>
+<footer class="site">
+  <p>Mockup of the Audit view (task <code class="id">a8b4</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
