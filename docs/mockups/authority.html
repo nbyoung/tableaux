@@ -63,7 +63,11 @@ footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size:
 /* a tree row: the id and title take the room, the assignee sits in one column at the right */
 ul.auth summary > .row { display: inline-flex; flex-wrap: wrap; gap: 0 .6rem; width: calc(100% - 1.5rem); vertical-align: top; font-weight: 400; }
 ul.auth summary > .row .title { flex: 1 1 12rem; font-weight: 600; }
-ul.auth summary > .row .who { flex: 0 0 13rem; }
+/* the assignee column indents by the task's depth, --d, so the hierarchy reads in this column too */
+ul.auth summary > .row .who { flex: 0 0 20rem; padding-left: calc(var(--d, 0) * 1.25rem); }
+p.cols { display: flex; gap: 0 .6rem; margin: 0; padding: .2rem 1.5rem .2rem 0; background: var(--band); font-weight: 600; }
+p.cols .title { flex: 1 1 12rem; padding-left: 1rem; }
+p.cols .who { flex: 0 0 20rem; }
 ul.auth summary > .row .who.same { color: var(--muted); }
 ul.auth li { border-top: 1px solid var(--line); }
 ul.auth li > details.detail { margin: 0; padding: .2rem 0; }
@@ -105,7 +109,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
 
   <!-- glance: visible without any interaction -->
   <h2 id="tree">The tree of assignees</h2>
-  <p><span aria-hidden="true">·</span> reads "as the parent": the task keeps its parent's assignee. An email marks a delegation, except on the root, which names the owner. A proposed task carries the word <span class="proposed">proposed</span> after its assignee; no row carries it here. The <a href="gates.html">gate definition</a> is the legend of every symbol.</p>
+  <p>Every row states its task's assignee, and the Assignee column indents as the Task column does, so the hierarchy reads in either. A task whose assignee differs from its parent's is a delegation; a task that keeps its parent's assignee shows it in a quieter tone. A proposed task carries the word <span class="proposed">proposed</span> after its assignee; no row carries it here. The <a href="gates.html">gate definition</a> is the legend of every symbol.</p>
   <ul>
     <li>37 tasks, 17 rows on arrival: a parent whose children are all leaves with its own assignee folds to a count, and unfolds in place.</li>
     <li>7 delegations, each from nbyoung@nbyoung.com to noreply@anthropic.com: <code class="id">c2ad</code>, <code class="id">e9c6</code>, <code class="id">bc86</code>, <code class="id">5fe3</code>, <code class="id">e3cb</code>, <code class="id">fcec</code>, <code class="id">7861</code>.</li>
@@ -116,10 +120,11 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
 
   <!-- detail: <details class="detail"> per item; carries `open` where the viewer's role opens at detail -->
   <!-- provenance: <details class="prov"> nested inside the detail it explains -->
+  <p class="cols" aria-hidden="true"><span class="title">Task</span><span class="who">Assignee</span></p>
   <ul class="tree auth">
     <li>
       <details class="detail" id="t-437e" open>
-        <summary><span class="row"><code class="id">437e</code> <span class="title">Tableaux tooling</span> <span class="who">nbyoung@nbyoung.com<span class="sr">, the owner</span></span></span></summary>
+        <summary><span class="row" style="--d:0"><code class="id">437e</code> <span class="title">Tableaux tooling</span> <span class="who">nbyoung@nbyoung.com<span class="sr">, the owner</span></span></span></summary>
         <div class="body">
         <dl class="fields">
           <dt>Assignee</dt><dd>nbyoung@nbyoung.com, the owner</dd>
@@ -161,7 +166,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
         <ul>
           <li>
             <details class="detail" id="t-bc63">
-              <summary><span class="row"><code class="id">bc63</code> <span class="title">Method</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+              <summary><span class="row" style="--d:1"><code class="id">bc63</code> <span class="title">Method</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
               <div class="body">
               <dl class="fields">
                 <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
@@ -196,7 +201,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
               <ul>
                 <li>
                   <details class="detail" id="t-c2ad">
-                    <summary><span class="row"><code class="id">c2ad</code> <span class="title">Roles</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">c2ad</code> <span class="title">Roles</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
                       <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
@@ -222,10 +227,10 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                 </li>
                 <li>
                   <details class="detail" id="t-2034">
-                    <summary><span class="row"><code class="id">2034</code> <span class="title">Views</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">2034</code> <span class="title">Views</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
-                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">bc63</code></dd>
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
                       <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
                       <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
                       <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
@@ -252,7 +257,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                     <ul>
                       <li>
                         <details class="detail" id="t-e9c6">
-                          <summary><span class="row"><code class="id">e9c6</code> <span class="title">Abstract views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                          <summary><span class="row" style="--d:3"><code class="id">e9c6</code> <span class="title">Abstract views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
                           <div class="body">
                           <dl class="fields">
                             <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">2034</code></dd>
@@ -278,7 +283,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                       </li>
                       <li>
                         <details class="detail" id="t-bc86">
-                          <summary><span class="row"><code class="id">bc86</code> <span class="title">Markdown views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                          <summary><span class="row" style="--d:3"><code class="id">bc86</code> <span class="title">Markdown views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
                           <div class="body">
                           <dl class="fields">
                             <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">2034</code></dd>
@@ -304,11 +309,11 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                           </div>
                         </details>
                         <details class="kids">
-                          <summary><span class="fold">10 children <span aria-hidden="true">·</span><span class="sr">, each assigned as the parent</span> of <code class="id">bc86</code></span></summary>
+                          <summary><span class="fold">10 children<span class="sr">, each assigned as the parent</span> of <code class="id">bc86</code></span></summary>
                           <ul>
                             <li>
                               <details class="detail" id="t-99f0">
-                                <summary><span class="row"><code class="id">99f0</code> <span class="title">Gate definition view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">99f0</code> <span class="title">Gate definition view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -334,7 +339,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-05a9">
-                                <summary><span class="row"><code class="id">05a9</code> <span class="title">Task definition view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">05a9</code> <span class="title">Task definition view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -360,7 +365,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-a9ce">
-                                <summary><span class="row"><code class="id">a9ce</code> <span class="title">Authority delegation view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">a9ce</code> <span class="title">Authority delegation view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -386,7 +391,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-bb7c">
-                                <summary><span class="row"><code class="id">bb7c</code> <span class="title">Task assignment view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">bb7c</code> <span class="title">Task assignment view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -412,7 +417,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-c74a">
-                                <summary><span class="row"><code class="id">c74a</code> <span class="title">Contributor work queue view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">c74a</code> <span class="title">Contributor work queue view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -438,7 +443,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-efff">
-                                <summary><span class="row"><code class="id">efff</code> <span class="title">Work-blockage tree view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">efff</code> <span class="title">Work-blockage tree view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -464,7 +469,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-ab8e">
-                                <summary><span class="row"><code class="id">ab8e</code> <span class="title">Global tableau view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">ab8e</code> <span class="title">Global tableau view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -490,7 +495,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-c545">
-                                <summary><span class="row"><code class="id">c545</code> <span class="title">Contextual tableau view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">c545</code> <span class="title">Contextual tableau view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -516,7 +521,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-d615">
-                                <summary><span class="row"><code class="id">d615</code> <span class="title">History view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">d615</code> <span class="title">History view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -542,7 +547,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-b14e">
-                                <summary><span class="row"><code class="id">b14e</code> <span class="title">Audit view in Markdown</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">b14e</code> <span class="title">Audit view in Markdown</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">bc86</code></dd>
@@ -571,7 +576,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                       </li>
                       <li>
                         <details class="detail" id="t-5fe3">
-                          <summary><span class="row"><code class="id">5fe3</code> <span class="title">HTML views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                          <summary><span class="row" style="--d:3"><code class="id">5fe3</code> <span class="title">HTML views</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
                           <div class="body">
                           <dl class="fields">
                             <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">2034</code></dd>
@@ -597,11 +602,11 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                           </div>
                         </details>
                         <details class="kids">
-                          <summary><span class="fold">10 children <span aria-hidden="true">·</span><span class="sr">, each assigned as the parent</span> of <code class="id">5fe3</code></span></summary>
+                          <summary><span class="fold">10 children<span class="sr">, each assigned as the parent</span> of <code class="id">5fe3</code></span></summary>
                           <ul>
                             <li>
                               <details class="detail" id="t-a6f7">
-                                <summary><span class="row"><code class="id">a6f7</code> <span class="title">Gate definition view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">a6f7</code> <span class="title">Gate definition view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -627,7 +632,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-7dff">
-                                <summary><span class="row"><code class="id">7dff</code> <span class="title">Task definition view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">7dff</code> <span class="title">Task definition view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -653,7 +658,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-b1b7">
-                                <summary><span class="row"><code class="id">b1b7</code> <span class="title">Authority delegation view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">b1b7</code> <span class="title">Authority delegation view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -679,7 +684,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-ea51">
-                                <summary><span class="row"><code class="id">ea51</code> <span class="title">Task assignment view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">ea51</code> <span class="title">Task assignment view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -705,7 +710,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-7783">
-                                <summary><span class="row"><code class="id">7783</code> <span class="title">Contributor work queue view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">7783</code> <span class="title">Contributor work queue view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -731,7 +736,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-5471">
-                                <summary><span class="row"><code class="id">5471</code> <span class="title">Work-blockage tree view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">5471</code> <span class="title">Work-blockage tree view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -757,7 +762,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-32e7">
-                                <summary><span class="row"><code class="id">32e7</code> <span class="title">Global tableau view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">32e7</code> <span class="title">Global tableau view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -783,7 +788,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-69eb">
-                                <summary><span class="row"><code class="id">69eb</code> <span class="title">Contextual tableau view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">69eb</code> <span class="title">Contextual tableau view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -809,7 +814,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-3194">
-                                <summary><span class="row"><code class="id">3194</code> <span class="title">History view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">3194</code> <span class="title">History view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -835,7 +840,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                             </li>
                             <li>
                               <details class="detail" id="t-a8b4">
-                                <summary><span class="row"><code class="id">a8b4</code> <span class="title">Audit view in Html</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, noreply@anthropic.com</span></span></span></summary>
+                                <summary><span class="row" style="--d:4"><code class="id">a8b4</code> <span class="title">Audit view in Html</span> <span class="who same">noreply@anthropic.com<span class="sr">, as the parent</span></span></span></summary>
                                 <div class="body">
                                 <dl class="fields">
                                   <dt>Assignee</dt><dd>noreply@anthropic.com, as the parent <code class="id">5fe3</code></dd>
@@ -867,7 +872,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                 </li>
                 <li>
                   <details class="detail" id="t-e3cb">
-                    <summary><span class="row"><code class="id">e3cb</code> <span class="title">Schema files</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">e3cb</code> <span class="title">Schema files</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
                       <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
@@ -893,7 +898,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                 </li>
                 <li>
                   <details class="detail" id="t-fcec">
-                    <summary><span class="row"><code class="id">fcec</code> <span class="title">Conformance corpus</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">fcec</code> <span class="title">Conformance corpus</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
                       <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
@@ -919,10 +924,10 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                 </li>
                 <li>
                   <details class="detail" id="t-ac33">
-                    <summary><span class="row"><code class="id">ac33</code> <span class="title">Agent identity</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">ac33</code> <span class="title">Agent identity</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
-                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">bc63</code></dd>
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
                       <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
                       <dt>Authorisation</dt><dd>Authorised by <code>16fe62f</code>, 2026-09-30</dd>
                       <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
@@ -945,10 +950,10 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                 </li>
                 <li>
                   <details class="detail" id="t-9f3f">
-                    <summary><span class="row"><code class="id">9f3f</code> <span class="title">Subproject linkage</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">9f3f</code> <span class="title">Subproject linkage</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
-                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">bc63</code></dd>
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
                       <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
                       <dt>Authorisation</dt><dd>Authorised by <code>6b6c99a</code>, 2026-09-29</dd>
                       <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
@@ -971,7 +976,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                 </li>
                 <li>
                   <details class="detail" id="t-7861">
-                    <summary><span class="row"><code class="id">7861</code> <span class="title">Productivity evidence</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">7861</code> <span class="title">Productivity evidence</span> <span class="who">noreply@anthropic.com<span class="sr">, a delegation</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
                       <dt>Assignee</dt><dd>noreply@anthropic.com, a delegation from nbyoung@nbyoung.com at <code class="id">bc63</code></dd>
@@ -997,10 +1002,10 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
                 </li>
                 <li>
                   <details class="detail" id="t-7166">
-                    <summary><span class="row"><code class="id">7166</code> <span class="title">Language clarifications</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+                    <summary><span class="row" style="--d:2"><code class="id">7166</code> <span class="title">Language clarifications</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
                     <div class="body">
                     <dl class="fields">
-                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">bc63</code></dd>
+                      <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as <code class="id">437e</code>, 2 levels up</dd>
                       <dt>Authorities, nearest first</dt><dd>nbyoung@nbyoung.com (<code class="id">bc63</code>, <code class="id">437e</code>)</dd>
                       <dt>Authorisation</dt><dd>Authorised by <code>8d8b070</code>, 2026-09-30</dd>
                       <dt>More</dt><dd><a href="task.html">Task definition view</a>, for the junctions and status of one task</dd>
@@ -1026,7 +1031,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
           </li>
           <li>
             <details class="detail" id="t-77b2">
-              <summary><span class="row"><code class="id">77b2</code> <span class="title">tablo: backend library and plumbing</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+              <summary><span class="row" style="--d:1"><code class="id">77b2</code> <span class="title">tablo: backend library and plumbing</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
               <div class="body">
               <dl class="fields">
                 <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
@@ -1052,7 +1057,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
           </li>
           <li>
             <details class="detail" id="t-6103">
-              <summary><span class="row"><code class="id">6103</code> <span class="title">tabloio: command line, output and input</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+              <summary><span class="row" style="--d:1"><code class="id">6103</code> <span class="title">tabloio: command line, output and input</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
               <div class="body">
               <dl class="fields">
                 <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
@@ -1078,7 +1083,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
           </li>
           <li>
             <details class="detail" id="t-c6e8">
-              <summary><span class="row"><code class="id">c6e8</code> <span class="title">tablotui: terminal user interface</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+              <summary><span class="row" style="--d:1"><code class="id">c6e8</code> <span class="title">tablotui: terminal user interface</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
               <div class="body">
               <dl class="fields">
                 <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
@@ -1104,7 +1109,7 @@ p.empty { background: var(--band); padding: .5rem .75rem; }
           </li>
           <li>
             <details class="detail" id="t-595e">
-              <summary><span class="row"><code class="id">595e</code> <span class="title">tableaud: local daemon and HTML</span> <span class="who same"><span aria-hidden="true">·</span><span class="sr">as the parent, nbyoung@nbyoung.com</span></span></span></summary>
+              <summary><span class="row" style="--d:1"><code class="id">595e</code> <span class="title">tableaud: local daemon and HTML</span> <span class="who same">nbyoung@nbyoung.com<span class="sr">, as the parent</span></span></span></summary>
               <div class="body">
               <dl class="fields">
                 <dt>Assignee</dt><dd>nbyoung@nbyoung.com, as the parent <code class="id">437e</code></dd>
@@ -1171,13 +1176,13 @@ git log --first-parent -1 --format='%h %as %ae %ce %p' -E --grep='^Authorised: 4
     <ul class="tree auth">
       <li>
         <details class="detail">
-          <summary><span class="row"><code class="id">a1c0</code> <span class="title">Weather station</span> <span class="who">ada@example.org<span class="sr">, the owner</span></span></span></summary>
+          <summary><span class="row" style="--d:0"><code class="id">a1c0</code> <span class="title">Weather station</span> <span class="who">ada@example.org<span class="sr">, the owner</span></span></span></summary>
           <div class="body"><p>An ancestor of a proposed task: the filter keeps it, unmarked, so that the row keeps its place in the tree.</p></div>
         </details>
         <ul>
           <li>
             <details class="detail" open>
-              <summary><span class="row"><code class="id">3c5d</code> <span class="title">Dashboard</span> <span class="who">dan@example.org<span class="sr">, a delegation</span> <span class="proposed">proposed</span></span></span></summary>
+              <summary><span class="row" style="--d:1"><code class="id">3c5d</code> <span class="title">Dashboard</span> <span class="who">dan@example.org<span class="sr">, a delegation</span> <span class="proposed">proposed</span></span></span></summary>
               <div class="body">
               <dl class="fields">
                 <dt>Assignee</dt><dd>dan@example.org, a delegation from ada@example.org at <code class="id">a1c0</code></dd>

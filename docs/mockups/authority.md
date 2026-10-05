@@ -9,26 +9,27 @@ The legend of every symbol is the [gate definition](gates.md). Related views: [t
 `tabloio authority --ref main --level glance`
 
 ```
+Task                                            Assignee
 437e Tableaux tooling                           nbyoung@nbyoung.com
-  bc63 Method                                   ·
-    c2ad Roles                                  noreply@anthropic.com
-    2034 Views                                  ·
-      e9c6 Abstract views                       noreply@anthropic.com
-      bc86 Markdown views                       noreply@anthropic.com  10 children ·
-      5fe3 HTML views                           noreply@anthropic.com  10 children ·
-    e3cb Schema files                           noreply@anthropic.com
-    fcec Conformance corpus                     noreply@anthropic.com
-    ac33 Agent identity                         ·
-    9f3f Subproject linkage                     ·
-    7861 Productivity evidence                  noreply@anthropic.com
-    7166 Language clarifications                ·
-  77b2 tablo: backend library and plumbing      ·
-  6103 tabloio: command line, output and input  ·
-  c6e8 tablotui: terminal user interface        ·
-  595e tableaud: local daemon and HTML          ·
+  bc63 Method                                     nbyoung@nbyoung.com
+    c2ad Roles                                      noreply@anthropic.com
+    2034 Views                                      nbyoung@nbyoung.com
+      e9c6 Abstract views                             noreply@anthropic.com
+      bc86 Markdown views                             noreply@anthropic.com  10 children
+      5fe3 HTML views                                 noreply@anthropic.com  10 children
+    e3cb Schema files                               noreply@anthropic.com
+    fcec Conformance corpus                         noreply@anthropic.com
+    ac33 Agent identity                             nbyoung@nbyoung.com
+    9f3f Subproject linkage                         nbyoung@nbyoung.com
+    7861 Productivity evidence                      noreply@anthropic.com
+    7166 Language clarifications                    nbyoung@nbyoung.com
+  77b2 tablo: backend library and plumbing        nbyoung@nbyoung.com
+  6103 tabloio: command line, output and input    nbyoung@nbyoung.com
+  c6e8 tablotui: terminal user interface          nbyoung@nbyoung.com
+  595e tableaud: local daemon and HTML            nbyoung@nbyoung.com
 ```
 
-`·` reads "as the parent": the task keeps its parent's assignee. An email marks a delegation, except on the root, which names the owner. A proposed task carries the word `proposed` after its assignee; no row carries it here.
+Every row states its task's assignee, and the Assignee column indents as the Task column does, so the hierarchy reads in either. A task whose assignee differs from its parent's is a delegation. A proposed task carries the word `proposed` after its assignee; no row carries it here.
 
 - 37 tasks, 17 rows: a parent whose children are all leaves with its own assignee folds to a count, and `--task bc86` or the detail level unfolds it.
 - 7 delegations, each from nbyoung@nbyoung.com to noreply@anthropic.com: `c2ad`, `e9c6`, `bc86`, `5fe3`, `e3cb`, `fcec`, `7861`.
@@ -40,46 +41,47 @@ The legend of every symbol is the [gate definition](gates.md). Related views: [t
 `tabloio authority --ref main --level detail`
 
 ```
+Task                                                  Assignee
 437e Tableaux tooling                                 nbyoung@nbyoung.com
-  bc63 Method                                         ·
-    c2ad Roles                                        noreply@anthropic.com
-    2034 Views                                        ·
-      e9c6 Abstract views                             noreply@anthropic.com
-      bc86 Markdown views                             noreply@anthropic.com
-        99f0 Gate definition view in Markdown         ·
-        05a9 Task definition view in Markdown         ·
-        a9ce Authority delegation view in Markdown    ·
-        bb7c Task assignment view in Markdown         ·
-        c74a Contributor work queue view in Markdown  ·
-        efff Work-blockage tree view in Markdown      ·
-        ab8e Global tableau view in Markdown          ·
-        c545 Contextual tableau view in Markdown      ·
-        d615 History view in Markdown                 ·
-        b14e Audit view in Markdown                   ·
-      5fe3 HTML views                                 noreply@anthropic.com
-        a6f7 Gate definition view in Html             ·
-        7dff Task definition view in Html             ·
-        b1b7 Authority delegation view in Html        ·
-        ea51 Task assignment view in Html             ·
-        7783 Contributor work queue view in Html      ·
-        5471 Work-blockage tree view in Html          ·
-        32e7 Global tableau view in Html              ·
-        69eb Contextual tableau view in Html          ·
-        3194 History view in Html                     ·
-        a8b4 Audit view in Html                       ·
-    e3cb Schema files                                 noreply@anthropic.com
-    fcec Conformance corpus                           noreply@anthropic.com
-    ac33 Agent identity                               ·
-    9f3f Subproject linkage                           ·
-    7861 Productivity evidence                        noreply@anthropic.com
-    7166 Language clarifications                      ·
-  77b2 tablo: backend library and plumbing            ·
-  6103 tabloio: command line, output and input        ·
-  c6e8 tablotui: terminal user interface              ·
-  595e tableaud: local daemon and HTML                ·
+  bc63 Method                                           nbyoung@nbyoung.com
+    c2ad Roles                                            noreply@anthropic.com
+    2034 Views                                            nbyoung@nbyoung.com
+      e9c6 Abstract views                                   noreply@anthropic.com
+      bc86 Markdown views                                   noreply@anthropic.com
+        99f0 Gate definition view in Markdown                 noreply@anthropic.com
+        05a9 Task definition view in Markdown                 noreply@anthropic.com
+        a9ce Authority delegation view in Markdown            noreply@anthropic.com
+        bb7c Task assignment view in Markdown                 noreply@anthropic.com
+        c74a Contributor work queue view in Markdown          noreply@anthropic.com
+        efff Work-blockage tree view in Markdown              noreply@anthropic.com
+        ab8e Global tableau view in Markdown                  noreply@anthropic.com
+        c545 Contextual tableau view in Markdown              noreply@anthropic.com
+        d615 History view in Markdown                         noreply@anthropic.com
+        b14e Audit view in Markdown                           noreply@anthropic.com
+      5fe3 HTML views                                       noreply@anthropic.com
+        a6f7 Gate definition view in Html                     noreply@anthropic.com
+        7dff Task definition view in Html                     noreply@anthropic.com
+        b1b7 Authority delegation view in Html                noreply@anthropic.com
+        ea51 Task assignment view in Html                     noreply@anthropic.com
+        7783 Contributor work queue view in Html              noreply@anthropic.com
+        5471 Work-blockage tree view in Html                  noreply@anthropic.com
+        32e7 Global tableau view in Html                      noreply@anthropic.com
+        69eb Contextual tableau view in Html                  noreply@anthropic.com
+        3194 History view in Html                             noreply@anthropic.com
+        a8b4 Audit view in Html                               noreply@anthropic.com
+    e3cb Schema files                                     noreply@anthropic.com
+    fcec Conformance corpus                               noreply@anthropic.com
+    ac33 Agent identity                                   nbyoung@nbyoung.com
+    9f3f Subproject linkage                               nbyoung@nbyoung.com
+    7861 Productivity evidence                            noreply@anthropic.com
+    7166 Language clarifications                          nbyoung@nbyoung.com
+  77b2 tablo: backend library and plumbing              nbyoung@nbyoung.com
+  6103 tabloio: command line, output and input          nbyoung@nbyoung.com
+  c6e8 tablotui: terminal user interface                nbyoung@nbyoung.com
+  595e tableaud: local daemon and HTML                  nbyoung@nbyoung.com
 ```
 
-`·` reads "as the parent". 37 tasks, 7 delegations, 37 authorised, 0 proposed.
+37 tasks, 7 delegations, 37 authorised, 0 proposed.
 
 ### Chains and defaults
 
@@ -196,7 +198,8 @@ No task is proposed: all 37 are authorised on `main` at `3cdae52`.
 This block is **not this project**. It shows the weather station of the conformance corpus, `corpus/entries/weather-station`, where a contributor revises a task after its authority accepts it, so that the form of a proposed row is on view.
 
 ```
-a1c0 Weather station    ada@example.org
+Task                  Assignee
+a1c0 Weather station  ada@example.org
   3c5d Dashboard        dan@example.org  proposed
 ```
 
