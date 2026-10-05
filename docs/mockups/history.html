@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>History · Tableaux tooling</title>
+<style>
+/* shared: identical in every mockup under docs/mockups/; do not edit */
+:root {
+  --bg: #fcfcfa; --fg: #1c1d1f; --muted: #5d6066; --line: #d9d9d4; --band: #f1f1ec;
+  --accent: #1f5fa8; --mark: #fff3c4; --prov: #f4f0fa; --prov-line: #b9a8d6;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a; --fg: #e6e6e3; --muted: #a2a5ab; --line: #3a3c40; --band: #212326;
+    --accent: #8ab8ee; --mark: #4a4010; --prov: #231f2c; --prov-line: #6a5a8a;
+  }
+}
+* { box-sizing: border-box; }
+html { font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--fg); }
+body { margin: 0 auto; max-width: 72rem; padding: 0 1rem 3rem; }
+a { color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.skip { position: absolute; left: -999rem; }
+.skip:focus { left: 1rem; top: .5rem; background: var(--bg); padding: .25rem .5rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+header.site { border-bottom: 1px solid var(--line); padding: .75rem 0 .5rem; }
+header.site nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1rem; list-style: none; margin: 0; padding: 0; }
+header.site nav a[aria-current="page"] { color: var(--fg); font-weight: 600; text-decoration: none; }
+.context { color: var(--muted); font-size: .875rem; margin: .5rem 0 0; }
+h1 { font-size: 1.5rem; margin: 1.25rem 0 .25rem; }
+h2 { font-size: 1.125rem; margin: 1.5rem 0 .5rem; }
+.question { color: var(--muted); margin: 0 0 1rem; }
+code, .id { font-family: var(--mono); font-size: .875em; }
+.id { white-space: nowrap; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+caption { text-align: left; color: var(--muted); font-size: .875rem; padding-bottom: .25rem; }
+th, td { border-bottom: 1px solid var(--line); padding: .3rem .6rem; text-align: left; vertical-align: top; }
+thead th { background: var(--band); font-weight: 600; white-space: nowrap; }
+td.cell, th.gate { text-align: center; white-space: nowrap; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.parent > th, .parent > td:first-child + td { font-weight: 600; }
+.fold { color: var(--muted); font-size: .875rem; }
+.mine { background: var(--mark); }
+.muted { color: var(--muted); }
+details { margin: .25rem 0; }
+summary { cursor: pointer; }
+details.detail > summary { font-weight: 600; }
+details.prov { background: var(--prov); border-left: 3px solid var(--prov-line); padding: .25rem .75rem; font-size: .875rem; }
+details.prov > summary { color: var(--muted); }
+dl.fields { display: grid; grid-template-columns: max-content 1fr; gap: .15rem 1rem; margin: .5rem 0; }
+dl.fields dt { color: var(--muted); }
+dl.fields dd { margin: 0; }
+ul.tree, ul.tree ul { list-style: none; margin: 0; padding-left: 1.25rem; }
+ul.tree { padding-left: 0; }
+footer.site { border-top: 1px solid var(--line); color: var(--muted); font-size: .875rem; margin-top: 2rem; padding-top: .5rem; }
+@media (max-width: 40rem) { th, td { padding: .25rem .35rem; } dl.fields { grid-template-columns: 1fr; } }
+/* end shared */
+
+/* this view: rules for this file only */
+details.day > summary h3, details.day > summary h4 { display: inline; font-size: 1rem; margin: 0 .5rem 0 0; }
+details.day { border-top: 1px solid var(--line); padding-top: .5rem; margin-top: .75rem; }
+ul.events { list-style: none; margin: .25rem 0 0; padding: 0; }
+ul.events > li { border-bottom: 1px solid var(--line); padding: .15rem 0; }
+details.detail > summary { font-weight: 400; }
+details.detail > summary .by { display: inline-block; min-width: 13.5rem; }
+details.detail > summary .ev { display: inline-block; min-width: 8.5rem; font-weight: 600; }
+details.detail > summary .what { margin-left: .5rem; }
+details.detail > dl.fields, details.detail > details, details.detail > p.fold { margin-left: 1.1rem; }
+details.sub > summary { color: var(--muted); font-size: .875rem; }
+details.sub table { font-size: .875rem; }
+details.prov code { overflow-wrap: anywhere; }
+table.params { width: auto; }
+.illustrative { border: 1px dashed var(--line); padding: .25rem .75rem; margin: .5rem 0; }
+.illustrative > p:first-child { font-weight: 600; margin: .25rem 0; }
+@media (max-width: 40rem) { details.detail > summary .by, details.detail > summary .ev { min-width: 0; margin-right: .5rem; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to the view</a>
+<header class="site">
+  <nav aria-label="Views">
+    <ul>
+      <li><a href="tableau.html">Tableau</a></li>
+      <li><a href="context.html">My corner</a></li>
+      <li><a href="queue.html">Queue</a></li>
+      <li><a href="blockage.html">Blockage</a></li>
+      <li><a href="task.html">Task</a></li>
+      <li><a href="assignment.html">Assignment</a></li>
+      <li><a href="authority.html">Authority</a></li>
+      <li><a href="history.html" aria-current="page">History</a></li>
+      <li><a href="audit.html">Audit</a></li>
+      <li><a href="gates.html">Gates</a></li>
+    </ul>
+  </nav>
+  <!-- the parameters in force: project, ref, viewer and role, and this view's own -->
+  <p class="context">Tableaux tooling · <code>main</code> at <code>3cdae52</code>, 2026-10-05 · viewer nbyoung@nbyoung.com, owner, reading as a reviewer · level detail</p>
+</header>
+<main id="main">
+  <h1>History</h1>
+  <p class="question">What happened, when, and who did it?</p>
+<div class="scroll"><table class="params">
+<caption>The parameters in force for the two pictures on this page</caption>
+<thead><tr><th scope="col">Parameter</th><th scope="col"><a href="#task-e9c6">Picture 1</a></th><th scope="col"><a href="#range">Picture 2</a></th></tr></thead><tbody>
+<tr><th scope="row">task</th><td><a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</td><td><a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, the root</td></tr>
+<tr><th scope="row">ref, or a range</th><td><code>main</code> at <code>3cdae52</code>, no range</td><td><code>0704a09..main</code>, <code>main</code> at <code>3cdae52</code></td></tr>
+<tr><th scope="row">person</th><td>not set: every actor</td><td>not set: every actor</td></tr>
+<tr><th scope="row">window or columns</th><td>not set: every gate</td><td>not set: every gate</td></tr>
+<tr><th scope="row">level</th><td>detail, from the role</td><td>detail, from the role</td></tr>
+</tbody></table></div>
+<p>The viewer is the owner and reads here as a reviewer, so every event arrives open at detail and its provenance stays folded. One event in each picture also shows its provenance open, as the fully drawn example, and the last tabloio pin shows its subproject events open. An observer arrives at glance, with every event closed; the owner with no role set arrives at provenance, with every block open.</p>
+<p>Both pictures run oldest first. The status after each event is a replay, so each line builds on the one above it, and a reviewer starts where the last review ends. VIEWS.md and SYNTAX.md write their examples in the same order.</p>
+<p>One line holds the events one commit makes on one task, so a commit that both records a status and carries its <code>Reviewed:</code> trailer reads <code>status, reviewed</code>. The counts above each list still count events.</p>
+<p class="muted">Gates: ❔ undefined, 📝 defined, 🔧 function, 📐 design. States: ⚪ undefined, 🟢 nominal. Reason: 👓 review, the hand-off to the reviewer. Each symbol comes from <code>.tableaux/gates.yaml</code>; the <a href="gates.html">gate definition</a> explains every one. An event kind has no symbol.</p>
+<!-- glance: the summary line of each event, visible without any interaction -->
+<!-- detail: <details class="detail"> per event; open, since the reviewer role opens at detail -->
+<!-- provenance: <details class="prov"> nested inside the detail it explains -->
+<section id="task-e9c6" aria-labelledby="h-task"><h2 id="h-task">Picture 1. One task: <a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views</h2>
+<p>The whole life of <a class="id" href="task.html?task=e9c6">e9c6</a> Abstract views up to the ref. Parameters: task <a class="id" href="task.html?task=e9c6">e9c6</a>; ref <code>main</code> at <code>3cdae52</code>, with no range; person not set, so every actor; window not set, so every gate.</p>
+<p class="fold">8 events in 7 commits, 2026-09-29 to 2026-09-30: 1 task, 1 authorised, 4 status, 0 reaffirmed, 2 reviewed, 0 pin.</p>
+<details class="day" open><summary><h3>2026-09-29</h3> <span class="fold">4 events in 3 commits: 1 task, 1 authorised, 1 status, 1 reviewed</span></summary>
+<ul class="events">
+<li id="t-6b6c99a-e9c6"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">task, authorised</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">the task file appears</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>❔ undefined ⚪ undefined: a leaf with no status file</dd>
+<dt>Effect</dt><dd>authorised: the owner, an authority of <a class="id" href="task.html?task=e9c6">e9c6</a>, authors the commit on the trunk, so the commit proposes and accepts at once</dd>
+<dt>Model</dt><dd>none recorded: the commit precedes the <code>Model:</code> trailer, which language 0.2.1 introduces; <code>Co-Authored-By:</code> names Claude Fable 5.1</dd>
+</dl>
+<details class="prov"><summary>Provenance: commit <code>6b6c99a</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>6b6c99a2ca35f684674ad886a33916979137f227</code></dd>
+<dt>Subject</dt><dd>Plan the Tableaux tooling</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 16:38:16 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 16:38:16 -0400</dd>
+<dt>Trailers</dt><dd><code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>.tableaux/tasks/e9c6.yaml</code> (added) and 39 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code></dd>
+</dl></details>
+</details></li>
+<li id="t-1a17bfc-e9c6"><details class="detail" open>
+<summary><span class="by">noreply@anthropic.com</span> <span class="ev">status</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">📝 defined 🟢 nominal</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal</dd>
+<dt>Note</dt><dd>Design waits for Roles (c2ad) at design</dd>
+<dt>Model</dt><dd>none recorded: the commit precedes the <code>Model:</code> trailer, which language 0.2.1 introduces; <code>Co-Authored-By:</code> names Claude Fable 5.1</dd>
+<dt>Committer</dt><dd>nbyoung@nbyoung.com, who differs from the author</dd>
+</dl>
+<details class="prov"><summary>Provenance: commit <code>1a17bfc</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>1a17bfcca843d4436e2eb4c75b5cfa98ec05d658</code></dd>
+<dt>Subject</dt><dd>Record the defined gate for the views and mockups</dd>
+<dt>Author</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-29 17:46:53 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:46:53 -0400</dd>
+<dt>Trailers</dt><dd><code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>.tableaux/status/e9c6.yaml</code> (added) and 20 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code><br><code>git show 1a17bfc:.tableaux/status/e9c6.yaml</code></dd>
+</dl></details>
+</details></li>
+<li id="t-5958858-e9c6"><details class="detail" open>
+<summary><span class="by">noreply@anthropic.com</span> <span class="ev">reviewed</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">📝 defined</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged</dd>
+<dt>Effect</dt><dd>none: the authorisation stands as the review of <code>defined</code>, so the trailer adds nothing</dd>
+<dt>Model</dt><dd>none recorded: the commit precedes the <code>Model:</code> trailer, which language 0.2.1 introduces; <code>Co-Authored-By:</code> names Claude Fable 5.1</dd>
+<dt>Committer</dt><dd>nbyoung@nbyoung.com, who differs from the author</dd>
+</dl>
+<details class="prov"><summary>Provenance: commit <code>5958858</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>5958858ff25a624aea18f26471f95b92616fc7e6</code></dd>
+<dt>Subject</dt><dd>Accept the defined gate of the views and mockups</dd>
+<dt>Author</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-29 18:01:32 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 18:01:32 -0400</dd>
+<dt>Trailers</dt><dd><code>Reviewed: e9c6 defined</code> and 20 more <code>Reviewed:</code> trailers, <code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd>none: an empty commit; the trailer makes the event</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' -E --grep='^(Authorised|Reaffirmed): e9c6$' --grep='^Reviewed: e9c6 '</code></dd>
+</dl></details>
+</details></li>
+</ul></details>
+<details class="day" open><summary><h3>2026-09-30</h3> <span class="fold">4 events in 4 commits: 3 status, 1 reviewed</span></summary>
+<ul class="events">
+<li id="t-0fed913-e9c6"><details class="detail" open>
+<summary><span class="by">noreply@anthropic.com</span> <span class="ev">status</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">📝 defined 🟢 nominal 👓 review</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal 👓 review</dd>
+<dt>Note</dt><dd>The VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's review at the design gate</dd>
+<dt>Effect</dt><dd>the hand-off: the work at <code>design</code> waits for its reviewer, nbyoung@nbyoung.com, and the <a href="queue.html">work queue</a> lists the review as owed</dd>
+<dt>Model</dt><dd><code>claude-fable-5-1</code>; the <code>design</code> junction states <code>claude-fable</code></dd>
+</dl>
+<details class="prov" open><summary>Provenance: commit <code>0fed913</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>0fed913a401606e7d6d2bbee72385f2c56204231</code></dd>
+<dt>Subject</dt><dd>Mark the abstract views design as awaiting review</dd>
+<dt>Author</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 07:43:32 -0400</dd>
+<dt>Committer</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 07:43:32 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-fable-5-1</code>, <code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>.tableaux/status/e9c6.yaml</code> (changed)</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code><br><code>git show 0fed913:.tableaux/status/e9c6.yaml</code></dd>
+</dl></details>
+</details></li>
+<li id="t-26defc7-e9c6"><details class="detail" open>
+<summary><span class="by">noreply@anthropic.com</span> <span class="ev">status</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">📝 defined 🟢 nominal 👓 review</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal 👓 review</dd>
+<dt>Note</dt><dd>The revised VIEWS.md design on branch worktree-agent-a6b84238bbacc4fcd awaits the owner's acceptance at the design gate</dd>
+<dt>Effect</dt><dd>the hand-off again, after the revision the first review asks for</dd>
+<dt>Model</dt><dd><code>claude-fable-5-1</code>; the <code>design</code> junction states <code>claude-fable</code></dd>
+</dl>
+<details class="prov"><summary>Provenance: commit <code>26defc7</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>26defc75c452b21dcd9c86d4a2bfa71b685e52a3</code></dd>
+<dt>Subject</dt><dd>Mark the revised abstract views design as awaiting acceptance</dd>
+<dt>Author</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 15:12:04 -0400</dd>
+<dt>Committer</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 15:12:04 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-fable-5-1</code>, <code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>.tableaux/status/e9c6.yaml</code> (changed)</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code><br><code>git show 26defc7:.tableaux/status/e9c6.yaml</code></dd>
+</dl></details>
+</details></li>
+<li id="t-0704a09-e9c6"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">reviewed</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">📐 design</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal 👓 review, unchanged until the next event</dd>
+<dt>Effect</dt><dd>the reviewer the <code>design</code> junction names accepts the work, so the status may pass <code>design</code></dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<details class="prov"><summary>Provenance: commit <code>0704a09</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>0704a0912297b3de0218b821384cf1b9956a44bb</code></dd>
+<dt>Subject</dt><dd>Accept the abstract views design</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-30 15:16:33 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-30 15:16:33 -0400</dd>
+<dt>Trailers</dt><dd><code>Reviewed: e9c6 design</code>, <code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd>none of its own: a merge of <code>26defc7</code> into <code>1b6916e</code>; the trailer makes the event</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' -E --grep='^(Authorised|Reaffirmed): e9c6$' --grep='^Reviewed: e9c6 '</code></dd>
+</dl></details>
+</details></li>
+<li id="t-879b447-e9c6"><details class="detail" open>
+<summary><span class="by">noreply@anthropic.com</span> <span class="ev">status</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">📐 design 🟢 nominal</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📐 design 🟢 nominal</dd>
+<dt>Note</dt><dd>VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place</dd>
+<dt>Model</dt><dd><code>claude-fable-5-1</code>; the <code>design</code> junction states <code>claude-fable</code></dd>
+</dl>
+<details class="prov"><summary>Provenance: commit <code>879b447</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>879b447a920aad55e698906812350ea7d3785b4c</code></dd>
+<dt>Subject</dt><dd>Advance the abstract views task to its design gate</dd>
+<dt>Author</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 15:17:53 -0400</dd>
+<dt>Committer</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 15:17:53 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-fable-5-1</code>, <code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>.tableaux/status/e9c6.yaml</code> (changed)</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code><br><code>git show 879b447:.tableaux/status/e9c6.yaml</code></dd>
+</dl></details>
+</details></li>
+</ul></details>
+<details class="prov"><summary>Provenance of the list: the commands that produce it</summary>
+<p>The tool merges the output of the two commands in author-time order.</p><p><code>git log --format='%as %h %ae' -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code><br><code>git log --format='%as %h %ae' -E --grep='^(Authorised|Reaffirmed): e9c6$' --grep='^Reviewed: e9c6 '</code></p></details>
+</section>
+<section id="range" aria-labelledby="h-range"><h2 id="h-range">Picture 2. A range: the project since the last review</h2>
+<p>What a reviewer reads as "what changed since my last review". The range starts after <code>0704a09</code>, the newest <code>Reviewed:</code> commit of nbyoung@nbyoung.com, which accepts <a class="id" href="task.html?task=e9c6">e9c6</a> at <code>design</code>. Parameters: task <a class="id" href="task.html?task=437e">437e</a> Tableaux tooling, the root, so the range replays every task; range <code>0704a09..main</code>, with <code>main</code> at <code>3cdae52</code>; person not set, so every actor; window not set, so every gate.</p><p>Three of the four function-prototype waves fall in the range: tabloio (<code>55e32e3</code>), tablotui (<code>fa4551e</code>) and tableaud (<code>3cdae52</code>). The tablo wave (<code>564c7cb</code>, 2026-09-30) precedes the last review, so the range leaves it out.</p>
+<p class="fold">13 events in 7 commits, 2026-09-30 to 2026-10-05: 0 task, 0 authorised, 1 status, 0 reaffirmed, 0 reviewed, 12 pin.</p>
+<p>Each day folds: its summary line carries the counts, and a range too long to list event by event arrives with its days closed. This range arrives with every day open.</p>
+<details class="day" open><summary><h3>2026-09-30</h3> <span class="fold">1 event in 1 commit: 1 status</span></summary>
+<ul class="events">
+<li id="r-879b447-e9c6"><details class="detail" open>
+<summary><span class="by">noreply@anthropic.com</span> <span class="ev">status</span> <a class="id" href="task.html?task=e9c6">e9c6</a> <span class="what">📐 design 🟢 nominal</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📐 design 🟢 nominal</dd>
+<dt>Note</dt><dd>VIEWS.md is on the trunk at language 0.3.1; the twenty mockups may start, and implementation puts the text in place</dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>📝 defined 🟢 nominal, rolled up from <a class="id" href="task.html?task=99f0">99f0</a> Gate definition view in Markdown: "Mockup waits for Abstract views (e9c6) at design"; before this event it rolls up from <a class="id" href="task.html?task=e9c6">e9c6</a> with 👓 review</dd>
+<dt>Model</dt><dd><code>claude-fable-5-1</code>; the <code>design</code> junction states <code>claude-fable</code></dd>
+</dl>
+<details class="prov"><summary>Provenance: commit <code>879b447</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>879b447a920aad55e698906812350ea7d3785b4c</code></dd>
+<dt>Subject</dt><dd>Advance the abstract views task to its design gate</dd>
+<dt>Author</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 15:17:53 -0400</dd>
+<dt>Committer</dt><dd>Claude Fable 5.1 &lt;noreply@anthropic.com&gt;, 2026-09-30 15:17:53 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-fable-5-1</code>, <code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>.tableaux/status/e9c6.yaml</code> (changed)</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/e9c6.yaml .tableaux/status/e9c6.yaml</code><br><code>git show 879b447:.tableaux/status/e9c6.yaml</code></dd>
+</dl></details>
+</details></li>
+</ul></details>
+<details class="day" open><summary><h3>2026-10-02</h3> <span class="fold">10 events in 4 commits: 10 pin</span></summary>
+<ul class="events">
+<li id="r-55e32e3-6103"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=6103">6103</a> <span class="what"><code>subprojects/tabloio</code> <code>62261d4</code> → <code>7eba1e5</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal; the gate comes from the status file of <a class="id" href="task.html?task=6103">6103</a>; the state and the note come from tabloio's root <code>07e0</code> at <code>7eba1e5</code>, which stands at 📝 defined and rolls up from <code>1422</code> Snapshot workflow</dd>
+<dt>Note</dt><dd>The design is next and no requirement gates it</dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<details class="sub"><summary>Subproject events: 16 events in 8 commits of tabloio between <code>62261d4</code> and <code>7eba1e5</code></summary>
+<div class="scroll"><table>
+<caption>The events of tabloio that this pin takes in, oldest first; <code>tabloio -C subprojects/tabloio history --ref 62261d4..7eba1e5</code> gives their detail</caption>
+<thead><tr><th scope="col">Date</th><th scope="col">By</th><th scope="col">Event</th><th scope="col">Task</th><th scope="col">Gate and state</th><th scope="col">Model</th></tr></thead><tbody>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">a3cc</code> Status renderers</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">c48a</code> Structural renderers</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">9167</code> Temporal renderers</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">e0f7</code> Text renderers</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">b618</code> Write commands</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">e3ed</code> Legend and task renderers</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">e4c7</code> Agent briefs</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">5ca9</code> Read commands</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+</tbody></table></div></details>
+<details class="prov"><summary>Provenance: commit <code>55e32e3</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>55e32e32d65e9cc04da707b215f4b9009a4806e6</code></dd>
+<dt>Subject</dt><dd>Advance tabloio to its function prototypes</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:07:09 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:07:09 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tabloio</code>, the submodule pin (<code>62261d4</code> → <code>7eba1e5</code>)</dd>
+<dt>Subproject commits</dt><dd><code>f3b3549</code> <code>7e3ea9a</code> <code>3ee2131</code> <code>00a8dec</code> <code>c5e6695</code> <code>90e66fc</code> <code>baab0e5</code> <code>92200e0</code></dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/6103.yaml .tableaux/status/6103.yaml subprojects/tabloio</code><br><code>git diff --raw --abbrev=7 55e32e3^ 55e32e3 -- subprojects/tabloio</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 62261d4..7eba1e5 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 62261d4..7eba1e5 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-fb8c0b2-77b2"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=77b2">77b2</a> <span class="what"><code>subprojects/tablo</code> <code>7e94d58</code> → <code>816f2a0</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tablo's root <code>b2c1</code> reads the same at <code>816f2a0</code> as at <code>7e94d58</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tablo between <code>7e94d58</code> and <code>816f2a0</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>fb8c0b2</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>fb8c0b2b527789760956b0a238c5f07b97c7f277</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the eyeglasses review symbol</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tablo</code>, the submodule pin (<code>7e94d58</code> → <code>816f2a0</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/77b2.yaml .tableaux/status/77b2.yaml subprojects/tablo</code><br><code>git diff --raw --abbrev=7 fb8c0b2^ fb8c0b2 -- subprojects/tablo</code><br><code>git -C subprojects/tablo log --format='%as %h %ae' 7e94d58..816f2a0 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tablo log --format='%as %h %ae' 7e94d58..816f2a0 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-fb8c0b2-6103"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=6103">6103</a> <span class="what"><code>subprojects/tabloio</code> <code>7eba1e5</code> → <code>581ae98</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tabloio's root <code>07e0</code> reads the same at <code>581ae98</code> as at <code>7eba1e5</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tabloio between <code>7eba1e5</code> and <code>581ae98</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>fb8c0b2</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>fb8c0b2b527789760956b0a238c5f07b97c7f277</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the eyeglasses review symbol</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tabloio</code>, the submodule pin (<code>7eba1e5</code> → <code>581ae98</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/6103.yaml .tableaux/status/6103.yaml subprojects/tabloio</code><br><code>git diff --raw --abbrev=7 fb8c0b2^ fb8c0b2 -- subprojects/tabloio</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 7eba1e5..581ae98 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 7eba1e5..581ae98 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-fb8c0b2-c6e8"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=c6e8">c6e8</a> <span class="what"><code>subprojects/tablotui</code> <code>159fdab</code> → <code>dbfb8e3</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tablotui's root <code>40e8</code> reads the same at <code>dbfb8e3</code> as at <code>159fdab</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tablotui between <code>159fdab</code> and <code>dbfb8e3</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>fb8c0b2</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>fb8c0b2b527789760956b0a238c5f07b97c7f277</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the eyeglasses review symbol</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tablotui</code>, the submodule pin (<code>159fdab</code> → <code>dbfb8e3</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/c6e8.yaml .tableaux/status/c6e8.yaml subprojects/tablotui</code><br><code>git diff --raw --abbrev=7 fb8c0b2^ fb8c0b2 -- subprojects/tablotui</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' 159fdab..dbfb8e3 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' 159fdab..dbfb8e3 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-fb8c0b2-595e"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=595e">595e</a> <span class="what"><code>subprojects/tableaud</code> <code>2061a7f</code> → <code>b06cad0</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tableaud's root <code>8608</code> reads the same at <code>b06cad0</code> as at <code>2061a7f</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tableaud between <code>2061a7f</code> and <code>b06cad0</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>fb8c0b2</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>fb8c0b2b527789760956b0a238c5f07b97c7f277</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the eyeglasses review symbol</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:12:40 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tableaud</code>, the submodule pin (<code>2061a7f</code> → <code>b06cad0</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/595e.yaml .tableaux/status/595e.yaml subprojects/tableaud</code><br><code>git diff --raw --abbrev=7 fb8c0b2^ fb8c0b2 -- subprojects/tableaud</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' 2061a7f..b06cad0 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' 2061a7f..b06cad0 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-552d38f-77b2"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=77b2">77b2</a> <span class="what"><code>subprojects/tablo</code> <code>816f2a0</code> → <code>00f8f68</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tablo's root <code>b2c1</code> reads the same at <code>00f8f68</code> as at <code>816f2a0</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tablo between <code>816f2a0</code> and <code>00f8f68</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>552d38f</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>552d38fd8adf40e41b39f65d5904e6fc6a88b265</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the wrench, brick, ruler and link gate symbols</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tablo</code>, the submodule pin (<code>816f2a0</code> → <code>00f8f68</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/77b2.yaml .tableaux/status/77b2.yaml subprojects/tablo</code><br><code>git diff --raw --abbrev=7 552d38f^ 552d38f -- subprojects/tablo</code><br><code>git -C subprojects/tablo log --format='%as %h %ae' 816f2a0..00f8f68 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tablo log --format='%as %h %ae' 816f2a0..00f8f68 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-552d38f-6103"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=6103">6103</a> <span class="what"><code>subprojects/tabloio</code> <code>581ae98</code> → <code>cb9ff8f</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tabloio's root <code>07e0</code> reads the same at <code>cb9ff8f</code> as at <code>581ae98</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tabloio between <code>581ae98</code> and <code>cb9ff8f</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>552d38f</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>552d38fd8adf40e41b39f65d5904e6fc6a88b265</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the wrench, brick, ruler and link gate symbols</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tabloio</code>, the submodule pin (<code>581ae98</code> → <code>cb9ff8f</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/6103.yaml .tableaux/status/6103.yaml subprojects/tabloio</code><br><code>git diff --raw --abbrev=7 552d38f^ 552d38f -- subprojects/tabloio</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 581ae98..cb9ff8f -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 581ae98..cb9ff8f -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-552d38f-c6e8"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=c6e8">c6e8</a> <span class="what"><code>subprojects/tablotui</code> <code>dbfb8e3</code> → <code>334df71</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tablotui's root <code>40e8</code> reads the same at <code>334df71</code> as at <code>dbfb8e3</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tablotui between <code>dbfb8e3</code> and <code>334df71</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>552d38f</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>552d38fd8adf40e41b39f65d5904e6fc6a88b265</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the wrench, brick, ruler and link gate symbols</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tablotui</code>, the submodule pin (<code>dbfb8e3</code> → <code>334df71</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/c6e8.yaml .tableaux/status/c6e8.yaml subprojects/tablotui</code><br><code>git diff --raw --abbrev=7 552d38f^ 552d38f -- subprojects/tablotui</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' dbfb8e3..334df71 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' dbfb8e3..334df71 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-552d38f-595e"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=595e">595e</a> <span class="what"><code>subprojects/tableaud</code> <code>b06cad0</code> → <code>cffbfa6</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal, unchanged; tableaud's root <code>8608</code> reads the same at <code>cffbfa6</code> as at <code>b06cad0</code></dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<p class="fold">Subproject events: no event in tableaud between <code>b06cad0</code> and <code>cffbfa6</code>: its 2 commits change no task and no status</p>
+<details class="prov"><summary>Provenance: commit <code>552d38f</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>552d38fd8adf40e41b39f65d5904e6fc6a88b265</code></dd>
+<dt>Subject</dt><dd>Advance the subprojects to the wrench, brick, ruler and link gate symbols</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 07:34:57 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tableaud</code>, the submodule pin (<code>b06cad0</code> → <code>cffbfa6</code>) and 3 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/595e.yaml .tableaux/status/595e.yaml subprojects/tableaud</code><br><code>git diff --raw --abbrev=7 552d38f^ 552d38f -- subprojects/tableaud</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' b06cad0..cffbfa6 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' b06cad0..cffbfa6 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="r-1c0f04d-6103"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=6103">6103</a> <span class="what"><code>subprojects/tabloio</code> <code>cb9ff8f</code> → <code>4593882</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal; the gate comes from the status file of <a class="id" href="task.html?task=6103">6103</a>; the state and the note come from tabloio's root <code>07e0</code> at <code>4593882</code>, which stands at 🔧 function and rolls up from <code>e3ed</code> Legend and task renderers</dd>
+<dt>Note</dt><dd>prototype/e3ed renders the gate and task definition views as Markdown at three levels from tablo view data</dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<details class="sub" open><summary>Subproject events: 3 events in 3 commits of tabloio between <code>cb9ff8f</code> and <code>4593882</code></summary>
+<div class="scroll"><table>
+<caption>The events of tabloio that this pin takes in, oldest first; <code>tabloio -C subprojects/tabloio history --ref cb9ff8f..4593882</code> gives their detail</caption>
+<thead><tr><th scope="col">Date</th><th scope="col">By</th><th scope="col">Event</th><th scope="col">Task</th><th scope="col">Gate and state</th><th scope="col">Model</th></tr></thead><tbody>
+<tr><td>2026-09-30</td><td>noreply@anthropic.com</td><td>status</td><td><code class="id">1422</code> Snapshot workflow</td><td>📝 defined 🟢 nominal 👓 review</td><td><code>claude-opus-5-5</code></td></tr>
+<tr><td>2026-10-02</td><td>nbyoung@nbyoung.com</td><td>reviewed</td><td><code class="id">1422</code> Snapshot workflow</td><td>📐 design</td><td><code>claude-opus-5-5</code></td></tr>
+<tr><td>2026-10-02</td><td>noreply@anthropic.com</td><td>status</td><td><code class="id">1422</code> Snapshot workflow</td><td>📐 design 🟢 nominal</td><td><code>claude-opus-5-5</code></td></tr>
+</tbody></table></div></details>
+<details class="prov" open><summary>Provenance: commit <code>1c0f04d</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>1c0f04daa18af8b4140e8eab2948466981b65010</code></dd>
+<dt>Subject</dt><dd>Advance tabloio to its snapshot workflow design</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 13:48:21 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-02 13:48:21 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tabloio</code>, the submodule pin (<code>cb9ff8f</code> → <code>4593882</code>)</dd>
+<dt>Subproject commits</dt><dd><code>c2ba78e</code> <code>2b58033</code> <code>2b911fd</code></dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/6103.yaml .tableaux/status/6103.yaml subprojects/tabloio</code><br><code>git diff --raw --abbrev=7 1c0f04d^ 1c0f04d -- subprojects/tabloio</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' cb9ff8f..4593882 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' cb9ff8f..4593882 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+</ul></details>
+<details class="day" open><summary><h3>2026-10-04</h3> <span class="fold">1 event in 1 commit: 1 pin</span></summary>
+<ul class="events">
+<li id="r-fa4551e-c6e8"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=c6e8">c6e8</a> <span class="what"><code>subprojects/tablotui</code> <code>334df71</code> → <code>a2878b5</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal; the gate comes from the status file of <a class="id" href="task.html?task=c6e8">c6e8</a>; the state and the note come from tablotui's root <code>40e8</code> at <code>a2878b5</code>, which stands at 🔧 function and rolls up from <code>679b</code> Tableau grid</dd>
+<dt>Note</dt><dd>prototype/679b renders the global tableau as a Bubble Tea grid with tree expand and collapse, scrolling, a folded gate window and hidden columns kept in a settings file; emoji lines align where the terminal widens U+FE0F</dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<details class="sub"><summary>Subproject events: 10 events in 5 commits of tablotui between <code>334df71</code> and <code>a2878b5</code></summary>
+<div class="scroll"><table>
+<caption>The events of tablotui that this pin takes in, oldest first; <code>tabloio -C subprojects/tablotui history --ref 334df71..a2878b5</code> gives their detail</caption>
+<thead><tr><th scope="col">Date</th><th scope="col">By</th><th scope="col">Event</th><th scope="col">Task</th><th scope="col">Gate and state</th><th scope="col">Model</th></tr></thead><tbody>
+<tr><td>2026-10-02</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">518e</code> Actions</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-02</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">f394</code> Role and context</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-02</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">679b</code> Tableau grid</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-02</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">171b</code> Live refresh</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-02</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">0afa</code> Detail panes</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+</tbody></table></div></details>
+<details class="prov"><summary>Provenance: commit <code>fa4551e</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>fa4551ecdc8d106722ac41b25a9213abc453fab0</code></dd>
+<dt>Subject</dt><dd>Advance tablotui to its five function prototypes</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-04 16:38:02 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-04 16:38:02 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tablotui</code>, the submodule pin (<code>334df71</code> → <code>a2878b5</code>)</dd>
+<dt>Subproject commits</dt><dd><code>ff14d4e</code> <code>358c6e3</code> <code>66c0412</code> <code>8fe12c3</code> <code>97991e8</code></dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/c6e8.yaml .tableaux/status/c6e8.yaml subprojects/tablotui</code><br><code>git diff --raw --abbrev=7 fa4551e^ fa4551e -- subprojects/tablotui</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' 334df71..a2878b5 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' 334df71..a2878b5 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+</ul></details>
+<details class="day" open><summary><h3>2026-10-05</h3> <span class="fold">1 event in 1 commit: 1 pin</span></summary>
+<ul class="events">
+<li id="r-3cdae52-595e"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=595e">595e</a> <span class="what"><code>subprojects/tableaud</code> <code>cffbfa6</code> → <code>e6ec4ec</code></span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>📝 defined 🟢 nominal; the gate comes from the status file of <a class="id" href="task.html?task=595e">595e</a>; the state and the note come from tableaud's root <code>8608</code> at <code>e6ec4ec</code>, which stands at 🔧 function and rolls up from <code>49ce</code> Server</dd>
+<dt>Note</dt><dd>prototype/49ce serves the ten views with a stdlib HEAD and .tableaux watcher, ETag 304 polling through htmx, a Source interface and a loopback Host check</dd>
+<dt>Project <a class="id" href="task.html?task=437e">437e</a> after</dt><dd>unchanged</dd>
+<dt>Model</dt><dd><code>claude-opus-5-5</code>, an agent that commits under the identity of nbyoung@nbyoung.com</dd>
+</dl>
+<details class="sub"><summary>Subproject events: 21 events in 13 commits of tableaud between <code>cffbfa6</code> and <code>e6ec4ec</code></summary>
+<div class="scroll"><table>
+<caption>The events of tableaud that this pin takes in, oldest first; <code>tabloio -C subprojects/tableaud history --ref cffbfa6..e6ec4ec</code> gives their detail</caption>
+<thead><tr><th scope="col">Date</th><th scope="col">By</th><th scope="col">Event</th><th scope="col">Task</th><th scope="col">Gate and state</th><th scope="col">Model</th></tr></thead><tbody>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">9a9c</code> Temporal templates</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">44bf</code> Status templates</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>reviewed</td><td><code class="id">438a</code> Legend and task templates</td><td>🔧 function</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">438a</code> Legend and task templates</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>reviewed</td><td><code class="id">e2b6</code> Structural templates</td><td>🔧 function</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">e2b6</code> Structural templates</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>reviewed</td><td><code class="id">49ce</code> Server</td><td>🔧 function</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">49ce</code> Server</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>reviewed</td><td><code class="id">db74</code> Progressive disclosure</td><td>🔧 function</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">db74</code> Progressive disclosure</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>reviewed</td><td><code class="id">5a2f</code> Accessibility and theming</td><td>🔧 function</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">5a2f</code> Accessibility and theming</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+<tr><td>2026-10-05</td><td>noreply@anthropic.com</td><td>status, reviewed</td><td><code class="id">6160</code> Static export</td><td>🔧 function 🟢 nominal</td><td><code>claude-sonnet-5-5</code></td></tr>
+</tbody></table></div></details>
+<details class="prov"><summary>Provenance: commit <code>3cdae52</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>3cdae527d47d37fdff55bc302c76c017cf91c606</code></dd>
+<dt>Subject</dt><dd>Advance tableaud to the eight function prototypes</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-05 12:59:45 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-10-05 12:59:45 -0400</dd>
+<dt>Trailers</dt><dd><code>Model: claude-opus-5-5</code>, <code>Co-Authored-By: Claude Opus 5.5 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tableaud</code>, the submodule pin (<code>cffbfa6</code> → <code>e6ec4ec</code>)</dd>
+<dt>Subproject commits</dt><dd><code>1a3f5a2</code> <code>4320f45</code> <code>af1ec77</code> <code>11ab533</code> <code>7c98883</code> <code>2f2304c</code> <code>7d33060</code> <code>967df1f</code> <code>d3fa0f8</code> <code>0a2a0b6</code> <code>9e08551</code> <code>0c38023</code> <code>218d8f3</code></dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks/595e.yaml .tableaux/status/595e.yaml subprojects/tableaud</code><br><code>git diff --raw --abbrev=7 3cdae52^ 3cdae52 -- subprojects/tableaud</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' cffbfa6..e6ec4ec -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' cffbfa6..e6ec4ec -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+</ul></details>
+<details class="prov"><summary>Provenance of the list: the commands that produce it</summary>
+<p>The tool merges the output of the two commands in author-time order. The four submodule paths join the first command, since a pin moves a gitlink and no task file.</p>
+<p><code>git log --format='%as %h %ae' 0704a09..main -- .tableaux/tasks .tableaux/status subprojects/tablo subprojects/tabloio subprojects/tablotui subprojects/tableaud</code><br><code>git log --format='%as %h %ae' 0704a09..main -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></p>
+<p>The range holds 10 commits. 3 make no event, since they change no task file, no status file and no pin, and carry no task trailer:</p><ul>
+<li><code>57462c1</code> Advance the abstract views task to its design gate</li>
+<li><code>e91ba68</code> Mark four gates with symbols that need no variation selector</li>
+<li><code>767792c</code> Accept the wrench, brick, ruler and link gate symbols</li>
+</ul></details>
+</section>
+<section id="cases" aria-labelledby="h-cases"><h2 id="h-cases">Cases outside the two pictures</h2>
+<h3 id="first-pin">A pin with no old commit</h3>
+<p>Every pin in picture 2 advances a pin, so each names an old and a new commit. A linkage first appears once per subproject, in <code>37a08e9</code> Pin the subprojects, which lies before the range. The range <code>a7932ae..37a08e9</code> shows that case, real project content:</p>
+<p class="fold">4 events in 1 commit, 2026-09-29: 0 task, 0 authorised, 0 status, 0 reaffirmed, 0 reviewed, 4 pin.</p>
+<details class="day" open><summary><h4>2026-09-29</h4> <span class="fold">4 events in 1 commit: 4 pin</span></summary>
+<ul class="events">
+<li id="f-37a08e9-77b2"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=77b2">77b2</a> <span class="what"><code>subprojects/tablo</code> new <code>dc669dd</code>, no old commit</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>❔ undefined ⚪ undefined; <a class="id" href="task.html?task=77b2">77b2</a> has no status file yet; tablo's root <code>b2c1</code> at <code>dc669dd</code> stands at ❔ undefined ⚪ undefined</dd>
+<dt>Model</dt><dd>none recorded: the commit precedes the <code>Model:</code> trailer, which language 0.2.1 introduces; <code>Co-Authored-By:</code> names Claude Fable 5.1</dd>
+</dl>
+<p class="fold">Subproject events: 12 events in 1 commit of tablo up to <code>dc669dd</code>, folded to the count; <code>tabloio -C subprojects/tablo history --ref dc669dd</code> gives their detail</p>
+<details class="prov"><summary>Provenance: commit <code>37a08e9</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>37a08e92e840ea3cb48bc7ca6a5041c44096ef8e</code></dd>
+<dt>Subject</dt><dd>Pin the subprojects</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Trailers</dt><dd><code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tablo</code>, the submodule pin (new at <code>dc669dd</code>) and 4 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' a7932ae..37a08e9 -- .tableaux/tasks/77b2.yaml .tableaux/status/77b2.yaml subprojects/tablo</code><br><code>git diff --raw --abbrev=7 37a08e9^ 37a08e9 -- subprojects/tablo</code><br><code>git -C subprojects/tablo log --format='%as %h %ae' dc669dd -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tablo log --format='%as %h %ae' dc669dd -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="f-37a08e9-6103"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=6103">6103</a> <span class="what"><code>subprojects/tabloio</code> new <code>46521bc</code>, no old commit</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>❔ undefined ⚪ undefined; <a class="id" href="task.html?task=6103">6103</a> has no status file yet; tabloio's root <code>07e0</code> at <code>46521bc</code> stands at ❔ undefined ⚪ undefined</dd>
+<dt>Model</dt><dd>none recorded: the commit precedes the <code>Model:</code> trailer, which language 0.2.1 introduces; <code>Co-Authored-By:</code> names Claude Fable 5.1</dd>
+</dl>
+<p class="fold">Subproject events: 12 events in 1 commit of tabloio up to <code>46521bc</code>, folded to the count; <code>tabloio -C subprojects/tabloio history --ref 46521bc</code> gives their detail</p>
+<details class="prov"><summary>Provenance: commit <code>37a08e9</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>37a08e92e840ea3cb48bc7ca6a5041c44096ef8e</code></dd>
+<dt>Subject</dt><dd>Pin the subprojects</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Trailers</dt><dd><code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tabloio</code>, the submodule pin (new at <code>46521bc</code>) and 4 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' a7932ae..37a08e9 -- .tableaux/tasks/6103.yaml .tableaux/status/6103.yaml subprojects/tabloio</code><br><code>git diff --raw --abbrev=7 37a08e9^ 37a08e9 -- subprojects/tabloio</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 46521bc -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tabloio log --format='%as %h %ae' 46521bc -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="f-37a08e9-c6e8"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=c6e8">c6e8</a> <span class="what"><code>subprojects/tablotui</code> new <code>4544042</code>, no old commit</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>❔ undefined ⚪ undefined; <a class="id" href="task.html?task=c6e8">c6e8</a> has no status file yet; tablotui's root <code>40e8</code> at <code>4544042</code> stands at ❔ undefined ⚪ undefined</dd>
+<dt>Model</dt><dd>none recorded: the commit precedes the <code>Model:</code> trailer, which language 0.2.1 introduces; <code>Co-Authored-By:</code> names Claude Fable 5.1</dd>
+</dl>
+<p class="fold">Subproject events: 7 events in 1 commit of tablotui up to <code>4544042</code>, folded to the count; <code>tabloio -C subprojects/tablotui history --ref 4544042</code> gives their detail</p>
+<details class="prov"><summary>Provenance: commit <code>37a08e9</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>37a08e92e840ea3cb48bc7ca6a5041c44096ef8e</code></dd>
+<dt>Subject</dt><dd>Pin the subprojects</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Trailers</dt><dd><code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tablotui</code>, the submodule pin (new at <code>4544042</code>) and 4 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' a7932ae..37a08e9 -- .tableaux/tasks/c6e8.yaml .tableaux/status/c6e8.yaml subprojects/tablotui</code><br><code>git diff --raw --abbrev=7 37a08e9^ 37a08e9 -- subprojects/tablotui</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' 4544042 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tablotui log --format='%as %h %ae' 4544042 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+<li id="f-37a08e9-595e"><details class="detail" open>
+<summary><span class="by">nbyoung@nbyoung.com</span> <span class="ev">pin</span> <a class="id" href="task.html?task=595e">595e</a> <span class="what"><code>subprojects/tableaud</code> new <code>59783a9</code>, no old commit</span></summary>
+<dl class="fields">
+<dt>Status after</dt><dd>❔ undefined ⚪ undefined; <a class="id" href="task.html?task=595e">595e</a> has no status file yet; tableaud's root <code>8608</code> at <code>59783a9</code> stands at ❔ undefined ⚪ undefined</dd>
+<dt>Model</dt><dd>none recorded: the commit precedes the <code>Model:</code> trailer, which language 0.2.1 introduces; <code>Co-Authored-By:</code> names Claude Fable 5.1</dd>
+</dl>
+<p class="fold">Subproject events: 11 events in 1 commit of tableaud up to <code>59783a9</code>, folded to the count; <code>tabloio -C subprojects/tableaud history --ref 59783a9</code> gives their detail</p>
+<details class="prov"><summary>Provenance: commit <code>37a08e9</code></summary>
+<dl class="fields">
+<dt>Commit</dt><dd><code>37a08e92e840ea3cb48bc7ca6a5041c44096ef8e</code></dd>
+<dt>Subject</dt><dd>Pin the subprojects</dd>
+<dt>Author</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Committer</dt><dd>Norman Young &lt;nbyoung@nbyoung.com&gt;, 2026-09-29 17:30:02 -0400</dd>
+<dt>Trailers</dt><dd><code>Co-Authored-By: Claude Fable 5.1 &lt;noreply@anthropic.com&gt;</code></dd>
+<dt>Files</dt><dd><code>subprojects/tableaud</code>, the submodule pin (new at <code>59783a9</code>) and 4 more</dd>
+<dt>Reproduce</dt><dd><code>git log --format='%as %h %ae' a7932ae..37a08e9 -- .tableaux/tasks/595e.yaml .tableaux/status/595e.yaml subprojects/tableaud</code><br><code>git diff --raw --abbrev=7 37a08e9^ 37a08e9 -- subprojects/tableaud</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' 59783a9 -- .tableaux/tasks .tableaux/status</code><br><code>git -C subprojects/tableaud log --format='%as %h %ae' 59783a9 -E --grep='^(Authorised|Reaffirmed): [0-9a-f]{4}$' --grep='^Reviewed: [0-9a-f]{4} '</code></dd>
+</dl></details>
+</details></li>
+</ul></details>
+<p>A first pin has no old commit to bound the subproject's events, so its detail folds them to the count up to the pin.</p>
+<h3 id="reaffirmed">Reaffirmed</h3>
+<p>No reaffirmed event: no commit up to <code>3cdae52</code> carries a <code>Reaffirmed:</code> trailer, so both pictures count 0 reaffirmed and show no such line.</p>
+<div class="illustrative"><p>Illustrative, not project content. A reaffirmation of <code class="id">e9c6</code> after the ref reads so:</p>
+<ul class="events"><li><details class="detail" open><summary><span class="by">noreply@anthropic.com</span> <span class="ev">reaffirmed</span> <code class="id">e9c6</code> <span class="what">2026-10-07 · 📐 design 🟢 nominal</span></summary><dl class="fields"><dt>Status after</dt><dd>📐 design 🟢 nominal, unchanged; the status now dates from 2026-10-07</dd><dt>Model</dt><dd><code>claude-fable-5-1</code></dd></dl></details></li></ul></div>
+<h3 id="authorised">Authorised</h3>
+<p>No commit up to <code>3cdae52</code> carries an <code>Authorised:</code> trailer. Every authorisation in the project comes from the owner’s own commit of the task file, so it shares the line of the task event, as <code>task, authorised</code> in picture 1.</p>
+</section>
+<section id="related" aria-labelledby="h-related"><h2 id="h-related">Related views</h2><ul>
+<li><a href="gates.html">Gate definition</a>: the legend of every symbol here.</li>
+<li><a href="task.html">Task definition</a>: <code class="id">e9c6</code> as it stands at the ref, with its junctions and requirements.</li>
+<li><a href="queue.html">Work queue</a>: the review a hand-off makes owed.</li>
+<li><a href="audit.html">Audit</a>: where the files and this history disagree.</li>
+<li><a href="tableau.html">Global tableau</a>: where every task stands at the ref.</li>
+</ul></section>
+</main>
+<footer class="site">
+  <p>Mockup of the History view (task <code class="id">3194</code>). Hand-made; a daemon renders this page from the checked-out repository.</p>
+</footer>
+</body>
+</html>
