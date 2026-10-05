@@ -43,13 +43,13 @@ A view shows nothing a tool does not derive from the project files and the Git h
 
 ### Parameters
 
-Every view takes the same parameters. Each view's section says which apply to it and what its default is; a parameter a view does not name has no effect on it.
+The views share one set of parameters. Each view's section says which apply to it and what its default is; a parameter a view does not name has no effect on it.
 
 | Parameter            | Focuses                                                                                                                                       | Default                                                     |
 |----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
 | task                 | One task, or the subtree under it                                                                                                             | The root                                                    |
 | person               | One email: the tasks, junctions and commits in which it appears                                                                               | The viewer                                                  |
-| window or columns    | The gate columns shown: a window of *n* columns either side of the next gates of the tasks in view, or an explicit list; the columns outside fold to a count | A window of one                              |
+| window or columns    | The gate columns a tableau shows: a window of *n* columns either side of the next gates of the tasks in view, or an explicit list; the columns outside fold to a count | A window of one                              |
 | historical junctions | Whether a tableau shows the junction marks of a task's historical junctions                                                                   | False                                                       |
 | ref, or a range      | The commit whose files and history are in view; a range bounds the history                                                                    | `HEAD` of the checkout; authorisation always reads the trunk |
 | role                 | The role whose level the view opens at                                                                                                        | The viewer's role at each item                              |
@@ -58,6 +58,8 @@ Every view takes the same parameters. Each view's section says which apply to it
 The **viewer** is whoever runs the tool, identified by the email Git would commit with. An agent that runs inside a person's session shares that person's email, so a dispatcher names the agent by `person`. An observer has no email in the project and sees every view at glance.
 
 A task's **historical junctions** are its junctions at every gate before the gate its status names, applicable or not; for a parent, before its derived gate; a task at `undefined` has none. A tableau shows a historical cell empty, neither marks nor `—`, unless the historical-junctions parameter is on, since the work there is done and the marks would only say who did it.
+
+The **window** belongs to the two tableaux alone. A tableau lays the gates out as columns, and the width of its medium bounds how many it shows, so the window chooses them and folds the rest. Every other view lists its gates, items or events down the page, where length costs nothing a fold of rows does not already answer: it shows every gate and takes no window and no list of columns.
 
 Two views take a parameter of their own: the work queue's `brief` and the audit's `stale` age.
 
@@ -79,7 +81,7 @@ Every view discloses at three levels, and the levels nest. A format decides how 
 
 **Data.** Gates. The language version and trunk from `version.yaml`. The junction marks, which belong to the method rather than to a project: 🧑 a person contributes, 🤖 an agent contributes, 👀 a reviewer accepts, 🪆 a subproject does the work, and — the gate does not apply. For one task, the junction references that expand a gate's criteria for it.
 
-**Parameters.** ref: the gates as they stand at that commit. task: the criteria as that task's junction references expand them. window or columns: those gates only.
+**Parameters.** ref: the gates as they stand at that commit. task: the criteria as that task's junction references expand them.
 
 **Levels.**
 
@@ -102,7 +104,7 @@ States ⚪ undefined 0 · 🟢 nominal 1 · 🟡 at_risk 2 · 🔴 stalled 3 · 
 
 **Data.** The task file entire. Tree: parent, order, children. Authorities. Resolved junctions and applicable gates, with the three `url` forms of a recursive junction and the commit each fixes. Requirement conditions, both ways, with a cross-project entry shown by its `url`, `id` and the commit it reads. Authorisation. Status, or for a parent the roll-up, or for a recursive next junction the subproject snapshot. Reviews. Models. The newest events.
 
-**Parameters.** task, required. ref. person marks the positions the person holds in this task. window or columns restricts the junction list; the default shows every gate, since one task's row is short.
+**Parameters.** task, required. ref. person marks the positions the person holds in this task. The junction list shows every gate.
 
 **Levels.**
 
@@ -166,7 +168,7 @@ Every task is authorised. At provenance, thirty-three read the plan commit `6b6c
 
 **Data.** For each email in the project: the tasks it is assigned, with their status; the junctions where it is the contributor, stated or by default, at each task's next gate and at every gate, with the model where it is an agent; the junctions where it is the reviewer; the subtrees it has authority over; counts of each by gate.
 
-**Parameters.** person: one section. task: within a subtree. window or columns: the junctions at those gates only; the default window spans the next gates of the tasks in view. ref.
+**Parameters.** person: one section. task: within a subtree. ref. The lists show the junctions at every gate, grouped by gate in gate order.
 
 **Levels.**
 
@@ -199,7 +201,7 @@ At detail, the owner contributes at release on every task and reviews mockup, de
 
 Reviews come first because each one unblocks other people's work; within a kind, items follow display order. Each item draws from resolved junctions, requirement conditions, status, reviews, authorisation, gates and models. A task whose next junction is recursive is no item for anyone in this project: the subproject's own queue holds its work.
 
-**Parameters.** person: the viewer by default; a dispatcher names the agent. task: within a subtree. window or columns: items at those gates only. ref. brief: a task and a gate, which writes that one item as a brief.
+**Parameters.** person: the viewer by default; a dispatcher names the agent. task: within a subtree. ref. brief: a task and a gate, which writes that one item as a brief.
 
 **Levels.**
 
@@ -283,7 +285,7 @@ Reproduce: tabloio queue --person noreply@anthropic.com --brief e9c6 design
 
 A held task holds its own dependents in turn, so the tree is transitive; a task held by two causes appears under both. Each cause names the one action that resolves it and the one person who takes it. A requirement that is not yet due is no wait, so it appears only at detail, as what comes next.
 
-**Parameters.** task: the causes that hold one task, or the causes inside a subtree. person: the causes the person resolves, or the causes that hold the person's own work. window or columns: causes at those gates. ref.
+**Parameters.** task: the causes that hold one task, or the causes inside a subtree. person: the causes the person resolves, or the causes that hold the person's own work. ref.
 
 **Levels.**
 
@@ -380,7 +382,7 @@ In this project both emails hold most of the tree, so the task form serves them;
 
 **Data.** Events in author-time order, each with its date, commit, actor, the committer where it differs, and for a status event the gate, state, reason and note; for a pin event the `url` and the old and new commit, `old` absent when the linkage first appears. Models, on each agent commit. The status after each event, replayed for a parent from its children. The subproject snapshot's events up to the commit its `url` fixes. At a ref off the trunk, the events the branch adds beyond the trunk, marked as proposals.
 
-**Parameters.** task: one task, or a subtree, which replays its children. person: the events one actor made. ref, or a range such as `v1.0..v1.1` or `main..task/e9c6`. window or columns: events at those gates.
+**Parameters.** task: one task, or a subtree, which replays its children. person: the events one actor made. ref, or a range such as `v1.0..v1.1` or `main..task/e9c6`.
 
 **Levels.**
 
@@ -438,6 +440,10 @@ The owner reviewed the first draft on 2026-09-30 and decided each question below
 - **Q5 The tableau cell.** Kept: the state symbol sits in the column of the gate the status names, with the reason symbol in the same cell.
 - **Q6 The stale age.** Reduced to seven days, on the audit alone; the queue lists reaffirmations by age with no threshold.
 - **Q7 The person form of the contextual tableau.** Kept: the person's tasks, the spine to the root and the siblings.
+
+The owner reviewed the mockups from 2026-10-05 and decided the following; the text above agrees.
+
+- **The window serves the tableaux only.** The draft gave every view the window-or-columns parameter. The task assignment mockup showed the cost: the view lists its gates down the page, so a window hid two gates behind a term the reader had to learn and gained nothing. The owner removed the parameter from every view that lists rather than tabulates by gate: the gate definition, the task definition, task assignment, the work queue, the work-blockage tree and the history. Those views show every gate. The global and the contextual tableau keep the window as Q2 states it.
 
 ## Findings about the method
 
