@@ -1,3 +1,4 @@
 gate: defined
 state: nominal
-note: Mockup waits for Abstract views (e9c6) at design
+reason: review
+note: docs/mockups/gates.md awaits the owner's review at mockup
