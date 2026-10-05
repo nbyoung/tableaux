@@ -1,4 +1,3 @@
-gate: defined
-state: nominal
-reason: review
-note: docs/mockups/context.md draws the contextual tableau in Markdown and awaits the owner's review at mockup
+gate: mockup
+state: complete
+note: The owner accepts docs/mockups/context.md at the mockup gate, the last gate that applies to this task

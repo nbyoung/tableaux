@@ -1,4 +1,3 @@
-gate: defined
-state: nominal
-reason: review
-note: docs/mockups/history.md awaits the owner's review at mockup
+gate: mockup
+state: complete
+note: The owner accepts docs/mockups/history.md at the mockup gate, the last gate that applies to this task

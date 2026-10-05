@@ -1,4 +1,3 @@
-gate: defined
-state: nominal
-reason: review
-note: docs/mockups/task.html draws the task definition view for e9c6 and awaits the owner's review at mockup
+gate: mockup
+state: complete
+note: The owner accepts docs/mockups/task.html at the mockup gate, the last gate that applies to this task
