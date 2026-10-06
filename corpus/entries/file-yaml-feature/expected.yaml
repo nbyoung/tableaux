@@ -1,0 +1,6 @@
+# expected.yaml : a status file that holds a second YAML document. The tool reports L3 and reads the first document.
+entry: file-yaml-feature
+language: 0.3.1
+valid: false
+findings:
+  - { rule: L3, severity: error, task: "b2c9", file: status/b2c9.yaml }

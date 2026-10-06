@@ -1,0 +1,6 @@
+# expected.yaml : a status file that states `gate` twice. The tool reports L2 at the second key and keeps the first, so the status reads defined.
+entry: file-duplicate-key
+language: 0.3.1
+valid: false
+findings:
+  - { rule: L2, severity: error, task: "b2c9", file: status/b2c9.yaml }

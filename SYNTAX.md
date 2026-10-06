@@ -12,7 +12,7 @@ This document defines the syntax of each [Tableaux](README.md) file. Each sectio
 
 ## Layout
 
-A Tableaux project is the `.tableaux` directory at the root of its Git repository.
+A Tableaux project is the `.tableaux` directory at the root of its Git repository, or under a directory of the repository for a project that shares it ([README.md](README.md#junctions)). A tool run in a directory reads the nearest `.tableaux` at or above it, up to the repository's root, as Git finds `.git`.
 
 ```
 .tableaux/
@@ -33,6 +33,8 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
 | `version.yaml`, `gates.yaml`  | Fixed                                                                       |
 | `tasks/<id>.yaml`             | `<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$` |
 | `status/<id>.yaml`            | `<id>` is the id of a leaf task                                             |
+
+Every file is YAML: one document of plain mappings, sequences and scalars, where a mapping states each key once. A tool reports a file that is not YAML, a key stated twice, and a YAML feature beyond these, reads no task or status from such a file, and reads every other file; it leaves any other path under `.tableaux` unread and warns ([RULES.md](corpus/RULES.md#reading-a-file)).
 
 History has no file: a tool derives it from the Git log (see [History](#history)).
 

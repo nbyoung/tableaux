@@ -43,15 +43,15 @@ A view shows nothing a tool does not derive from the project files and the Git h
 
 ### Parameters
 
-The views share one set of parameters. Each view's section says which apply to it and what its default is; a parameter a view does not name has no effect on it.
+The views share one set of parameters. Each view's section says which apply to it and what its default is; a parameter a view does not name is a usage error on that view, so a mistyped option never passes for a default.
 
 | Parameter            | Focuses                                                                                                                                       | Default                                                     |
 |----------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------|
 | task                 | One task, or the subtree under it                                                                                                             | The root                                                    |
-| person               | One email: the tasks, junctions and commits in which it appears                                                                               | The viewer                                                  |
+| person               | One email: the tasks, junctions and commits in which it appears                                                                               | The viewer on the work queue and on the contextual tableau without a task; nobody elsewhere, so the view shows everyone and marks no one |
 | window or columns    | The gate columns a tableau shows: a window of *n* columns either side of the next gates of the tasks in view, or an explicit list; the columns outside fold to a count | A window of one                              |
 | historical junctions | Whether a tableau shows the junction marks of a task's historical junctions                                                                   | False                                                       |
-| ref, or a range      | The commit whose files and history are in view; a range bounds the history                                                                    | `HEAD` of the checkout; authorisation always reads the trunk |
+| ref, or a range      | The commit whose files and history are in view; a range bounds the history                                                                    | The working tree's files on the history of `HEAD`, so an edit shows before its commit, and `HEAD` names the committed state; authorisation always reads the trunk |
 | role                 | The role whose level the view opens at                                                                                                        | The viewer's role at each item                              |
 | level                | The level, overriding the role's                                                                                                              | —                                                           |
 
@@ -444,6 +444,19 @@ The owner reviewed the first draft on 2026-09-30 and decided each question below
 The owner reviewed the mockups from 2026-10-05 and decided the following; the text above agrees.
 
 - **The window serves the tableaux only.** The draft gave every view the window-or-columns parameter. The task assignment mockup showed the cost: the view lists its gates down the page, so a window hid two gates behind a term the reader had to learn and gained nothing. The owner removed the parameter from every view that lists rather than tabulates by gate: the gate definition, the task definition, task assignment, the work queue, the work-blockage tree and the history. Those views show every gate. The global and the contextual tableau keep the window as Q2 states it.
+
+The owner reviewed the eighteen designs of 2026-10-05 on 2026-10-06 and decided the following; the text above agrees. The mockups stay as drawn: their purpose was to obligate decisions cheaply and reveal gaps, and the understanding carries forward here and in each design's own record, not in a rewrite of the artefacts.
+
+- **The default ref is the working tree.** Without a ref a tool reads the files under `.tableaux` from the working tree on the history of `HEAD`, so an edit shows before its commit; `HEAD` names the committed state. The parameter table reads so. In a working-tree read a submodule reads at its checkout's `HEAD`.
+- **The person default is per view.** The viewer on the work queue and on the contextual tableau without a task; nobody elsewhere, so the other eight views show everyone and mark no one. The parameter table reads so.
+- **A parameter a view does not name is a usage error**, so one mistyped option never passes for a default. The paragraph above the table reads so.
+- **The parameter names on a command line** are `--person` and `--ref`, as the table names them, in every tool; the `--for` and `--at` that `task.md`, `audit.md` and `assignment.md` write are the mockups' shorthand.
+- **A long list folds from more than eight alike rows**, showing three and folding the rest with every id, in every front end. `queue.md` and `queue.html`, which say five or more, stay as drawn.
+- **The number after a folded parent** counts every row folded beneath it, as `tableau.md` reads it; `context.md`, which counts the children not drawn, stays as drawn.
+- **A folded column's count includes parents** by their roll-up: the count of tasks whose current gate lies in it, as the global tableau's Parameters paragraph states and as `tableau.md` counts 29 at 📝. The count stands in the column header, as `tableau.md` draws it, not in the first row as `context.md` and the example under the contextual tableau draw it.
+- **A link's form belongs to the medium.** The daemon spells a task link as a query and a static export as a file name, so the mockups' `task.html?task=…` links and the bare `task.html` links of `authority.html` and `blockage.html` are shorthand that no design copies.
+- **A self-review shows the contributor's mark alone**: 👀 stands only where the reviewer differs from the contributor, so an agent that reviews its own work shows 🤖 alone and a person's plain junction shows 🧑 alone. README.md#junctions states it, and a tool derives the marks.
+- **Markdown fixes one level by a flag**, as the Levels paragraph says; `tabloio` takes `--level` alone, glance by default, and the role parameter serves the live front ends through `tablo`.
 
 ## Findings about the method
 

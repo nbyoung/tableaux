@@ -1,0 +1,6 @@
+# expected.yaml : a path under .tableaux the layout does not name. The tool warns with L4 and leaves it unread; the project stays valid.
+entry: file-stray-path
+language: 0.3.1
+valid: true
+findings:
+  - { rule: L4, severity: warning, file: NOTES.md }

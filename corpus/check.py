@@ -50,7 +50,7 @@ BUILT = {"J17"}                    # rules the check reads from the built reposi
 # Rules whose violation the schemas alone reject. The rest need more than a schema says.
 SCHEMA_RULES = {"P3", "G2", "G3", "G4", "G5", "G7", "G8", "G11", "G12", "T2", "T3", "T4", "T5", "T6", "T11",
                 "R8", "R11", "J2", "J4", "J5", "J6", "J7", "J10", "J11", "J14", "S3", "S4"}
-WARNINGS = {"P5", "T7", "T12", "R9", "R12", "R13", "J13", "H1", "H2", "H3", "H5", "H6"}
+WARNINGS = {"P5", "L4", "T7", "T12", "R9", "R12", "R13", "J13", "H1", "H2", "H3", "H5", "H6"}
 INFORMATION = {"H4"}               # leaves the project valid and marks nothing wrong
 LENIENT = WARNINGS | INFORMATION   # every rule whose finding is not an error
 
@@ -58,6 +58,27 @@ LENIENT = WARNINGS | INFORMATION   # every rule whose finding is not an error
 def load(path):
     with open(path, encoding="utf-8") as fh:
         return yaml.safe_load(fh)
+
+
+def _first_wins(node):
+    """The value of a composed node, as safe_load gives it, except that a repeated
+    key keeps its first value (L2) and an alias reads as null (L3)."""
+    if isinstance(node, yaml.MappingNode):
+        out = {}
+        for k, v in node.value:
+            key = _first_wins(k)
+            if isinstance(key, (dict, list)):
+                continue
+            if key not in out:
+                out[key] = _first_wins(v)
+        return out
+    if isinstance(node, yaml.SequenceNode):
+        return [_first_wins(v) for v in node.value]
+    tag = node.tag if node.tag and node.tag.startswith("tag:yaml.org,2002:") else "tag:yaml.org,2002:str"
+    try:
+        return yaml.SafeLoader("").construct_object(yaml.ScalarNode(tag, node.value), deep=True)
+    except yaml.YAMLError:
+        return node.value
 
 
 def is_email(v):
@@ -91,17 +112,90 @@ class Project:
     def add(self, rule, task=None, file=None, gate=None):
         self.findings.append((rule, task, file, gate))
 
+    # ---- reading a file (RULES.md, Reading a file: L1 to L4)
+    def read_file(self, rel, task=None):
+        """Read one YAML file under .tableaux, applying L1 to L3. Returns the first
+        document, or None when L1 rejects the file."""
+        p = os.path.join(self.path, rel)
+        try:
+            with open(p, encoding="utf-8") as fh:
+                text = fh.read()
+            events = list(yaml.parse(text))
+            docs = list(yaml.compose_all(text))
+        except (OSError, UnicodeDecodeError, yaml.YAMLError):
+            self.add("L1", task, rel)
+            return None
+        if not docs:
+            return None
+        seen = set()
+        if len(docs) > 1:
+            seen.add("L3")
+        for ev in events:                     # an anchor or an alias shows only in the event stream
+            if isinstance(ev, yaml.AliasEvent) or getattr(ev, "anchor", None):
+                seen.add("L3")
+
+        def walk(node):
+            if (node.tag and not node.tag.startswith("tag:yaml.org,2002:")) or \
+               node.tag in ("tag:yaml.org,2002:merge", "tag:yaml.org,2002:binary", "tag:yaml.org,2002:timestamp",
+                            "tag:yaml.org,2002:set", "tag:yaml.org,2002:omap", "tag:yaml.org,2002:pairs"):
+                seen.add("L3")
+            if isinstance(node, yaml.MappingNode):
+                keys = []
+                for k, v in node.value:
+                    if not isinstance(k, yaml.ScalarNode):
+                        seen.add("L3")
+                    elif k.value in keys:
+                        seen.add("L2")
+                    else:
+                        keys.append(k.value)
+                    walk(k)
+                    walk(v)
+            elif isinstance(node, yaml.SequenceNode):
+                for v in node.value:
+                    walk(v)
+        for d in docs:
+            walk(d)
+        if "L2" in seen:
+            self.add("L2", task, rel)
+        if "L3" in seen:
+            self.add("L3", task, rel)
+        # Build the value from the first document, keeping the first of a repeated key.
+        return _first_wins(docs[0])
+
+    def scan_stray(self):
+        """L4: every path under .tableaux is one the layout names, each a regular file."""
+        for root, dirs, files in os.walk(self.path):
+            rel = os.path.relpath(root, self.path)
+            rel = "" if rel == "." else rel
+            for d in list(dirs):
+                if rel == "" and d in ("tasks", "status"):
+                    continue
+                self.add("L4", file=os.path.join(rel, d))
+                dirs.remove(d)
+            for f in files:
+                q = os.path.join(rel, f)
+                named = (rel == "" and f in ("version.yaml", "gates.yaml")) or \
+                        (rel in ("tasks", "status") and f.endswith(".yaml"))
+                if not named or not os.path.isfile(os.path.join(root, f)) or os.path.islink(os.path.join(root, f)):
+                    self.add("L4", file=q)
+
     # ---- reading
     def read(self):
         if not os.path.isdir(self.path):
             self.add("P1")
             return self
+        self.scan_stray()
         self.read_version()
         self.read_gates()
         tdir = os.path.join(self.path, "tasks")
         for name in sorted(os.listdir(tdir)) if os.path.isdir(tdir) else []:
-            tid = name[:-5] if name.endswith(".yaml") else name
-            self.tasks[tid] = load(os.path.join(tdir, name))
+            if not name.endswith(".yaml"):
+                continue                      # L4 reported it; the layout does not name it
+            tid = name[:-5]
+            doc = self.read_file("tasks/" + name, tid)
+            if doc is None:
+                continue                      # L1 reported it; no task comes from it
+            self.tasks[tid] = doc
             self.files[tid] = "tasks/" + name
             if not HEX.match(tid):
                 self.add("T1", tid, "tasks/" + name)
@@ -123,8 +217,13 @@ class Project:
     def read_statuses(self):
         sdir = os.path.join(self.path, "status")
         for name in sorted(os.listdir(sdir)) if os.path.isdir(sdir) else []:
+            if not name.endswith(".yaml"):
+                continue                      # L4 reported it
             tid = name[:-5]
-            self.statuses[tid] = load(os.path.join(sdir, name))
+            doc = self.read_file("status/" + name, tid)
+            if doc is None:
+                continue                      # L1 reported it; no status comes from it
+            self.statuses[tid] = doc
 
     def read_version(self):
         p = os.path.join(self.path, "version.yaml")
@@ -996,6 +1095,17 @@ def check_entry(name, problems):
     if bool(exp.get("valid")) == bool(errors):
         problems.append("%s: valid is %s with %d errors" % (name, exp.get("valid"), len(errors)))
     if "source" in exp:
+        # An entry read in place: the language it states must be the one its ref states,
+        # since nothing else here reads the repository (design review of 2026-10-06).
+        src = exp["source"]
+        repo = os.path.normpath(os.path.join(d, src.get("repository", ".")))
+        try:
+            v = yaml.safe_load(git(repo, "show", "%s:.tableaux/version.yaml" % src["ref"])) or {}
+            if v.get("tableaux") != exp.get("language"):
+                problems.append("%s: language is %s, and %s states %s"
+                                % (name, exp.get("language"), src["ref"], v.get("tableaux")))
+        except RuntimeError as e:
+            problems.append("%s: %s" % (name, e))
         return exp, None
     proj = Project(p, d, exp.get("replace")).read()
     if exp.get("valid") and os.path.isdir(p):

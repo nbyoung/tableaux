@@ -1,0 +1,6 @@
+# expected.yaml : a status file that is not YAML. The tool reports L1, reads no status from it, and reads every other file.
+entry: file-not-yaml
+language: 0.3.1
+valid: false
+findings:
+  - { rule: L1, severity: error, task: "b2c9", file: status/b2c9.yaml }

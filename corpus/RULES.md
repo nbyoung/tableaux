@@ -14,6 +14,17 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 | P4 | error    | The major version equals the tool's and the minor version does not exceed it               | README Version: "A tool accepts a project whose major version equals its own and whose minor version does not exceed it." | `version-major-mismatch`, `version-minor-ahead` |
 | P5 | warning  | The trunk resolves: `trunk` in `version.yaml`, else `refs/remotes/origin/HEAD`, else the branch the caller names; otherwise every task reads as proposed | README Project: "otherwise the trunk is undetermined, every task reads as proposed, and a validator warns" | `trunk-undetermined`; also `trunk-stated`, `trunk-inferred` |
 
+## Reading a file
+
+A tool reads every file under `.tableaux` before it applies any rule above, and the design review of 2026-10-06 gave what it meets there a rule each (tablo's Loader design, `4f60`, decision 3). A file a rule here rejects yields no task or status, and the tool reads every other file.
+
+| Id | Severity | Rule                                                                                       | Source                                                                                  | Entry                                        |
+|----|----------|--------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|----------------------------------------------|
+| L1 | error    | Every file the layout names can be read and is YAML                                        | SYNTAX Layout: "Every file is YAML"                                                     | `file-not-yaml`                              |
+| L2 | error    | A mapping states no key twice; a tool reads the first and reports the second               | SYNTAX Layout: "a mapping states each key once"                                         | `file-duplicate-key`                         |
+| L3 | error    | A file uses no YAML feature the syntax does not: a second document, an anchor, an alias, a tag other than `!!str`, or a key that is no scalar | SYNTAX Layout: "one document of plain mappings, sequences and scalars"  | `file-yaml-feature`                          |
+| L4 | warning  | Every path under `.tableaux` is one the layout names: `version.yaml`, `gates.yaml`, `tasks/<id>.yaml`, `status/<id>.yaml`, each a regular file; a tool leaves any other unread | SYNTAX Layout table                                              | `file-stray-path`                            |
+
 ## `gates.yaml`
 
 | Id  | Severity | Rule                                                                       | Source                                                                           | Entry                          |
