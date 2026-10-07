@@ -34,7 +34,7 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
 | `tasks/<id>.yaml`             | `<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$` |
 | `status/<id>.yaml`            | `<id>` is the id of a leaf task                                             |
 
-Every file is YAML: one document of plain mappings, sequences and scalars, where a mapping states each key once. A tool reports a file that is not YAML, a key stated twice, and a YAML feature beyond these, reads no task or status from such a file, and reads every other file; it leaves any other path under `.tableaux` unread and warns ([RULES.md](corpus/RULES.md#reading-a-file)).
+Every file is YAML: one document of plain mappings, sequences and scalars, where a mapping states each key once. A tool reports a file that is not YAML, a key stated twice, and a YAML feature beyond these. It reads no task or status from a file that is not YAML; from a file that states a key twice or uses such a feature it reads the first statement of the key and the first document; and it reads every other file; it leaves any other path under `.tableaux` unread and warns ([RULES.md](corpus/RULES.md#reading-a-file)).
 
 History has no file: a tool derives it from the Git log (see [History](#history)).
 

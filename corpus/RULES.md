@@ -16,7 +16,7 @@ Severity: an **error** makes the project invalid; a **warning** leaves it valid,
 
 ## Reading a file
 
-A tool reads every file under `.tableaux` before it applies any rule above, and the design review of 2026-10-06 gave what it meets there a rule each (tablo's Loader design, `4f60`, decision 3). A file a rule here rejects yields no task or status, and the tool reads every other file.
+A tool reads every file under `.tableaux` before it applies any rule above, and the design review of 2026-10-06 gave what it meets there a rule each (tablo's Loader design, `4f60`, decision 3). A file that L1 rejects yields no task or status; from a file that L2 or L3 rejects the tool reads the first statement of the key and the first document; and the tool reads every other file.
 
 | Id | Severity | Rule                                                                                       | Source                                                                                  | Entry                                        |
 |----|----------|--------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|----------------------------------------------|
