@@ -462,6 +462,12 @@ The owner ruled on 2026-10-07, over the designs of tablo's Validator (`8118`) an
 
 - **The history implies no hand-off once the reviewer accepts.** The audit's information finding H4 needs a junction that no `Reviewed:` commit from its reviewer accepts yet. README.md#status wrote "a task whose next junction has a reviewer, whose newest event is the contributor's and whose status states no `review`", which also fits a task whose review is done and whose contributor then records the status; README.md and `corpus/RULES.md` now state the condition, and the corpus entries `model-trailer-missing` and `review-by-non-reviewer`, which state no H4, stand as they are.
 
+The owner accepted the designs of tablo's Validator (`8118`) and Derivation (`27a3`) on 2026-10-07 with these decisions about the method; README.md agrees with each.
+
+- **Fields above an exemption do not pass.** A descendant that states its own entry under a not-applicable one starts from the plain default, so it takes no reviewer from an ancestor above the exemption. README.md#junctions states it, PLAN.md's F7 closes, and the corpus entry `junction-kinds` states the fact at `a210` with no `undecided` mark.
+- **A linked repository takes its trunk from the remote-tracking branch first.** In a submodule's store and in a clone a URL maps to, a fetch moves the remote-tracking branch and leaves the local one behind, so README.md's order made every pin read as off its trunk. README.md#project states the reversed order there; the home repository keeps the local branch first.
+- **A view stands beside an error.** A tool gives no view data only for what it cannot read: a missing or unaccepted version, an unusable `gates.yaml`, a broken tree. Every other error leaves the views standing beside its diagnostic, in every front end.
+
 ## Findings about the method
 
 Defining the views found the following. The owner resolved each at the design review, and the text names what landed.
