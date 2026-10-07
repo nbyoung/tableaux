@@ -197,11 +197,11 @@ At detail, the owner contributes at release on every task and reviews mockup, de
 
 1. **Reviews owed.** Tasks whose next junction names the person as reviewer and whose status carries the reason `review`, the hand-off the method reserves that key for.
 2. **Authorisations owed.** Proposed tasks in a subtree the person has authority over.
-3. **Work ready.** Junctions at a task's next gate where the person is the contributor and every due requirement is met, a cross-project one read at the commit its linkage fixes.
+3. **Work ready.** Junctions at a task's next gate where the person is the contributor, every due requirement is met, a cross-project one read at the commit its linkage fixes, and no cause of the fifth kind holds.
 4. **Reaffirmations.** Statuses the person recorded and has not reaffirmed for longest, oldest first.
-5. **Work waiting.** Junctions as in 3 with an unmet requirement or a `blocked` or `overloaded` reason, each with its cause, so that nobody starts them.
+5. **Work waiting.** Junctions as in 3 that one of four causes holds: an unmet requirement; a reason on the status other than `review`, as `blocked` or `overloaded` in the software gate set; a task that is proposed, which waits for its authority; or a hand-off, which waits for the reviewer. Each item states its causes, so that nobody starts it.
 
-Reviews come first because each one unblocks other people's work; within a kind, items follow display order. Each item draws from resolved junctions, requirement conditions, status, reviews, authorisation, gates and models. A task whose next junction is recursive is no item for anyone in this project: the subproject's own queue holds its work.
+Reviews come first because each one unblocks other people's work; within a kind, items follow display order. Each item draws from resolved junctions, requirement conditions, status, reviews, authorisation, gates and models. A task whose next junction is recursive is no item for anyone in this project but an authorisation, when the task is proposed: the subproject's own queue holds its work. At a ref off the trunk, where every task reads as proposed, an authorisation is owed, and work waits for one, only for the tasks whose file differs from the trunk's, since those are the branch's proposals; with no trunk, for none.
 
 **Parameters.** person: the viewer by default; a dispatcher names the agent. task: within a subtree. ref. brief: a task and a gate, which writes that one item as a brief.
 
@@ -279,11 +279,11 @@ Reproduce: tabloio queue --person noreply@anthropic.com --brief e9c6 design
 
 **Data.** The causes, and what each holds:
 
-- an unmet requirement: the originating task at its `from` gate holds the terminating tasks at their `to` gates; a cross-project one reads as a local one, its originating task read at the commit the linkage fixes, and when that commit alone leaves it unmet (R13) the cause is the commit and the action is to advance it;
-- a status with the reason `blocked` or `overloaded`, or in the state `at_risk` or `stalled`: the task holds itself and its dependents;
+- an unmet requirement: the originating task at its `from` gate holds the terminating tasks at their `to` gates; a cross-project one reads as a local one, its originating task read at the commit the linkage fixes, and when that commit alone leaves it unmet (R13) the cause is the commit and the action is to advance it. The cause is each leaf beneath the originating task that nothing else holds, at that leaf's next gate, where its contributor acts; a leaf that another cause holds carries that cause to the terminating tasks, so one fact gives one cause. A child holds its parent when it stands at the parent's gate among the children the roll-up considers;
+- a status with a reason other than `review`, or in a state more severe than the project's mildest working state, the lowest severity above 0 in `gates.yaml`: the task holds itself and its dependents. In the software gate set these are the reasons `blocked` and `overloaded` and the states `at_risk` and `stalled`;
 - a review outstanding: the reviewer at the junction holds the task and its dependents;
-- an authorisation outstanding: a proposed task holds itself and its dependents;
-- a subproject snapshot that has not advanced: the pin holds the task.
+- an authorisation outstanding: a proposed task holds itself and its dependents; off the trunk, a task whose file differs from the trunk's;
+- a subproject snapshot that has not advanced, in one of two ways. The pin is behind its trunk and the task read stands elsewhere at the tip, or a due requirement is met there: the pin holds the task, and the action is to advance the pin. Or the task read has passed the next gate of the task that reads it: that task's own gate holds its dependents, and the action is to advance the gate. A pin that is merely behind its trunk is no cause.
 
 A held task holds its own dependents in turn, so the tree is transitive; a task held by two causes appears under both. Each cause names the one action that resolves it and the one person who takes it. A requirement that is not yet due is no wait, so it appears only at detail, as what comes next.
 
@@ -313,7 +313,7 @@ Once this design hands off, the cause reads "`e9c6` design awaits review by nbyo
 
 **Roles.** The owner and an observer; every role reads it.
 
-**Data.** Tree, every task in display order and indented by depth, with every gate as a column. In the cell at a task's current gate, the gate its status names, the state symbol and, when present, the reason symbol. In every other applicable cell at or after that gate, the junction marks; in an exempt cell there, —; in a historical cell, nothing, unless the historical-junctions parameter is on. For a parent, the roll-up, and the marks of the defaults it states. For a recursive next junction, the subproject snapshot. The date and note of each row.
+**Data.** Tree, every task in display order and indented by depth, with every gate as a column. In the cell at a task's current gate, the gate its status names, the state symbol and, when present, the reason symbol. In every other applicable cell at or after that gate, the junction marks; in an exempt cell there, —; in a historical cell, nothing, unless the historical-junctions parameter is on. For a parent, the roll-up, and the marks of the defaults it states: a reviewer shows there only where an entry states one, since a child takes its own assignee as reviewer and inherits none from its parent's. For a recursive next junction, the subproject snapshot. The date and note of each row.
 
 **Parameters.** ref. window or columns: the default window spans the next gates of every task in view with one column either side, and each folded column shows the count of tasks whose current gate lies in it. historical junctions: off by default. person marks the cells where the person acts.
 
@@ -355,9 +355,9 @@ The state symbol sits in the column of the gate the status names, as [PLAN.md](P
 
 **Roles.** An assignee and a contributor; an authority, for its subtree.
 
-**Data.** As the global tableau, over the tasks in view: the subtree under a task; or, for a person, the tasks the person is assigned or contributes at next, their ancestors up to the root as a spine, and their siblings.
+**Data.** As the global tableau, over the tasks in view: the subtree under a task; or, for a person, the person's own tasks, which are the tasks the person is assigned, parents among them, and the leaves the person contributes at next, with their ancestors up to the root as a spine, and their siblings.
 
-**Parameters.** task or person, one of them; the viewer's person by default. window or columns: the default window spans the next gates of the tasks in view with one column either side. historical junctions: off by default. ref.
+**Parameters.** task or person, one of them; the viewer's person by default. window or columns: the default window spans the next gates of the task's subtree, or of the person's own tasks, with one column either side; the spine and the siblings count in the folded columns and do not widen the window. historical junctions: off by default. ref.
 
 **Levels.**
 
@@ -374,7 +374,7 @@ The state symbol sits in the column of the gate the status names, as [PLAN.md](P
 | `bc86` | **Markdown views** (10) |   | 🟢 | 🤖👀 | — | — | — |   |
 | `5fe3` | **HTML views** (10)     |   | 🟢 | 🤖👀 | — | — | — |   |
 
-In this project both emails hold most of the tree, so the task form serves them; the person form is for a contributor with few tasks. In the weather station of README.md, Ben's corner is `c07d`, its sibling `9f31` and the spine `4e2b`, `a1c0`.
+In this project both emails hold most of the tree, so the task form serves them; the person form is for a contributor with few tasks. In the weather station of README.md, Ben's own tasks are `c07d` and `4e2b`, which he is assigned; their siblings are `9f31`, `7b2e` and `3c5d`, and the spine is `a1c0`.
 
 ## History
 
@@ -480,6 +480,18 @@ The owner accepted the design of tablo's Structural views (`493e`) on 2026-10-07
 - **The assignment view counts positions as the plan gives them.** An assignment counts on every task, a contribution and a review on leaves alone, and a self-review in both lists, as "Task assignment" now states under Counts. The example gave the agent no review at a next junction; under the rule it has one, its own work on `fcec` at unit, and the owner's 27 stand. The approved mockup reads the plan five days later, after `e9c6` passes design, and gives 26 and 2 by the same rule.
 - **An agent's models span every gate.** They are the distinct models of the junctions the agent contributes at, in gate order and then display order, so the row changes only when the plan does. The example's order follows: `claude-fable` at design comes before `claude-sonnet`, which no leaf meets before implementation.
 - **The proposed filter keeps the ancestors.** The authority view under the filter shows the proposed tasks with the chain above each, which is who may accept it; an ancestor that joins keeps its own mark.
+
+The owner accepted the design of tablo's Status views (`886d`) on 2026-10-07 with these decisions about the views; the text above agrees with each.
+
+- **The focus fixes the contextual window.** The window spans the next gates of the task's subtree, or of the person's own tasks. The spine and the siblings are context: they count in the folded columns and do not widen the window, as the approved mockup draws both forms.
+- **A person's own tasks include the parents the person is assigned.** The assignee of a parent answers for its subtree, so the parent is part of that person's corner and not of the spine. The example of Ben follows.
+- **A parent's cell shows what its subtree inherits.** A reviewer shows on a parent only where an entry states one. The assignee's review is each task's own and no child inherits it, so a tool does not draw it on the parent.
+- **Work waits for four causes.** Beside an unmet requirement and a reason on the status, a contributor's work waits while the task is proposed and after a hand-off, so that the queue and the blockage tree agree and an agent's brief starts no work on a plan nobody accepted.
+- **A recursive next junction still owes an authorisation.** Accepting a task is this project's act whatever its junctions; every other item is the subproject's.
+- **Off the trunk, the branch's proposals read as proposed.** The queue and the blockage tree treat as proposed the tasks whose file differs from the trunk's, as the authority view marks them; with no trunk they treat none.
+- **A requirement's cause is a leaf.** The cause is each leaf beneath the originating task that nothing else holds, at its next gate, so that every cause names one person; a held leaf carries its own cause through, so one fact gives one cause.
+- **A snapshot is a cause in two cases.** A pin that is behind is a cause only when advancing it changes what this project sees. A task whose own gate lags the task it reads is a cause too, since its dependents read that gate. A pin that is merely behind is none, so the cause stays rare enough to read.
+- **A status is a cause by the structure of `gates.yaml`.** The method fixes the states `undefined` and `complete` and the reason `review`; every other key is the project's. So a view reads any reason but `review`, and any state above the mildest working severity, and names no key of the software gate set.
 
 ## Findings about the method
 
