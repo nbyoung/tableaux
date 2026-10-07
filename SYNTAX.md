@@ -164,6 +164,8 @@ properties:
 
 The key `review` is reserved. A project need not define it, but one that does gives it the meaning [README.md](README.md#gates) fixes: the contributor has handed the next junction's work to its reviewer. Its symbol is 👓 by convention.
 
+A symbol is best one code point that a terminal draws as an emoji by itself, as every symbol of the gate sets below is. A symbol that needs the variation selector U+FE0F after a narrow character, as ⚙️ does, has no width that terminals agree on, so a tool that draws text in columns writes it without the selector, as the plain character.
+
 ### Example
 
 ```yaml

@@ -493,6 +493,10 @@ The owner accepted the design of tablo's Status views (`886d`) on 2026-10-07 wit
 - **A snapshot is a cause in two cases.** A pin that is behind is a cause only when advancing it changes what this project sees. A task whose own gate lags the task it reads is a cause too, since its dependents read that gate. A pin that is merely behind is none, so the cause stays rare enough to read.
 - **A status is a cause by the structure of `gates.yaml`.** The method fixes the states `undefined` and `complete` and the reason `review`; every other key is the project's. So a view reads any reason but `review`, and any state above the mildest working severity, and names no key of the software gate set.
 
+The owner ruled on 2026-10-07, at the review of tabloio's Text renderers (`e0f7`), on a point the change of symbols of 2026-10-02 left unwritten; SYNTAX.md states it.
+
+- **A tool that draws text in columns removes the variation selector.** The gate sets hold no symbol that needs U+FE0F since 2026-10-02, and SYNTAX.md now recommends a symbol of one code point. A project may still write another; tabloio's text format and tablotui's grid, where it cannot ask the terminal, then write the plain character, so every line keeps its width. No tool offers an option for it.
+
 ## Findings about the method
 
 Defining the views found the following. The owner resolved each at the design review, and the text names what landed.
