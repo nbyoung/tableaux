@@ -1,6 +1,9 @@
 # expected.yaml : the design junction states model claude-fable with bot as contributor. bot's M2
 # carries no Model: trailer at language 0.2.0 and is exempt; bot's M4 carries none at 0.3.1 and
 # draws one H6 warning. olive's M3 changes version.yaml alone and is no event of the task.
+# M4 is the newest event, the next junction, design, has pat as its reviewer by default, no commit
+# of pat's accepts it and the status states no `review` reason, so the audit also reports the
+# hand-off the history implies (H4), as information.
 entry: model-trailer-missing
 language: 0.3.1
 valid: true
@@ -8,6 +11,8 @@ valid: true
 findings:
   - { rule: H6, severity: warning, task: "b2c9", gate: design, commit: M4,
       message: "The contributor's commit at the design junction carries no Model: trailer; the junction states claude-fable" }
+  - { rule: H4, severity: information, task: "b2c9", gate: design, commit: M4,
+      message: "The newest event is the contributor's and the status states no review; pat may have a design to review" }
 
 owner: olive@example.org
 root: "e4a1"

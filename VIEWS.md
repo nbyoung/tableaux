@@ -468,6 +468,10 @@ The owner accepted the designs of tablo's Validator (`8118`) and Derivation (`27
 - **A linked repository takes its trunk from the remote-tracking branch first.** In a submodule's store and in a clone a URL maps to, a fetch moves the remote-tracking branch and leaves the local one behind, so README.md's order made every pin read as off its trunk. README.md#project states the reversed order there; the home repository keeps the local branch first.
 - **A view stands beside an error.** A tool gives no view data only for what it cannot read: a missing or unaccepted version, an unusable `gates.yaml`, a broken tree. Every other error leaves the views standing beside its diagnostic, in every front end.
 
+The owner ruled on 2026-10-07, after the implementations of the Validator and the Derivation each read the rule above the same way, against the corpus:
+
+- **`model-trailer-missing` states an H4.** At M4 the contributor's event is the newest, the next junction, design, has a reviewer, no `Reviewed:` commit of that reviewer accepts it and the status states no `review`: the rule as worded reports the hand-off the history implies, and the entry's `expected.yaml` now states the finding beside its H6. This amends the ruling above in one consequence alone: `review-by-non-reviewer` still states no H4, and the rule stands as README.md and `corpus/RULES.md` word it.
+
 ## Findings about the method
 
 Defining the views found the following. The owner resolved each at the design review, and the text names what landed.

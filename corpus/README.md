@@ -124,7 +124,7 @@ Valid entries, each for what it shows:
 | `roll-up-tie`          | Two leaves under the root at the same gate and state, and the root's derived status from the first in display order (F21)              | default      |
 | `handoff-inferred`     | A task whose next junction has a reviewer, whose newest event is the contributor's and whose status states no `review`: one H4 item of information | `history.sh` |
 | `handoff-stale`        | A status that still states the reason `review`, drawn as 👓, after the reviewer's `Reviewed:` commit for that junction: one H5 warning | `history.sh` |
-| `model-trailer-missing` | An agent's status commit with no `Model:` trailer at language 0.2.0, exempt, and another after the version rose: one H6 warning        | `history.sh` |
+| `model-trailer-missing` | An agent's status commit with no `Model:` trailer at language 0.2.0, exempt, and another after the version rose: one H6 warning, and the hand-off that commit implies (H4) | `history.sh` |
 | `tableaux-tooling`     | This repository at a named commit, read in place                                                                                        | none         |
 
 Invalid entries, one per rule in [RULES.md](RULES.md), 75 in all. Each is `base/` plus the one deviation its name states, and its `expected.yaml` lists the finding, or the findings when one deviation trips two rules (`tree-no-root` trips T8 and T10). The rule table names each entry.
