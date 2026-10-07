@@ -458,6 +458,10 @@ The owner reviewed the eighteen designs of 2026-10-05 on 2026-10-06 and decided 
 - **A self-review shows the contributor's mark alone**: 👀 stands only where the reviewer differs from the contributor, so an agent that reviews its own work shows 🤖 alone and a person's plain junction shows 🧑 alone. README.md#junctions states it, and a tool derives the marks.
 - **Markdown fixes one level by a flag**, as the Levels paragraph says; `tabloio` takes `--level` alone, glance by default, and the role parameter serves the live front ends through `tablo`.
 
+The owner ruled on 2026-10-07, over the designs of tablo's Validator (`8118`) and Derivation (`27a3`), which read one sentence two ways; the text above and README.md agree.
+
+- **The history implies no hand-off once the reviewer accepts.** The audit's information finding H4 needs a junction that no `Reviewed:` commit from its reviewer accepts yet. README.md#status wrote "a task whose next junction has a reviewer, whose newest event is the contributor's and whose status states no `review`", which also fits a task whose review is done and whose contributor then records the status; README.md and `corpus/RULES.md` now state the condition, and the corpus entries `model-trailer-missing` and `review-by-non-reviewer`, which state no H4, stand as they are.
+
 ## Findings about the method
 
 Defining the views found the following. The owner resolved each at the design review, and the text names what landed.
