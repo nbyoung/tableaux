@@ -471,6 +471,7 @@ The owner accepted the designs of tablo's Validator (`8118`) and Derivation (`27
 The owner ruled on 2026-10-07, after the implementations of the Validator and the Derivation each read the rule above the same way, against the corpus:
 
 - **`model-trailer-missing` states an H4.** At M4 the contributor's event is the newest, the next junction, design, has a reviewer, no `Reviewed:` commit of that reviewer accepts it and the status states no `review`: the rule as worded reports the hand-off the history implies, and the entry's `expected.yaml` now states the finding beside its H6. This amends the ruling above in one consequence alone: `review-by-non-reviewer` still states no H4, and the rule stands as README.md and `corpus/RULES.md` word it.
+- **A subproject in the same repository keeps the home order.** A linked repository is another Git directory than the project's own: a submodule's store or a clone that a URL maps to. A subproject in a directory of the same repository shares the home repository's branches, so its trunk resolves against the local branches first; README.md#project says so. The owner rules it on 2026-10-07 at the implementation review of tablo's Derivation (`27a3`), which reads it this way.
 
 ## Findings about the method
 
