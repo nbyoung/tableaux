@@ -128,7 +128,7 @@ At provenance, the design junction takes its contributor and model from `bc63` a
 
 **Data.** Tree. Each task's assignee and where it differs from the parent's, which is a delegation. Authorities. Authorisation, with the way the deciding commit accepts: a change on the trunk by an authority, a merge by one, or an `Authorised:` trailer. The junction defaults each parent states for its subtree.
 
-**Parameters.** task: the subtree. person: the subtrees the person has authority over, and the chain above the person's tasks. ref: authorisation reads the trunk whatever the ref; at a ref off the trunk every task reads as proposed, and the view marks the tasks whose file differs from the trunk's, since those are the branch's proposals. A filter shows proposed tasks only.
+**Parameters.** task: the subtree. person: the subtrees the person has authority over, and the chain above the person's tasks. ref: authorisation reads the trunk whatever the ref; at a ref off the trunk every task reads as proposed, and the view marks the tasks whose file differs from the trunk's, since those are the branch's proposals. A filter shows proposed tasks only, with their ancestors, so that the tree stays a tree.
 
 **Levels.**
 
@@ -168,6 +168,8 @@ Every task is authorised. At provenance, thirty-three read the plan commit `6b6c
 
 **Data.** For each email in the project: the tasks it is assigned, with their status; the junctions where it is the contributor, stated or by default, at each task's next gate and at every gate, with the model where it is an agent; the junctions where it is the reviewer; the subtrees it has authority over; counts of each by gate.
 
+**Counts.** An assignment counts on every task in view, parents among them. A contribution and a review count on leaves alone, since a parent's junctions are defaults. A junction is next when it stands at the leaf's next applicable gate. A junction that one email both contributes to and reviews counts in both lists. An agent's models are the distinct models of the junctions it contributes at, at every gate, in gate order and then display order.
+
 **Parameters.** person: one section. task: within a subtree. ref. The lists show the junctions at every gate, grouped by gate in gate order.
 
 **Levels.**
@@ -181,9 +183,9 @@ Every task is authorised. At provenance, thirty-three read the plan commit `6b6c
 | Email                  | Assigned | Contributes next | Reviews next | Models                                                                                  |
 |------------------------|---------:|-----------------:|-------------:|-----------------------------------------------------------------------------------------|
 | nbyoung@nbyoung.com    | 10       | 0                | 27           | —                                                                                       |
-| noreply@anthropic.com  | 27       | 28               | 0            | `claude-haiku`, `claude-opus`, `claude-sonnet`, `claude-fable`                          |
+| noreply@anthropic.com  | 27       | 28               | 1            | `claude-haiku`, `claude-opus`, `claude-fable`, `claude-sonnet`                          |
 
-At detail, the owner contributes at release on every task and reviews mockup, design and validate on every task, both from `437e`, and reviews the agent at every junction of the tasks the owner is assigned; the agent contributes next at validate on `c2ad`, `e3cb` and `7861`, at design on `e9c6`, at unit on `fcec`, at implementation on `ac33`, `9f3f` and `7166`, and at mockup on the twenty mockups. The four subprojects' next junctions are recursive, so nobody in this project contributes there. The agent's model at design is `claude-opus` from `437e` except under the Method branch, where `bc63` states `claude-fable`.
+At detail, the owner contributes at release on every task and reviews mockup, design and validate on every task, both from `437e`, and reviews the agent at every junction of the tasks the owner is assigned; the agent contributes next at validate on `c2ad`, `e3cb` and `7861`, at design on `e9c6`, at unit on `fcec`, at implementation on `ac33`, `9f3f` and `7166`, and at mockup on the twenty mockups. The four subprojects' next junctions are recursive, so nobody in this project contributes there. The agent's model at design is `claude-opus` from `437e` except under the Method branch, where `bc63` states `claude-fable`. The agent's one review at a next junction is of its own work, `fcec` at unit: the junction states no reviewer, so the assignee reviews, and the agent is the assignee.
 
 ## Contributor work queue
 
@@ -472,6 +474,12 @@ The owner ruled on 2026-10-07, after the implementations of the Validator and th
 
 - **`model-trailer-missing` states an H4.** At M4 the contributor's event is the newest, the next junction, design, has a reviewer, no `Reviewed:` commit of that reviewer accepts it and the status states no `review`: the rule as worded reports the hand-off the history implies, and the entry's `expected.yaml` now states the finding beside its H6. This amends the ruling above in one consequence alone: `review-by-non-reviewer` still states no H4, and the rule stands as README.md and `corpus/RULES.md` word it.
 - **A subproject in the same repository keeps the home order.** A linked repository is another Git directory than the project's own: a submodule's store or a clone that a URL maps to. A subproject in a directory of the same repository shares the home repository's branches, so its trunk resolves against the local branches first; README.md#project says so. The owner rules it on 2026-10-07 at the implementation review of tablo's Derivation (`27a3`), which reads it this way.
+
+The owner accepted the design of tablo's Structural views (`493e`) on 2026-10-07 with these decisions about the views; the text above agrees with each.
+
+- **The assignment view counts positions as the plan gives them.** An assignment counts on every task, a contribution and a review on leaves alone, and a self-review in both lists, as "Task assignment" now states under Counts. The example gave the agent no review at a next junction; under the rule it has one, its own work on `fcec` at unit, and the owner's 27 stand. The approved mockup reads the plan five days later, after `e9c6` passes design, and gives 26 and 2 by the same rule.
+- **An agent's models span every gate.** They are the distinct models of the junctions the agent contributes at, in gate order and then display order, so the row changes only when the plan does. The example's order follows: `claude-fable` at design comes before `claude-sonnet`, which no leaf meets before implementation.
+- **The proposed filter keeps the ancestors.** The authority view under the filter shows the proposed tasks with the chain above each, which is who may accept it; an ancestor that joins keeps its own mark.
 
 ## Findings about the method
 
