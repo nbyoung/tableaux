@@ -4,7 +4,7 @@
 #   inheritance field by field                             : a110 unit takes its reviewer from a100
 #   recursive with and without an id                       : a400 and a500
 #   not applicable                                         : a600, and a220 by inheritance
-#   an exemption with a descendant that states its own     : a200 and a210; F7 is open, so a210's release is undecided
+#   an exemption with a descendant that states its own     : a200 and a210; a210's release starts from the plain default (F7)
 #   an agent with no reviewer, under a person and an agent : a110 design (ben reviews) and a300 design (the agent reviews itself); F2
 # A resolved entry's source is the task whose entry supplies it, or a list, nearest first, when fields come from several.
 entry: junction-kinds
@@ -63,7 +63,7 @@ tasks:
     authorisation: { state: authorised, commit: K1, by: olive@example.org }
     junctions:
       default: { kind: plain, contributor: pat@example.org }
-      release: { kind: plain, contributor: pat@example.org, source: "a210", undecided: F7 }   # a000's reviewer, olive, applies only if a plain entry inherits across a200's exemption
+      release: { kind: plain, contributor: pat@example.org, source: "a210" }   # no reviewer: a000's, olive, does not pass a200's exemption (F7)
     applicable: [undefined, defined, mockup, function, performance, reliability, design, implementation, unit, integrate, validate, release]
     status: { gate: defined, state: nominal, date: 2026-09-04, recorder: pat@example.org, commit: K2 }
   "a220":
