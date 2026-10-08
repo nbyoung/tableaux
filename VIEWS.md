@@ -73,6 +73,8 @@ Every view discloses at three levels, and the levels nest. A format decides how 
 | detail     | Each item expanded: the fields, criteria, texts, conditions and marks behind it                                                                            | The roles the view serves                                 |
 | provenance | The Git fact behind each item: the commit with its date, author and committer; the file and the ancestor a field resolves from; the command that reproduces it | On demand; the audit and the history open here for the owner |
 
+A tableau is the exception in a format that folds. Its rows are a tree a reader unfolds, so in HTML and in the terminal it arrives on the root and its children for every role, and every row is one step away; a Markdown rendering fixes its level by its flag.
+
 ## Gate definition
 
 **Question.** What do the columns and symbols mean?
@@ -505,6 +507,10 @@ The owner accepted the design of tablo's Audit (`dada`) on 2026-10-07 with these
 - **A settled finding lists as information.** A finding that nothing resolves stops being a warning in the audit when its junction is historical for the task, or after the stale age where it names no task, so an old project's default audit holds what someone can act on. A validator reports the rule's severity unchanged.
 - **Which status is stale.** A leaf's own committed status that is not complete. A leaf with no file has recorded nothing, a snapshot's date is the subproject's, and finished work has nothing to reaffirm.
 - **The audit's date is the caller's.** The library reads no clock and requires the date staleness counts from; a command defaults it to today and an export passes its commit's date.
+
+The owner accepted the design of tableaud's Progressive disclosure (`db74`) on 2026-10-07 with this decision about the views; the text above agrees with it.
+
+- **A tableau arrives at a glance where it folds.** "Detail opens for the roles the view serves" gives the owner every row, which scales badly where the owner needs the tableau most. In HTML and in the terminal the global tableau arrives on the root and its children for every role, as PLAN.md, the approved mockup and tablotui's `f394` have it, and every row is one step away.
 
 ## Findings about the method
 
