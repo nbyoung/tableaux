@@ -1,13 +1,17 @@
 # expected.yaml : this repository as a corpus entry. Nothing builds it: `source`
 # names the repository and the ref a conforming tool reads, so the corpus checks
 # the plan the method dog-foods. The expectations hold at the commit named;
-# a later commit that changes them updates `ref` and the facts together.
+# a later commit that changes them updates the facts, and the owner moves the
+# tag to that commit in the same step.
 entry: tableaux-tooling
 language: 0.3.1
 trunk: { stated: main }
 source: { repository: ../../.., ref: corpus/tooling }   # a tag the owner moves; see README.md
 valid: true
-findings: []
+findings:                                  # 595e, 6103 and c6e8 each wait for 77b2, which stands at function
+  - { rule: R9, severity: warning, task: "595e", file: tasks/595e.yaml }
+  - { rule: R9, severity: warning, task: "6103", file: tasks/6103.yaml }
+  - { rule: R9, severity: warning, task: "c6e8", file: tasks/c6e8.yaml }
 
 owner: nbyoung@nbyoung.com
 root: "437e"
@@ -18,29 +22,52 @@ tasks:
     parent: null
     authorities: []
     authorisation: { state: authorised, by: nbyoung@nbyoung.com }
-    status: { gate: undefined, state: undefined, derived: true }    # no leaf has a status file at this ref
+    status:                                                         # derived: 77b2 holds the earliest gate, function
+      gate: function
+      state: nominal
+      note: "prototype/8ed1 derives the history and a stand-in audit between two refs from one git log pass and one cat-file batch, on the weather station"
+      date: 2026-09-30                                              # the oldest of the children considered
+      derived: true
+      from: "77b2"
   "fcec":
     parent: "bc63"
     authorities: [nbyoung@nbyoung.com, nbyoung@nbyoung.com]
     authorisation: { state: authorised, by: nbyoung@nbyoung.com }  # the owner committed the plan on main
     junctions:
       default:        { kind: plain, contributor: noreply@anthropic.com }
-      defined:        { kind: plain, contributor: noreply@anthropic.com, model: claude-fable-5-1,
+      defined:        { kind: plain, contributor: noreply@anthropic.com, model: claude-haiku,
                         reviewer: noreply@anthropic.com, source: "437e" }   # the agent reviews itself; see F2 and F8
       mockup:         { kind: not_applicable, source: "fcec" }
       function:       { kind: not_applicable, source: "fcec" }
-      design:         { kind: plain, contributor: noreply@anthropic.com, model: claude-fable-5-1,
+      design:         { kind: plain, contributor: noreply@anthropic.com, model: claude-opus,
+                        reviewer: nbyoung@nbyoung.com, source: "437e" }
+      implementation: { kind: plain, contributor: noreply@anthropic.com, model: claude-sonnet,
+                        reviewer: noreply@anthropic.com, source: "437e" }   # the agent reviews itself
+      unit:           { kind: plain, contributor: noreply@anthropic.com, model: claude-sonnet,
+                        reviewer: noreply@anthropic.com, source: "437e" }
+      integrate:      { kind: plain, contributor: noreply@anthropic.com, model: claude-sonnet,
+                        reviewer: noreply@anthropic.com, source: "437e" }
+      validate:       { kind: plain, contributor: noreply@anthropic.com, model: claude-sonnet,
                         reviewer: nbyoung@nbyoung.com, source: "437e" }
       release:        { kind: plain, contributor: nbyoung@nbyoung.com, source: "437e" }
     applicable: [undefined, defined, design, implementation, unit, integrate, validate, release]
     requires:
-      - { id: "e3cb", from: implementation, to: implementation, met: false, due: false, condition: pending }
-    status: { gate: undefined, state: undefined, date: 2026-09-29 }
+      - { id: "e3cb", from: implementation, to: implementation, met: true, due: true, condition: met }   # e3cb stands at unit; fcec's next gate is unit
+    status:
+      gate: implementation
+      state: nominal
+      note: "The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it"
+      date: 2026-09-30
+      recorder: noreply@anthropic.com
   "77b2":
     parent: "437e"
     authorities: [nbyoung@nbyoung.com]
     junctions:
       default: { kind: plain, contributor: noreply@anthropic.com }
       design:  { kind: recursive, subproject: { url: subprojects/tablo }, source: "77b2" }   # id defaults to that project's root
-    subproject: { url: subprojects/tablo, pin: dc669dd1cbd5eca2c6e5c352caf9887945ad88b4 }
-    status: { gate: undefined, state: undefined }
+    subproject: { url: subprojects/tablo, pin: f7c3190c7f8b1ad5a0e8157349f136022e62c6b1 }
+    status:                                                         # the gate is the file's; the rest is the root of tablo's plan at the pin
+      gate: function
+      state: nominal
+      note: "prototype/8ed1 derives the history and a stand-in audit between two refs from one git log pass and one cat-file batch, on the weather station"
+      date: 2026-09-30
