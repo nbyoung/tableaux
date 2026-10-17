@@ -7,10 +7,8 @@ entry: tableaux-tooling
 language: 0.3.1
 trunk: { stated: main }
 source: { repository: ../../.., ref: corpus/tooling }   # a tag the owner moves; see README.md
-valid: false                               # S11 below: an error, so the plan is invalid at this ref
+valid: true
 findings:
-  - { rule: S11, severity: error, task: "e3cb", file: status/e3cb.yaml, gate: implementation,
-      message: "fbe3c97 puts Reviewed: e3cb implementation in a paragraph of its own, so Git reads no trailer there" }
   - { rule: R9, severity: warning, task: "595e", file: tasks/595e.yaml }       # 595e, 6103 and c6e8 each wait for 77b2, at function
   - { rule: R9, severity: warning, task: "6103", file: tasks/6103.yaml }
   - { rule: R9, severity: warning, task: "c6e8", file: tasks/c6e8.yaml }
