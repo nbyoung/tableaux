@@ -1,0 +1,59 @@
+diff --git a/README.md b/README.md
+index ae6c1c1..c08be0b 100644
+--- a/README.md
++++ b/README.md
+@@ -34,7 +34,7 @@ A tool accepts a project whose major version equals its own and whose minor vers
+ 
+ ## Gates
+ 
+-`gates.yaml` defines the ordered gates every task passes through, the states a task takes with respect to its current gate, and the reasons that explain a state. The first gate is always `undefined`. The states always include `undefined`, the state of a task at the `undefined` gate, and `complete`, the state of a task at its last applicable gate, both with severity 0 so that roll-up sets them aside. The status dimension records which gate and state a task occupies. The reason key `review` is reserved: a project need not define it, but one that does gives it one meaning, that the contributor has handed the next junction's work to its reviewer ([Status](#status)), and the views read it so. Its symbol is 👓 by convention, since 👀 marks the reviewer.
++`gates.yaml` defines the ordered gates every task passes through, the states a task takes with respect to its current gate, and the reasons that explain a state. The first gate is always `undefined`. The states always include `undefined`, the state of a task at the `undefined` gate, and `complete`, the state of a task at its last applicable gate, both with severity 0 so that roll-up sets them aside. A `gates.yaml` that lacks either, or gives either another severity, is one a tool cannot use: a validator rejects it, and a tool derives no status from it and gives no view, as for gates that do not start at `undefined`. The status dimension records which gate and state a task occupies. The reason key `review` is reserved: a project need not define it, but one that does gives it one meaning, that the contributor has handed the next junction's work to its reviewer ([Status](#status)), and the views read it so. Its symbol is 👓 by convention, since 👀 marks the reviewer.
+ 
+ ## Tasks
+ 
+@@ -101,19 +101,19 @@ The scheme is audit-only. It reads authorisation from the trunk's history and do
+ 
+ ## Status
+ 
+-Each leaf task's current status is one file, `status/<id>.yaml`. A leaf without one is undefined at the `undefined` gate, dated by its task file's newest commit. A parent has no file; its status derives from its children.
++Each leaf task's current status is one file, `status/<id>.yaml`. A leaf without one is undefined at the `undefined` gate, dated by its task file's newest commit, and has no recorder, since nobody has recorded a status: a view shows the date alone, the work queue owes nobody a reaffirmation of it, and a `Reaffirmed:` commit dates nothing there. A parent has no file; its status derives from its children.
+ 
+ The file states the **gate** the task has last completed and its **state** towards the next applicable gate, with an optional **reason** from `gates.yaml` and a **note**:
+ 
+ - The gate applies to the task; a validator rejects a status at a gate that a not-applicable junction exempts.
+-- The gate is `undefined` exactly when the state is `undefined`.
++- The gate is `undefined` exactly when the state is `undefined`. Work towards `defined` therefore has no state of its own: a state measures work against a definition, and roll-up sets `undefined` aside so that a parent's state reflects defined work alone. A contributor who must say why that work waits records a file at `undefined` with a reason and a note, and every view reads the reason as at any other gate.
+ - A task at its last applicable gate has the state `complete`, and only there.
+ - When the next junction is recursive, the file holds only the gate. The state, reason, note and date come from the subproject's task, read at the commit the junction's `url` fixes ([Junctions](#junctions)): a submodule's pin or a stated `commit`, so a parent project sees a subproject snapshot that it advances deliberately, or, for a same-repository path, the commit the parent itself stands at. When that task completes, the contributor advances the gate.
+ 
+ Git supplies what the file leaves out:
+ 
+ - **Date and recorder.** The deciding commit of a status is the newest commit in the branch's history that changed the file or carries a `Reaffirmed:` trailer naming the task. Its author date is the status's date and its author the recorder. A review that finds no change reaffirms with an empty commit, so a status is never older than its last confirmation.
+-- **Review.** A junction with a reviewer completes only when the reviewer says so: a commit in the branch's history, authored or committed by the reviewer, that carries `Reviewed: <id> <gate>`. A validator rejects a status whose gate passes a reviewed junction that has no such commit. A `Reviewed:` commit from anyone other than the junction's reviewer has no effect, and the audit reports it. The `defined` junction is the exception: authorising a task accepts its definition, so the authorisation stands as the review of `defined` whoever its reviewer is, and no `Reviewed: <id> defined` commit is needed. A contributor who is also the reviewer, as an agent is at a junction that states none, carries the `Reviewed:` trailer on the commit that records the status. A contributor who has finished the work at a gate that has a reviewer records the status with the reason `review`, the hand-off ([Gates](#gates)), and the work queue lists the review as owed. After the reviewer's `Reviewed:` commit, the contributor records the status at the gate, so the reviewer edits no status file. The audit reads the hand-off from the history too: it reports, as information, a task whose next junction has a reviewer and no `Reviewed:` commit from that reviewer yet, whose newest event is the contributor's and whose status states no `review`, since the work may be done or in progress; and it reports a status that still states `review` after the reviewer's `Reviewed:` commit for that junction, since the hand-off is stale.
++- **Review.** A junction with a reviewer completes only when the reviewer says so: a commit in the branch's history, authored or committed by the reviewer, that carries `Reviewed: <id> <gate>`. A validator rejects a status whose gate passes a reviewed junction that has no such commit. The rule reads one commit, its files and the `Reviewed:` commits its history holds, whichever came first, so a status recorded before its review is invalid at each commit until the review and valid from the review on; a history applies no rule at the commits it replays. A `Reviewed:` commit from anyone other than the junction's reviewer has no effect, and the audit reports it. The `defined` junction is the exception: authorising a task accepts its definition, so the authorisation stands as the review of `defined` whoever its reviewer is, and no `Reviewed: <id> defined` commit is needed. A contributor who is also the reviewer, as an agent is at a junction that states none, carries the `Reviewed:` trailer on the commit that records the status. A contributor who has finished the work at a gate that has a reviewer records the status with the reason `review`, the hand-off ([Gates](#gates)), and the work queue lists the review as owed. After the reviewer's `Reviewed:` commit, the contributor records the status at the gate, so the reviewer edits no status file and no commit of the order is invalid. The audit reads the hand-off from the history too: it reports, as information, a task whose next junction has a reviewer and no `Reviewed:` commit from that reviewer yet, whose newest event is the contributor's and whose status states no `review`, since the work may be done or in progress; and it reports a status that still states `review` after the reviewer's `Reviewed:` commit for that junction, since the hand-off is stale.
+ - **History.** The log of the file is the task's status history, with every change's date and author.
+ 
+ ```
+@@ -138,11 +138,12 @@ Severity comes from `gates.yaml`. Undefined and complete children therefore step
+ 
+ ## History
+ 
+-Nothing stores history: the Git log is the history, and a tool derives a task's or the project's **events** from it. An event is a commit that changed a task's file or status file, or that carries a trailer naming the task, with the commit's author as the actor and its author date as the date. Two commands yield a task's events; a tool merges them in author-time order:
++Nothing stores history: the Git log is the history, and a tool derives a task's or the project's **events** from it. An event is a commit that changed a task's file or status file, or that carries a trailer naming the task, with the commit's author as the actor and its author date as the date. In the history a commit changes a file when the file differs from every parent's, as Git's default log reads it, so a merge that takes one side's file changes nothing of its own, and the commit that made the change keeps its event and, for a status, its date and recorder. On the trunk's first-parent line, which authorisation reads, a commit changes a file when it differs from its first parent's, so there a merge that brings in a task's file is the deciding commit, and it is an `authorised` event of the task, as an `Authorised:` trailer is. Three commands yield a task's events; a tool merges them in author-time order:
+ 
+ ```
+ git log --format='%as %h %ae' -- .tableaux/tasks/9f31.yaml .tableaux/status/9f31.yaml
+ git log --format='%as %h %ae' -E --grep='^(Authorised|Reaffirmed): 9f31$' --grep='^Reviewed: 9f31 '
++git log --format='%as %h %ae' --first-parent --merges main -- .tableaux/tasks/9f31.yaml     # main is the trunk
+ ```
+ 
+ A task's status at any past commit is its status file at that commit, so `git show <commit>:.tableaux/status/9f31.yaml` and `git log -p` answer what changed and when without a second record. A parent's history replays its children's events in order, deriving its status after each. A task with a recursive junction takes in the subproject task's events up to the commit its `url` fixes, and each change of that commit is a `pin` event in the parent's log ([SYNTAX.md](SYNTAX.md#history)), naming the `url` and the old and new commit. A submodule pin that moves is a pin event of every task whose junction or requirement names the path, since the commit changed the gitlink and no task file, so such a task adds the path to the first command above; a `commit` field that changes on a junction or a cross-project requirement is a pin event beside the `task` event of the file that changed.
+@@ -150,7 +151,7 @@ A task's status at any past commit is its status file at that commit, so `git sh
+ Git's branching shapes the history it keeps:
+ 
+ - The history is that of the branch in view. Off the trunk it includes proposals not yet authorised.
+-- A merge with `--no-ff` keeps every event a branch recorded; a squash merge collapses them into one. A project that values fine-grained history merges without squashing.
++- A merge with `--no-ff` keeps every event a branch recorded, and on the trunk it adds the `authorised` event of each task whose file it brings in; a squash merge collapses them into one. A project that values fine-grained history merges without squashing.
+ - A tag marks a moment a view reports against, so `git log v1.0..v1.1` bounds a reporting period.
+ 
+ The audit-only caveat holds here too. A rewritten branch rewrites its history.

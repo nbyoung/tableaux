@@ -1,0 +1,5 @@
+# status/9f31.yaml : as in SYNTAX.md
+gate: function
+state: stalled
+reason: blocked
+note: Barometer ICs on 14-week backorder

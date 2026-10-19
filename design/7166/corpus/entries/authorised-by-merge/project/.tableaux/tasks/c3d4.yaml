@@ -1,0 +1,7 @@
+# tasks/c3d4.yaml : a second leaf that pat proposes on a branch and olive accepts by merging it
+title: Second leaf
+description: A leaf that arrives on the trunk by a merge with no Authorised trailer.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+parent: { id: "e4a1", order: 2 }

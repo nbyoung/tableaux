@@ -1,0 +1,221 @@
+diff --git a/corpus/check.py b/corpus/check.py
+index 0f2f1db..de2477d 100644
+--- a/corpus/check.py
++++ b/corpus/check.py
+@@ -5,7 +5,7 @@ A small reference reading of the method, enough to keep the corpus honest. It is
+ not a conforming tool; `tablo` is. For each entry it:
+ 
+   1. validates every file of a valid entry's project/.tableaux (and of a
+-     subproject tree) against schemas/, after taking each id as a string (F16);
++     subproject tree) against schemas/, after taking each id as its source text (F16);
+   2. applies every rule in RULES.md that a project tree alone decides, and
+      compares the findings with `findings` in expected.yaml;
+   3. after `sh corpus/build.sh`, compares the derived facts that Git supplies
+@@ -81,6 +81,57 @@ def _first_wins(node):
+         return node.value
+ 
+ 
++class Id(str):
++    """An id where a task file names one: the scalar's text as the file writes it,
++    whatever YAML reads the scalar as, and whether the file quotes it (F16)."""
++    quoted = True
++
++
++def _get(node, key):
++    """The value node of a key in a mapping node, the first statement winning, or None."""
++    if isinstance(node, yaml.MappingNode):
++        for k, v in node.value:
++            if isinstance(k, yaml.ScalarNode) and k.value == key:
++                return v
++    return None
++
++
++def source_ids(doc, root, text):
++    """Take the id at each of the four places a task file names one as its source text,
++    before any schema applies, as a tool does (F16). T7 then reads `quoted`."""
++    if not isinstance(doc, dict):
++        return doc
++
++    def fix(d, n):
++        v = _get(n, "id")
++        if isinstance(d, dict) and "id" in d and isinstance(v, yaml.ScalarNode):
++            i = Id(v.value)
++            i.quoted = v.style in ("'", '"', "|", ">") or text[v.start_mark.index:v.start_mark.index + 1] == "!"
++            d["id"] = i
++    fix(doc.get("parent"), _get(root, "parent"))
++    reqs = _get(root, "requires")
++    if isinstance(doc.get("requires"), list) and isinstance(reqs, yaml.SequenceNode):
++        for d, n in zip(doc["requires"], reqs.value):
++            fix(d, n)
++            if isinstance(d, dict):
++                fix(d.get("subproject"), _get(n, "subproject"))
++    juncs, seen = _get(root, "junctions"), set()
++    if isinstance(doc.get("junctions"), dict) and isinstance(juncs, yaml.MappingNode):
++        for k, n in juncs.value:
++            if isinstance(k, yaml.ScalarNode) and k.value not in seen and isinstance(doc["junctions"].get(k.value), dict):
++                seen.add(k.value)
++                fix(doc["junctions"][k.value].get("subproject"), _get(n, "subproject"))
++    return doc
++
++
++def load_task(path):
++    """A task file's first document, with each id as its source text."""
++    with open(path, encoding="utf-8") as fh:
++        text = fh.read()
++    docs = list(yaml.compose_all(text))
++    return source_ids(_first_wins(docs[0]), docs[0], text) if docs else None
++
++
+ def is_email(v):
+     return isinstance(v, str) and re.match(r"^[^@\s]+@[^@\s]+$", v) is not None
+ 
+@@ -113,9 +164,9 @@ class Project:
+         self.findings.append((rule, task, file, gate))
+ 
+     # ---- reading a file (RULES.md, Reading a file: L1 to L4)
+-    def read_file(self, rel, task=None):
++    def read_file(self, rel, task=None, ids=False):
+         """Read one YAML file under .tableaux, applying L1 to L3. Returns the first
+-        document, or None when L1 rejects the file."""
++        document, or None when L1 rejects the file; with ids, each id as its source text."""
+         p = os.path.join(self.path, rel)
+         try:
+             with open(p, encoding="utf-8") as fh:
+@@ -160,7 +211,8 @@ class Project:
+         if "L3" in seen:
+             self.add("L3", task, rel)
+         # Build the value from the first document, keeping the first of a repeated key.
+-        return _first_wins(docs[0])
++        doc = _first_wins(docs[0])
++        return source_ids(doc, docs[0], text) if ids else doc
+ 
+     def scan_stray(self):
+         """L4: every path under .tableaux is one the layout names, each a regular file."""
+@@ -192,7 +244,7 @@ class Project:
+             if not name.endswith(".yaml"):
+                 continue                      # L4 reported it; the layout does not name it
+             tid = name[:-5]
+-            doc = self.read_file("tasks/" + name, tid)
++            doc = self.read_file("tasks/" + name, tid, ids=True)
+             if doc is None:
+                 continue                      # L1 reported it; no task comes from it
+             self.tasks[tid] = doc
+@@ -337,9 +389,9 @@ class Project:
+                         and ("text" not in r or r["text"])) for r in refs):
+                 self.add("T5", tid, f)
+             for i in self.ids(tid):
+-                if not isinstance(i, str):
+-                    self.add("T7", tid, f)
+-                elif not HEX.match(i):
++                if not getattr(i, "quoted", isinstance(i, str)):
++                    self.add("T7", tid, f)          # the writing, not the type YAML gives it (F16)
++                if not HEX.match(str(i)):
+                     self.add("T6", tid, f)
+ 
+     def sid(self, v):
+@@ -550,7 +602,7 @@ class Project:
+     def read_tasks_only(self):
+         tdir = os.path.join(self.path, "tasks")
+         for name in sorted(os.listdir(tdir)):
+-            self.tasks[name[:-5]] = load(os.path.join(tdir, name))
++            self.tasks[name[:-5]] = load_task(os.path.join(tdir, name))
+         roots = [t for t in self.tasks if self.parent(t) is None]
+         self.root = roots[0] if len(roots) == 1 else None
+ 
+@@ -753,23 +805,6 @@ class Project:
+ 
+ 
+ # ---- schemas
+-def id_strings(doc):
+-    """Take every id a task file names as a string, as a tool does (F16)."""
+-    if not isinstance(doc, dict):
+-        return doc
+-    if isinstance(doc.get("parent"), dict) and "id" in doc["parent"]:
+-        doc["parent"]["id"] = str(doc["parent"]["id"])
+-    for r in doc.get("requires") or []:
+-        if isinstance(r, dict) and "id" in r:
+-            r["id"] = str(r["id"])
+-        if isinstance(r, dict) and isinstance(r.get("subproject"), dict) and "id" in r["subproject"]:
+-            r["subproject"]["id"] = str(r["subproject"]["id"])
+-    for j in (doc.get("junctions") or {}).values():
+-        if isinstance(j, dict) and isinstance(j.get("subproject"), dict) and "id" in j["subproject"]:
+-            j["subproject"]["id"] = str(j["subproject"]["id"])
+-    return doc
+-
+-
+ def schema_problems(tableaux):
+     sdir = os.path.join(ROOT, "schemas")
+     vals = {}
+@@ -785,8 +820,8 @@ def schema_problems(tableaux):
+     for kind, sub in (("task", "tasks"), ("status", "status")):
+         d = os.path.join(tableaux, sub)
+         for name in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+-            doc = load(os.path.join(d, name))
+-            one(kind, os.path.join(d, name), id_strings(doc) if kind == "task" else doc)
++            path = os.path.join(d, name)
++            one(kind, path, load_task(path) if kind == "task" else load(path))
+     return bad
+ 
+ 
+@@ -856,6 +891,8 @@ def check_history(name, exp, proj, problems):
+     subs = [labels(p) for p in _sublabels(repo)]
+     for m in set(re.findall(r"(?:commit|old|new|pin): (\S+)", text)):
+         m = m.strip("'\"")
++        if m == "null":
++            continue                           # a fact that no commit holds, such as a review not yet given
+         if m not in lab and not any(m in s for s in subs):
+             problems.append("%s: label %s is in no labels file" % (name, m))
+     # J17: a commit that restates a submodule pin equals it
+@@ -920,7 +957,7 @@ def check_history(name, exp, proj, problems):
+                 if s.get("recorder") and s["recorder"] != sc["ae"]:
+                     problems.append("%s/%s: status recorder %s, expected %s" % (name, tid, sc["ae"], s["recorder"]))
+         if t.get("events"):                    # the parent's own events; an event marked subproject comes from the pin
+-            got = _events(repo, tid, rev, commits, lab, proj, exp)
++            got = _events(repo, tid, rev, commits, lab, proj, exp, trunk)
+             want = [{k: (str(v) if k == "date" else v) for k, v in e.items() if k != "subproject"}
+                     for e in t["events"] if "subproject" not in e]
+             want = [_norm(e) for e in want]
+@@ -990,8 +1027,10 @@ def _status_commit(repo, tid, rev, commits):
+         path = ".tableaux/tasks/%s.yaml" % tid       # an undefined leaf is dated by its task file
+     changed = git(repo, "log", "--format=%H", rev, "--", path).split()
+     for c in commits:
+-        if c["hash"] in changed or re.search(r"^Reaffirmed: %s$" % tid, c["body"], re.M):
++        if c["hash"] in changed:
+             return c
++        if path.startswith(".tableaux/status/") and re.search(r"^Reaffirmed: %s$" % tid, c["body"], re.M):
++            return c                            # a leaf with no file has recorded nothing to confirm (F17)
+     return None
+ 
+ 
+@@ -1012,13 +1051,21 @@ def _commit_fields(repo, h, tpath):
+     return out
+ 
+ 
+-def _events(repo, tid, rev, commits, lab, proj, exp):
++def _events(repo, tid, rev, commits, lab, proj, exp, trunk=None):
+     rev_lab = {v: k for k, v in lab.items()}
+     for p in _sublabels(repo):
+         rev_lab.update({v: k for k, v in labels(p).items()})
+     tpath, spath = ".tableaux/tasks/%s.yaml" % tid, ".tableaux/status/%s.yaml" % tid
+     tch = set(git(repo, "log", "--format=%H", rev, "--", tpath).split())
+     sch = set(git(repo, "log", "--format=%H", rev, "--", spath).split())
++    # a merge on the trunk's first-parent line that changes the task file against its first parent (F11)
++    accepts = set()
++    for ref in ([trunk, "origin/" + trunk] if trunk else []):
++        try:
++            accepts = set(git(repo, "log", "--first-parent", "--merges", "--format=%H", ref, "--", tpath).split())
++            break
++        except RuntimeError:
++            continue
+     # the linkages the task names, by kind: a submodule's pin moves with the gitlink, a URL's with the commit field
+     pins = {}                                   # hash -> [(url, old, new)]: one per url, however many entries name it
+     if proj is not None and tid in proj.tasks:
+@@ -1047,7 +1094,7 @@ def _events(repo, tid, rev, commits, lab, proj, exp):
+         # author, not committer, is the actor: read it again
+         if h in tch:
+             evs.append(dict(base, event="task"))
+-        if re.search(r"^Authorised: %s$" % tid, c["body"], re.M):
++        if h in accepts or re.search(r"^Authorised: %s$" % tid, c["body"], re.M):
+             evs.append(dict(base, event="authorised"))
+         if h in sch:
+             e = dict(base, event="status")

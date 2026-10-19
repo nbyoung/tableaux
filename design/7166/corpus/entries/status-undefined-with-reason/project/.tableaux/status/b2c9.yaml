@@ -1,0 +1,4 @@
+gate: undefined
+state: undefined
+reason: blocked
+note: The definition waits for the sensor datasheet

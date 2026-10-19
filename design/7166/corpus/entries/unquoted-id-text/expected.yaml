@@ -1,0 +1,28 @@
+# expected.yaml : two ids written without quotes. YAML 1.2 reads 0010 as the integer 10 and 07e0
+# as the float 7; YAML 1.1 reads 0010 as the octal 8 and 07e0 as a string. A tool takes each id
+# as the text the file writes, before it applies the schema, so the parent is "0010" and the
+# requirement names "07e0" whatever the YAML reader yields (F16). T7 judges the writing, not the
+# type: 07e0 warns under a reader that yields a string too.
+entry: unquoted-id-text
+language: 0.3.3
+valid: true
+
+findings:
+  - { rule: T7, severity: warning, task: "07e0", file: tasks/07e0.yaml,
+      message: "parent.id is written without quotes: 0010" }
+  - { rule: T7, severity: warning, task: "b2c9", file: tasks/b2c9.yaml,
+      message: "requires.0.id is written without quotes: 07e0" }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 4, leaves: 2 }
+order: ["e4a1", "b2c9", "0010", "07e0"]          # the tree once each id is its text
+
+tasks:
+  "07e0":
+    parent: "0010"
+    authorities: [pat@example.org, olive@example.org]
+  "b2c9":
+    parent: "e4a1"
+    requires:
+      - { id: "07e0", from: defined, to: release, met: false, due: false, condition: pending }

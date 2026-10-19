@@ -1,0 +1,9 @@
+# tasks/f1a0.yaml : the task the umbrella's c07d delegates its implementation to
+title: Weather node image
+description: >
+  The image for the sensor node: a sensor read loop, a sleep scheduler
+  and a LoRa publisher.
+assignee: ben@example.org
+references:
+  - { url: docs/node.md, text: Node image design }
+parent: { id: "b7d2", order: 1 }

@@ -1,0 +1,9 @@
+# tasks/7b2e.yaml : a leaf with no status file: undefined, dated by this file's newest commit
+title: Gateway
+description: >
+  A mains-powered box indoors that receives the node's readings over
+  LoRa and stores them in a database the dashboard reads.
+assignee: ada@example.org
+references:
+  - { url: docs/overview.md#gateway, text: Gateway overview }
+parent: { id: "a1c0", order: 2 }

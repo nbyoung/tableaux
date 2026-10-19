@@ -1,0 +1,3 @@
+gate: implementation
+state: nominal
+note: Sleep scheduler flashed; unit tests next
