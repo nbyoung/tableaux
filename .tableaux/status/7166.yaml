@@ -1,4 +1,3 @@
 gate: design
 state: nominal
-reason: review
-note: The trunk clarification (F19), with the order for a linked repository, and the exemption rule (F7) are on the trunk; design/7166.md on branch wave/7166-design awaits the owner's review for F11, F15 to F18, F9 and F8's remainder
+note: The trunk clarification (F19) and the exemption rule (F7) are on the trunk; design/7166.md with the owner's decisions of 2026-10-19 settles F11, F15 to F18, F9 and F8, and implementation lands them on wave/language-0.4 at 0.4.0
