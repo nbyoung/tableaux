@@ -1,0 +1,13 @@
+# tasks/9f31.yaml : a leaf task, as in SYNTAX.md
+title: Sensor board
+description: >
+  The PCB that carries the barometer, hygrometer and thermometer
+  and powers them from the solar cell within the power budget.
+assignee: ada@example.org
+references:
+  - { url: docs/sensor-board.md }
+  - { url: https://example.org/datasheets/bmp390.pdf, text: Barometer datasheet }
+junctions:
+  performance: { references: [{ url: docs/sensor-board.md#power-budget, text: Power budget }] }
+  validate:    { reviewer: ben@example.org }
+parent: { id: "4e2b", order: 1 }

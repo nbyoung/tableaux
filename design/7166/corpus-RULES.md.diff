@@ -1,0 +1,40 @@
+diff --git a/corpus/RULES.md b/corpus/RULES.md
+index a0f8562..bb5bdb6 100644
+--- a/corpus/RULES.md
++++ b/corpus/RULES.md
+@@ -40,7 +40,7 @@ A tool reads every file under `.tableaux` before it applies any rule above, and
+ | G9  | error    | State keys are unique                                                      | SYNTAX states fields: "A unique identifier that status records use to name the state" | `gates-duplicate-state`   |
+ | G10 | error    | Each reason has `key`, `symbol`, `synopsis`; reason keys are unique        | Schema reason item; SYNTAX reasons fields: "A unique identifier"                 | `gates-duplicate-reason`       |
+ | G11 | error    | No field other than `gates`, `states`, `reasons`                           | Schema `additionalProperties: false`                                             | `gates-unknown-field`          |
+-| G12 | error    | `states` includes `undefined`, the state at the `undefined` gate, and `complete`, the state at the last applicable gate, both with severity 0 | README Gates: "The states always include `undefined` … and `complete` …, both with severity 0 so that roll-up sets them aside." Schema `states: allOf: contains` | `gates-no-undefined-state`, `gates-complete-nonzero-severity` |
++| G12 | error    | `states` includes `undefined`, the state at the `undefined` gate, and `complete`, the state at the last applicable gate, both with severity 0; a tool derives no status from a file that fails it | README Gates: "The states always include `undefined` … and `complete` …, both with severity 0 so that roll-up sets them aside." Schema `states: allOf: contains` | `gates-no-undefined-state`, `gates-complete-nonzero-severity` |
+ 
+ ## `tasks/<id>.yaml`
+ 
+@@ -52,7 +52,7 @@ A tool reads every file under `.tableaux` before it applies any rule above, and
+ | T4  | error    | `assignee`, `contributor` and `reviewer` are email addresses               | Schema `$defs/email: format: email`                                                        | `task-bad-email`                   |
+ | T5  | error    | Each reference has `url`, a URI reference; `text`, when present, is non-empty | Schema `$defs/references`                                                               | `task-reference-without-url`       |
+ | T6  | error    | Every id a file names matches `^[0-9a-f]{4}$`                              | Schema `$defs/id`                                                                          | `task-bad-id-pattern`              |
+-| T7  | warning  | An id is written as a quoted string                                        | SYNTAX tasks: "a validator warns of an unquoted id"                                        | `unquoted-id`                      |
++| T7  | warning  | An id is written as a quoted string. A tool takes the id as its source text before the schema applies, and warns of one written in neither quotes, a block scalar nor `!!str`, whatever type YAML gives it | SYNTAX tasks: "A tool takes an id as the scalar's text as the file writes it, whatever YAML yields"; "A validator then warns of an unquoted id" | `unquoted-id`, `unquoted-id-text` |
+ | T8  | error    | Exactly one task has no `parent`                                           | README Tasks: "Exactly one task file has no `parent`; it is the **root**"                  | `tree-no-root`, `tree-two-roots`   |
+ | T9  | error    | Every `parent.id` names a task in the project                              | README Tasks: "Every other task names its parent by id."                                   | `tree-parent-missing`              |
+ | T10 | error    | Every parent chain ends at the root                                        | README Tasks: "Every parent chain ends at the root."                                       | `tree-parent-cycle`                |
+@@ -115,7 +115,7 @@ R2 to R5 hold within one project: a cross-project entry reads a fixed commit, so
+ | S8  | error            | A task at its last applicable gate has the state `complete`                | README Status: "A task at its last applicable gate has the state `complete`."              | `status-last-gate-not-complete`                                     |
+ | S9  | error            | When the next junction is recursive, the file holds only the gate          | README Status: "When the next junction is recursive, the file holds only the gate."        | `status-state-with-recursive`                                       |
+ | S10 | error            | When the next junction is plain, `state` exists                            | SYNTAX status fields: `state` "absent only when the next junction is recursive"            | `status-no-state-plain`                                             |
+-| S11 | error            | A gate that passes a reviewed junction other than `defined` has a `Reviewed: <id> <gate>` commit by the reviewer in the branch's history; at `defined` the task's authorisation stands as the review | README Status: "A validator rejects a status whose gate passes a reviewed junction that has no such commit." "The `defined` junction is the exception: … the authorisation stands as the review of `defined`" | `status-unreviewed-gate`, `status-defined-by-authorisation` |
++| S11 | error            | A gate that passes a reviewed junction other than `defined` has a `Reviewed: <id> <gate>` commit by the reviewer in the history of the commit in view, before or after the commit that records the status; at `defined` the task's authorisation stands as the review | README Status: "A validator rejects a status whose gate passes a reviewed junction that has no such commit." "The `defined` junction is the exception: … the authorisation stands as the review of `defined`"; "The rule reads one commit" | `status-unreviewed-gate`, `status-defined-by-authorisation`, `review-after-status` |
+ | S12 | error            | The state `complete` appears only at the last applicable gate              | README Status: "A task at its last applicable gate has the state `complete`, and only there." | `status-complete-early`  |
+ 
+ The design review kept S11 an error (question Q1 in [README.md](README.md#questions-for-review)). An agent that reviews itself carries the `Reviewed:` trailer on the commit that records the status, so a status and its review land together.
+@@ -135,7 +135,7 @@ None is an error: a trailer is history, and history cannot make the files invali
+ 
+ ## Derived facts, not rules
+ 
+-The audit view reports where files and history disagree. A **proposed** task is such a disagreement, but no sentence makes it a validator finding, so `expected.yaml` carries it as the derived fact `authorisation.state` and not as a finding. The corpus treats **requirement conditions**, **resolved junctions**, **status dates and recorders**, **roll-up** and **events** the same way: a conforming tool must agree on them, and a validator says nothing about them. A roll-up tie breaks by display order (README Status, step 3), and the entry `roll-up-tie` fixes it as a derived fact.
++The audit view reports where files and history disagree. A **proposed** task is such a disagreement, but no sentence makes it a validator finding, so `expected.yaml` carries it as the derived fact `authorisation.state` and not as a finding. The corpus treats **requirement conditions**, **resolved junctions**, **status dates and recorders**, **roll-up** and **events** the same way: a conforming tool must agree on them, and a validator says nothing about them. A roll-up tie breaks by display order (README Status, step 3), and the entry `roll-up-tie` fixes it as a derived fact. A merge on the trunk is an `authorised` event and leaves a status's date and recorder to the branch (README History), as `authorised-by-merge` fixes; a leaf with no status file has a date and no recorder (README Status), as `undefined-leaf-reaffirmed` fixes.
+ 
+ ## Candidate rules, resolved
+ 

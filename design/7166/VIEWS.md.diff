@@ -1,0 +1,22 @@
+diff --git a/VIEWS.md b/VIEWS.md
+index 176368f..0264d0c 100644
+--- a/VIEWS.md
++++ b/VIEWS.md
+@@ -33,7 +33,7 @@ A view shows nothing a tool does not derive from the project files and the Git h
+ | Applicable gates       | The gates a task passes through, and its first and last applicable gate                                   | [README.md#junctions](README.md#junctions)                                  |
+ | Requirement conditions | Each `requires` entry, local by `id` or cross-project by `subproject` with `url`, `id` and `commit`, with `from` and `to` resolved and its condition: met, due, unmet; a cross-project entry reads its originating task at the commit the linkage fixes; and the reverse relation, the tasks that require a given task, called its dependents here | [README.md#tasks](README.md#tasks) |
+ | Authorisation          | Authorised or proposed, the deciding commit, and whether its author or its committer is the authority     | [README.md#proposed-and-authorised-tasks](README.md#proposed-and-authorised-tasks) |
+-| Status                 | A leaf's gate, state, reason and note, with the date and recorder its deciding commit gives; a leaf without a file at `undefined` | [README.md#status](README.md#status)                        |
++| Status                 | A leaf's gate, state, reason and note, with the date and recorder its deciding commit gives; a leaf without a file at `undefined`, dated by its task file and with no recorder | [README.md#status](README.md#status)                        |
+ | Reviews                | For each reviewed junction the status passes, the `Reviewed:` commit that accepts it                      | [README.md#status](README.md#status)                                        |
+ | Roll-up                | A parent's derived status and the child it comes from; a tie breaks by display order                      | [README.md#status](README.md#status)                                        |
+ | Subproject snapshot    | For a recursive junction, the subproject task read at the commit its `url` fixes: a submodule's pin, the parent's own commit for a same-repository path, or the stated `commit` for an absolute URL | [README.md#junctions](README.md#junctions) |
+@@ -384,7 +384,7 @@ In this project both emails hold most of the tree, so the task form serves them;
+ 
+ **Roles.** Every role. A reviewer reads what changed since their last review, an observer reads a period from a static export, and the owner reads a release period between two tags.
+ 
+-**Data.** Events in author-time order, each with its date, commit, actor, the committer where it differs, and for a status event the gate, state, reason and note; for a pin event the `url` and the old and new commit, `old` absent when the linkage first appears. Models, on each agent commit. The status after each event, replayed for a parent from its children. The subproject snapshot's events up to the commit its `url` fixes. At a ref off the trunk, the events the branch adds beyond the trunk, marked as proposals.
++**Data.** Events in author-time order, each with its date, commit, actor, the committer where it differs, and for a status event the gate, state, reason and note; for a pin event the `url` and the old and new commit, `old` absent when the linkage first appears. Models, on each agent commit. The status after each event, as the files at its commit state it and with no rule applied, replayed for a parent from its children. The subproject snapshot's events up to the commit its `url` fixes. At a ref off the trunk, the events the branch adds beyond the trunk, marked as proposals.
+ 
+ **Parameters.** task: one task, or a subtree, which replays its children. person: the events one actor made. ref, or a range such as `v1.0..v1.1` or `main..task/e9c6`.
+ 

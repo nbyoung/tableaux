@@ -1,0 +1,6 @@
+# tasks/b7d2.yaml : the firmware project's root
+title: Firmware
+description: The firmware images for the weather station's boards.
+assignee: ben@example.org
+references:
+  - { url: README.md, text: Build instructions }
