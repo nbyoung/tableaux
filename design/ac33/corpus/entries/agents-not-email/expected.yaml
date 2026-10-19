@@ -1,0 +1,6 @@
+# expected.yaml : agents.yaml lists a name where an email address belongs.
+entry: agents-not-email
+language: 0.4.0
+valid: false
+findings:
+  - { rule: A1, severity: error, file: agents.yaml }

@@ -1,0 +1,3 @@
+# agents.yaml : the project's agents; bot, whom a junction pairs with a model, is missing
+agents:
+  - opus@example.org

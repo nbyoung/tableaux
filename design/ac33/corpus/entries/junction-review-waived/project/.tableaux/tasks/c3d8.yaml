@@ -1,0 +1,9 @@
+# tasks/c3d8.yaml : states a reviewer, which restores the review the root waives
+title: Reviewed leaf
+description: A leaf whose assignee reviews the agent's design despite the root's waiver.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { reviewer: pat@example.org }
+parent: { id: "e4a1", order: 2 }

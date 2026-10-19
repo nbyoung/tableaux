@@ -1,0 +1,13 @@
+diff --git a/schemas/task.schema.yaml b/schemas/task.schema.yaml
+index e832ddc..e6843a1 100644
+--- a/schemas/task.schema.yaml
++++ b/schemas/task.schema.yaml
+@@ -49,7 +49,7 @@ $defs:
+     properties:
+       contributor: { $ref: "#/$defs/email" }
+       model:       { type: string, minLength: 1 }
+-      reviewer:    { $ref: "#/$defs/email" }
++      reviewer:    { oneOf: [{ $ref: "#/$defs/email" }, { const: false }] }
+       references:  { $ref: "#/$defs/references" }
+   recursive:
+     type: object

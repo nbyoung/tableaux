@@ -1,0 +1,7 @@
+# tasks/b2c9.yaml : one leaf; opus, an agent by agents.yaml, is the assignee and states no model
+title: Leaf
+description: A leaf task with a status.
+assignee: opus@example.org
+references:
+  - { url: README.md }
+parent: { id: "e4a1", order: 1 }

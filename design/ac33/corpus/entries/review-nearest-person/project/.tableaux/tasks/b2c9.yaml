@@ -1,0 +1,9 @@
+# tasks/b2c9.yaml : an agent under an agent; the nearest person is the root's assignee
+title: Agent leaf
+description: A leaf whose assignee and whose parent's assignee are agents.
+assignee: bot@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { contributor: bot@example.org, model: claude-fable }
+parent: { id: "c5f0", order: 1 }
