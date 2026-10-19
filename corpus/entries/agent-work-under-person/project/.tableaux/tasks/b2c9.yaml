@@ -1,0 +1,9 @@
+# tasks/b2c9.yaml : bot does the design; pat, the assignee, reviews it
+title: Leaf b2c9
+description: A leaf whose design an agent contributes and a person reviews.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { contributor: bot@example.org, model: claude-fable }
+parent: { id: "e4a1", order: 1 }

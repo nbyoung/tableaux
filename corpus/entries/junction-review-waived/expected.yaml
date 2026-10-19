@@ -1,0 +1,44 @@
+# expected.yaml : reviewer: false waives review (F2). The root states it at design beside an agent,
+# and the value passes to the subtree as a stated reviewer does.
+#   b2c9 : states nothing, so its design junction has no reviewer: without the waiver the agent
+#          would take pat, its assignee and a person. Its status passes design with no Reviewed:
+#          commit, and S11 stays silent.
+#   c3d8 : states reviewer: pat, the nearer entry, so pat reviews bot's design, at W4.
+entry: junction-review-waived
+language: 0.4.0
+valid: true
+findings: []
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: W1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, source: "e4a1" }   # waived: no reviewer
+    reviews: []
+    status: { gate: design, state: nominal, date: 2026-09-02, recorder: bot@example.org, commit: W2 }
+    events:
+      - { date: 2026-09-01, commit: W1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: W1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: W2, by: bot@example.org, task: "b2c9", event: status, gate: design, state: nominal }
+  "c3d8":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: W1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org,
+                 source: ["c3d8", "e4a1"] }                       # the reviewer from c3d8, the contributor and model from e4a1
+    reviews:
+      - { gate: design, reviewer: pat@example.org, commit: W4 }
+    status: { gate: design, state: nominal, date: 2026-09-03, recorder: bot@example.org, commit: W3 }
+    events:
+      - { date: 2026-09-01, commit: W1, by: olive@example.org, task: "c3d8", event: task }
+      - { date: 2026-09-01, commit: W1, by: olive@example.org, task: "c3d8", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-03, commit: W3, by: bot@example.org, task: "c3d8", event: status, gate: design, state: nominal }
+      - { date: 2026-09-04, commit: W4, by: pat@example.org, task: "c3d8", event: reviewed, gate: design }

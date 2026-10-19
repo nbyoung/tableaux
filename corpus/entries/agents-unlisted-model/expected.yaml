@@ -1,0 +1,7 @@
+# expected.yaml : agents.yaml lists opus alone, and the design junction of b2c9 states the model
+# claude-fable beside bot. A project that keeps the file lists every agent there.
+entry: agents-unlisted-model
+language: 0.4.0
+valid: false
+findings:
+  - { rule: A2, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: design }

@@ -1,0 +1,7 @@
+# expected.yaml : A junction states reviewer: true. A reviewer is an email address or false, which
+# waives review; true is neither.
+entry: junction-reviewer-true
+language: 0.4.0
+valid: false
+findings:
+  - { rule: T4, severity: error, task: "b2c9", file: tasks/b2c9.yaml, gate: design }

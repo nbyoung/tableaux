@@ -23,7 +23,7 @@ A tool reads every file under `.tableaux` before it applies any rule above, and 
 | L1 | error    | Every file the layout names can be read and is YAML                                        | SYNTAX Layout: "Every file is YAML"                                                     | `file-not-yaml`                              |
 | L2 | error    | A mapping states no key twice; a tool reads the first and reports the second               | SYNTAX Layout: "a mapping states each key once"                                         | `file-duplicate-key`                         |
 | L3 | error    | A file uses no YAML feature the syntax does not: a second document, an anchor, an alias, a tag other than `!!str`, or a key that is no scalar | SYNTAX Layout: "one document of plain mappings, sequences and scalars"  | `file-yaml-feature`                          |
-| L4 | warning  | Every path under `.tableaux` is one the layout names: `version.yaml`, `gates.yaml`, `tasks/<id>.yaml`, `status/<id>.yaml`, each a regular file; a tool leaves any other unread | SYNTAX Layout table                                              | `file-stray-path`                            |
+| L4 | warning  | Every path under `.tableaux` is one the layout names: `version.yaml`, `gates.yaml`, `agents.yaml`, `tasks/<id>.yaml`, `status/<id>.yaml`, each a regular file; a tool leaves any other unread | SYNTAX Layout table                                              | `file-stray-path`                            |
 
 ## `gates.yaml`
 
@@ -42,6 +42,15 @@ A tool reads every file under `.tableaux` before it applies any rule above, and 
 | G11 | error    | No field other than `gates`, `states`, `reasons`                           | Schema `additionalProperties: false`                                             | `gates-unknown-field`          |
 | G12 | error    | `states` includes `undefined`, the state at the `undefined` gate, and `complete`, the state at the last applicable gate, both with severity 0; a tool derives no status from a file that fails it | README Gates: "The states always include `undefined` … and `complete` …, both with severity 0 so that roll-up sets them aside." Schema `states: allOf: contains` | `gates-no-undefined-state`, `gates-complete-nonzero-severity` |
 
+## `agents.yaml`
+
+A finding on the file names the file; A2 names the task, the file and the gate of the junction, as a junction rule does.
+
+| Id | Severity | Rule                                                                                       | Source                                                                                  | Entry                                        |
+|----|----------|--------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|----------------------------------------------|
+| A1 | error    | `agents.yaml`, when present, matches its schema: `agents`, a non-empty list of distinct email addresses, and no other field | SYNTAX agents schema                                                    | `agents-not-email`                           |
+| A2 | error    | When `agents.yaml` exists, every contributor that a junction states beside a `model` is one it lists | README Roles: "A project that keeps the file lists every agent there, and a validator rejects a junction that states a `model` beside a contributor the file does not list." | `agents-unlisted-model` |
+
 ## `tasks/<id>.yaml`
 
 | Id  | Severity | Rule                                                                       | Source                                                                                     | Entry                              |
@@ -49,7 +58,7 @@ A tool reads every file under `.tableaux` before it applies any rule above, and 
 | T1  | error    | The file name is four lowercase hexadecimal digits                         | SYNTAX Layout table: "`<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$`" | `task-bad-filename` |
 | T2  | error    | `title`, `description` and `assignee` exist and are non-empty              | Schema `required: [title, description, assignee]`                                          | `task-missing-assignee`            |
 | T3  | error    | No field beyond the schema's; in particular no `id`                        | SYNTAX tasks: "the file holds no `id` field." Schema `additionalProperties: false`         | `task-id-field`                    |
-| T4  | error    | `assignee`, `contributor` and `reviewer` are email addresses               | Schema `$defs/email: format: email`                                                        | `task-bad-email`                   |
+| T4  | error    | `assignee`, `contributor` and `reviewer` are email addresses; `reviewer` may instead be `false`, which waives review | Schema `$defs/email: format: email`; `reviewer: oneOf: [email, { const: false }]` | `task-bad-email`, `junction-reviewer-true` |
 | T5  | error    | Each reference has `url`, a URI reference; `text`, when present, is non-empty | Schema `$defs/references`                                                               | `task-reference-without-url`       |
 | T6  | error    | Every id a file names matches `^[0-9a-f]{4}$`                              | Schema `$defs/id`                                                                          | `task-bad-id-pattern`              |
 | T7  | warning  | An id is written as a quoted string. A tool takes the id as its source text before the schema applies, and warns of one written in neither quotes, a block scalar nor `!!str`, whatever type YAML gives it | SYNTAX tasks: "A tool takes an id as the scalar's text as the file writes it, whatever YAML yields"; "A validator then warns of an unquoted id" | `unquoted-id`, `unquoted-id-text` |
@@ -135,6 +144,7 @@ The design review kept S11 an error (question Q1 in [README.md](README.md#questi
 | H4  | information | A task whose next junction has a reviewer and no `Reviewed:` commit from that reviewer yet, whose newest event is the contributor's and whose status states no `review`: a hand-off the history implies, or work in progress | README Status: "it reports, as information, a task whose next junction has a reviewer and no `Reviewed:` commit from that reviewer yet, whose newest event is the contributor's and whose status states no `review`" | `handoff-inferred`, `model-trailer-missing` |
 | H5  | warning  | A status that still states the reason `review` after the reviewer's `Reviewed:` commit for that junction: a stale hand-off | README Status: "it reports a status that still states `review` after the reviewer's `Reviewed:` commit for that junction" | `handoff-stale` |
 | H6  | warning  | A commit at a junction that states a `model`, by its contributor, carries no `Model:` trailer; a commit at which `version.yaml` states a language before 0.2.1 is exempt | README Junctions: "a commit at the junction by its contributor that carries no trailer, unless the project's `version.yaml` at that commit states a language before 0.2.1" | `model-trailer-missing` |
+| H7  | warning  | A commit at an agent's junction whose author is a person and which carries a `Model:` trailer or a `Co-Authored-By:` trailer that names an agent; a commit at which `version.yaml` states a language before 0.4.0 is exempt | README Roles: "The audit reports a commit at an agent's junction whose author is a person and which carries a `Model:` trailer or a `Co-Authored-By:` trailer that names an agent" | `agent-work-under-person` |
 | H8  | warning  | A `Reaffirmed:` trailer names a task that has, at that commit, no status of its own to confirm: a parent, a leaf whose next junction is recursive, or a leaf with no status file | README Status: "a `Reaffirmed:` trailer naming it changes nothing a tool derives; the history keeps the event, and the audit reports the trailer" | `reaffirmed-snapshot`; also `undefined-leaf-reaffirmed` |
 
 None is an error: a trailer is history, and history cannot make the files invalid after the fact. H4 is information, since the work may be in progress and nothing is wrong.

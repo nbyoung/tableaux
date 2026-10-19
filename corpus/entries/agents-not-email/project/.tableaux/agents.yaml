@@ -1,0 +1,3 @@
+# agents.yaml : an item that is a name, not an email address
+agents:
+  - Corpus Agent

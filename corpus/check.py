@@ -45,12 +45,12 @@ PLAIN = {"contributor", "model", "reviewer", "references"}
 TASK_FIELDS = {"title", "description", "assignee", "references", "requires", "subproject", "junctions", "parent"}
 REQ_FIELDS = {"id", "subproject", "from", "to", "text"}
 SUB_FIELDS = {"url", "id", "commit"}
-NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3", "H4", "H5", "H6", "H8"}
+NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8"}
 BUILT = {"J17"}                    # rules the check reads from the built repositories; with no build, only stated
 # Rules whose violation the schemas alone reject. The rest need more than a schema says.
-SCHEMA_RULES = {"P3", "G2", "G3", "G4", "G5", "G7", "G8", "G11", "G12", "T2", "T3", "T4", "T5", "T6", "T11",
+SCHEMA_RULES = {"P3", "A1", "G2", "G3", "G4", "G5", "G7", "G8", "G11", "G12", "T2", "T3", "T4", "T5", "T6", "T11",
                 "R8", "R11", "J2", "J4", "J5", "J6", "J7", "J10", "J11", "J14", "S3", "S4"}
-WARNINGS = {"P5", "L4", "T7", "T12", "R9", "R12", "R13", "J13", "J19", "H1", "H2", "H3", "H5", "H6", "H8"}
+WARNINGS = {"P5", "L4", "T7", "T12", "R9", "R12", "R13", "J13", "J19", "H1", "H2", "H3", "H5", "H6", "H7", "H8"}
 INFORMATION = {"H4", "R14"}        # leaves the project valid and marks nothing wrong
 LENIENT = WARNINGS | INFORMATION   # every rule whose finding is not an error
 
@@ -155,6 +155,7 @@ class Project:
         self.states = []
         self.reasons = []
         self.version = None
+        self.agents = None                    # the emails agents.yaml lists; None without the file
         self.gates_ok = False
         self.claims = []                      # (task, file, gate, url, commit): a commit restating a submodule pin (J17)
         self.deferred = []                    # (task, file, entry, sub tree, kind, task there): a cross-project requirement read at a pin
@@ -226,7 +227,7 @@ class Project:
                 dirs.remove(d)
             for f in files:
                 q = os.path.join(rel, f)
-                named = (rel == "" and f in ("version.yaml", "gates.yaml")) or \
+                named = (rel == "" and f in ("version.yaml", "gates.yaml", "agents.yaml")) or \
                         (rel in ("tasks", "status") and f.endswith(".yaml"))
                 if not named or not os.path.isfile(os.path.join(root, f)) or os.path.islink(os.path.join(root, f)):
                     self.add("L4", file=q)
@@ -239,6 +240,7 @@ class Project:
         self.scan_stray()
         self.read_version()
         self.read_gates()
+        self.read_agents()
         tdir = os.path.join(self.path, "tasks")
         for name in sorted(os.listdir(tdir)) if os.path.isdir(tdir) else []:
             if not name.endswith(".yaml"):
@@ -298,6 +300,19 @@ class Project:
             major, minor, _ = (int(x) for x in v["tableaux"].split("."))
             if major != TOOL[0] or minor > TOOL[1]:
                 self.add("P4", file="version.yaml")
+
+    def read_agents(self):
+        """A1: agents.yaml, when present, lists distinct email addresses and nothing else."""
+        if not os.path.exists(os.path.join(self.path, "agents.yaml")):
+            return
+        doc = self.read_file("agents.yaml")
+        if doc is None:
+            return                            # L1 reported it; no agent comes from it
+        items = doc.get("agents") if isinstance(doc, dict) else None
+        if not (isinstance(doc, dict) and set(doc) == {"agents"} and isinstance(items, list) and items
+                and all(is_email(e) for e in items) and len(set(items)) == len(items)):
+            self.add("A1", file="agents.yaml")
+        self.agents = {e for e in items if is_email(e)} if isinstance(items, list) else set()
 
     def read_gates(self):
         p = os.path.join(self.path, "gates.yaml")
@@ -379,14 +394,15 @@ class Project:
                 self.add("T2", tid, f)
             if set(t) - TASK_FIELDS:
                 self.add("T3", tid, f)
-            emails = [t.get("assignee")] if "assignee" in t else []
-            refs = list(t.get("references") or [])
-            for j in (t.get("junctions") or {}).values():
-                if isinstance(j, dict):
-                    emails += [j[k] for k in ("contributor", "reviewer") if k in j]
-                    refs += j.get("references") or []
-            if any(not is_email(e) for e in emails):
+            if "assignee" in t and not is_email(t.get("assignee")):
                 self.add("T4", tid, f)
+            refs = list(t.get("references") or [])
+            for g, j in (t.get("junctions") or {}).items():
+                if isinstance(j, dict):
+                    if any(not is_email(j[k]) for k in ("contributor", "reviewer")
+                           if k in j and not (k == "reviewer" and j[k] is False)):
+                        self.add("T4", tid, f, g)   # reviewer: false waives review
+                    refs += j.get("references") or []
             if any(not (isinstance(r, dict) and r.get("url") and set(r) <= {"url", "text"}
                         and ("text" not in r or r["text"])) for r in refs):
                 self.add("T5", tid, f)
@@ -565,6 +581,8 @@ class Project:
                     self.add("J10", tid, f, gate)
                 elif k == "PLAIN" and "model" in j and "contributor" not in j:
                     self.add("J5", tid, f, gate)
+                elif k == "PLAIN" and "model" in j and self.agents is not None and j["contributor"] not in self.agents:
+                    self.add("A2", tid, f, gate)
                 elif k == "REC":
                     self.check_recursive(tid, f, gate, j["subproject"], bool(self.children(tid)))
             for gate, j in js.items():
@@ -843,7 +861,7 @@ class Project:
 def schema_problems(tableaux):
     sdir = os.path.join(ROOT, "schemas")
     vals = {}
-    for n in ("version", "gates", "task", "status"):
+    for n in ("version", "gates", "agents", "task", "status"):
         vals[n] = Draft202012Validator(load(os.path.join(sdir, n + ".schema.yaml")), format_checker=FormatChecker())
     bad = []
 
@@ -852,6 +870,8 @@ def schema_problems(tableaux):
             bad.append("%s: %s" % (os.path.relpath(path, CORPUS), e.message))
     one("version", tableaux + "/version.yaml", load(tableaux + "/version.yaml"))
     one("gates", tableaux + "/gates.yaml", load(tableaux + "/gates.yaml"))
+    if os.path.exists(tableaux + "/agents.yaml"):
+        one("agents", tableaux + "/agents.yaml", load(tableaux + "/agents.yaml"))
     for kind, sub in (("task", "tasks"), ("status", "status")):
         d = os.path.join(tableaux, sub)
         for name in sorted(os.listdir(d)) if os.path.isdir(d) else []:

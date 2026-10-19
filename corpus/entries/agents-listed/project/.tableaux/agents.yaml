@@ -1,0 +1,3 @@
+# agents.yaml : the identities that are agents
+agents:
+  - opus@example.org
