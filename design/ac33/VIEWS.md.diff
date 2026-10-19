@@ -1,0 +1,22 @@
+diff --git a/VIEWS.md b/VIEWS.md
+index 176368f..465d506 100644
+--- a/VIEWS.md
++++ b/VIEWS.md
+@@ -38,7 +38,7 @@ A view shows nothing a tool does not derive from the project files and the Git h
+ | Roll-up                | A parent's derived status and the child it comes from; a tie breaks by display order                      | [README.md#status](README.md#status)                                        |
+ | Subproject snapshot    | For a recursive junction, the subproject task read at the commit its `url` fixes: a submodule's pin, the parent's own commit for a same-repository path, or the stated `commit` for an absolute URL | [README.md#junctions](README.md#junctions) |
+ | Events                 | The history: task, authorised, status, reaffirmed, reviewed and pin events, each with its date, commit and actor; a pin event names the `url` and the old and new commit | [README.md#history](README.md#history), [SYNTAX.md#history](SYNTAX.md#history) |
+-| Models                 | The `Model:` trailer on each commit at a junction, against the model the junction states                  | [SYNTAX.md#commit-trailers](SYNTAX.md#commit-trailers)                      |
++| Models                 | The `Model:` trailer on each commit at a junction, against the model the junction states; the agent a `Co-Authored-By:` trailer names on a person's commit | [SYNTAX.md#commit-trailers](SYNTAX.md#commit-trailers)                      |
+ | Findings               | What a validator reports, by rule                                                                         | [corpus/RULES.md](corpus/RULES.md)                                          |
+ 
+ ### Parameters
+@@ -55,7 +55,7 @@ The views share one set of parameters. Each view's section says which apply to i
+ | role                 | The role whose level the view opens at                                                                                                        | The viewer's role at each item                              |
+ | level                | The level, overriding the role's                                                                                                              | —                                                           |
+ 
+-The **viewer** is whoever runs the tool, identified by the email Git would commit with. An agent that runs inside a person's session shares that person's email, so a dispatcher names the agent by `person`. An observer has no email in the project and sees every view at glance.
++The **viewer** is whoever runs the tool, identified by the email Git would commit with. An agent commits under its own identity ([README.md#roles](README.md#roles)), but a tool it runs inside a person's session may read that person's email, so a dispatcher names the agent by `person`. An observer has no email in the project and sees every view at glance.
+ 
+ A task's **historical junctions** are its junctions at every gate before the gate its status names, applicable or not; for a parent, before its derived gate; a task at `undefined` has none. A tableau shows a historical cell empty, neither marks nor `—`, unless the historical-junctions parameter is on, since the work there is done and the marks would only say who did it.
+ 

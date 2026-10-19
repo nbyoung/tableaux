@@ -1,0 +1,8 @@
+# tasks/e4a1.yaml : the root; it sends design to an agent and waives its review for the whole tree
+title: Base
+description: The smallest valid project; every invalid entry starts from it.
+assignee: olive@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { contributor: bot@example.org, model: claude-fable, reviewer: false }

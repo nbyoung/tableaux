@@ -1,0 +1,116 @@
+diff --git a/SYNTAX.md b/SYNTAX.md
+index 90d9cc2..0aa9e19 100644
+--- a/SYNTAX.md
++++ b/SYNTAX.md
+@@ -5,6 +5,7 @@ This document defines the syntax of each [Tableaux](README.md) file. Each sectio
+ - [Layout](#layout)
+ - [`version.yaml`](#versionyaml)
+ - [`gates.yaml`](#gatesyaml)
++- [`agents.yaml`](#agentsyaml)
+ - [`tasks/<id>.yaml`](#tasksidyaml)
+ - [`status/<id>.yaml`](#statusidyaml)
+ - [History](#history)
+@@ -18,6 +19,7 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
+ .tableaux/
+ ├── version.yaml      # the Tableaux version the other files follow
+ ├── gates.yaml        # the gating structure
++├── agents.yaml       # the identities that are agents; optional
+ ├── tasks/
+ │   ├── a1c0.yaml     # one file per task, named by the task id
+ │   ├── 4e2b.yaml
+@@ -31,6 +33,7 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
+ |-------------------------------|-----------------------------------------------------------------------------|
+ | `.tableaux/`                  | Fixed; one per repository                                                   |
+ | `version.yaml`, `gates.yaml`  | Fixed                                                                       |
++| `agents.yaml`                 | Fixed; optional                                                             |
+ | `tasks/<id>.yaml`             | `<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$` |
+ | `status/<id>.yaml`            | `<id>` is the id of a leaf task                                             |
+ 
+@@ -197,6 +200,42 @@ reasons:
+   - { key: review,     symbol: 👓, synopsis: The work waits for its reviewer }
+ ```
+ 
++## `agents.yaml`
++
++The agents file lists the identities that are agents ([README.md](README.md#roles)). It is optional: without it, an identity is an agent's when a junction states it as contributor beside a `model`. A project that keeps it lists every agent there.
++
++### Schema
++
++```yaml
++$schema: https://json-schema.org/draft/2020-12/schema
++$id: tableaux/agents.schema.yaml
++type: object
++required: [agents]
++additionalProperties: false
++properties:
++  agents:
++    type: array
++    minItems: 1
++    uniqueItems: true
++    items: { type: string, format: email }
++```
++
++### Fields
++
++| Field    | Required | Meaning                                                                          |
++|----------|----------|----------------------------------------------------------------------------------|
++| `agents` | Yes      | The email addresses agents commit with, each once; every other identity in the project is a person's |
++
++The file names identities and no models. One identity may run several models: the junction's `model` states the plan, and the `Model:` trailer records what ran ([Commit trailers](#commit-trailers)).
++
++### Example
++
++```yaml
++# agents.yaml — the identities that are agents
++agents:
++  - noreply@anthropic.com      # every Claude model; the Model: trailer tells them apart
++```
++
+ ## `tasks/<id>.yaml`
+ 
+ A task file defines one task and its junctions. The file name carries the task's id; the file holds no `id` field.
+@@ -257,7 +296,7 @@ $defs:
+     properties:
+       contributor: { $ref: "#/$defs/email" }
+       model:       { type: string, minLength: 1 }
+-      reviewer:    { $ref: "#/$defs/email" }
++      reviewer:    { oneOf: [{ $ref: "#/$defs/email" }, { const: false }] }
+       references:  { $ref: "#/$defs/references" }
+   recursive:
+     type: object
+@@ -315,7 +354,7 @@ properties:
+ |---------------|----------|----------------------------------------------------------------------------------|
+ | `title`       | Yes      | A brief synopsis of the activity or deliverable                                  |
+ | `description` | Yes      | The task's outcome and scope, in prose                                           |
+-| `assignee`    | Yes      | The responsible person's email address, as it appears in their Git commits       |
++| `assignee`    | Yes      | The email address of the person or agent responsible, as it appears in its Git commits |
+ | `references`  | No       | Links that expand the task                                                       |
+ | `requires`    | No       | Tasks whose results this task needs                                              |
+ | `junctions`   | No       | Per-gate detail, keyed by gate key other than `undefined`; a gate absent here takes the plain default |
+@@ -344,7 +383,7 @@ properties:
+ |----------------|---------------|----------|----------------------------------------------------------------------------|
+ | Plain          | `contributor` | No       | The email address of who does the work at this gate; defaults to `assignee` |
+ |                | `model`       | No       | The model the contributor should run, when the contributor is an agent: an identifier or a prefix of one; stated together with `contributor`, never alone, since a model names no one |
+-|                | `reviewer`    | No       | The email address of the person who accepts the work at this gate          |
++|                | `reviewer`    | No       | The email address of whoever accepts the work at this gate, or `false`, which waives review; at an agent's junction it defaults to the nearest person among the assignee and the authorities ([README.md](README.md#junctions)) |
+ |                | `references`  | No       | Links that expand the gate's criteria for this task; same form as the task's |
+ | Recursive      | `subproject`  | Yes      | The project that does the work and the task there, in the form below; `id` defaults to that project's root |
+ | Not applicable | `applies`     | Yes      | Always `false`; the entry's presence exempts the gate, and `true` would restate the default the file omits |
+@@ -545,14 +584,15 @@ items:
+ 
+ ## Commit trailers
+ 
+-A commit message may carry the trailers below, one task per line, among its other trailers. A task trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it. `Model:` names no task: it records what ran, beside the `Co-Authored-By:` trailer an agent leaves when it commits under a person's identity, and a tool reads the two together to see agent work whoever the author is.
++A commit message may carry the trailers below, one task per line, among its other trailers. A task trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it. `Model:` and `Co-Authored-By:` name no task. `Model:` records the model that ran, on every commit an agent makes and on a commit a person makes with an agent's help. `Co-Authored-By:`, Git's convention, names on a person's commit the agent that helped; the method reads it only where its email is an agent's ([README.md](README.md#roles)), and a tool reads the two together to see agent work whoever the author is.
+ 
+ | Trailer                  | Meaning                                                              |
+ |--------------------------|----------------------------------------------------------------------|
+ | `Authorised: <id>`       | The committer, as one of the task's authorities, accepts it as it stands |
+ | `Reviewed: <id> <gate>`  | The committer accepts the task's work at the gate                    |
+ | `Reaffirmed: <id>`       | The committer confirms the task's status as it stands, on this date  |
+-| `Model: <identifier>`    | The model the agent that made this commit ran, as the harness reports it; it names no task |
++| `Model: <identifier>`    | The model that made this commit, or helped its author make it, as the harness reports it; it names no task |
++| `Co-Authored-By: <name> <email>` | An agent that helped the author make this commit, read where the email is an agent's; it names no task |
+ 
+ Example:
+ 

@@ -1,0 +1,88 @@
+diff --git a/.tableaux/tasks/437e.yaml b/.tableaux/tasks/437e.yaml
+index f839d06..dd3b623 100644
+--- a/.tableaux/tasks/437e.yaml
++++ b/.tableaux/tasks/437e.yaml
+@@ -16,10 +16,10 @@ references:
+ junctions:
+   defined:        { contributor: noreply@anthropic.com, model: claude-haiku }
+   mockup:         { contributor: noreply@anthropic.com, model: claude-opus, reviewer: nbyoung@nbyoung.com }
+-  function:       { contributor: noreply@anthropic.com, model: claude-sonnet }
++  function:       { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
+   design:         { contributor: noreply@anthropic.com, model: claude-opus, reviewer: nbyoung@nbyoung.com }
+-  implementation: { contributor: noreply@anthropic.com, model: claude-sonnet }
+-  unit:           { contributor: noreply@anthropic.com, model: claude-sonnet }
+-  integrate:      { contributor: noreply@anthropic.com, model: claude-sonnet }
++  implementation: { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
++  unit:           { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
++  integrate:      { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
+   validate:       { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: nbyoung@nbyoung.com }
+   release:        { contributor: nbyoung@nbyoung.com }
+diff --git a/.tableaux/tasks/7166.yaml b/.tableaux/tasks/7166.yaml
+index 98b5666..c51968e 100644
+--- a/.tableaux/tasks/7166.yaml
++++ b/.tableaux/tasks/7166.yaml
+@@ -12,6 +12,7 @@ references:
+ junctions:
+   mockup:    { applies: false }
+   function:  { applies: false }
++  implementation: { reviewer: nbyoung@nbyoung.com }
+   unit:      { applies: false }
+   integrate: { applies: false }
+ parent: { id: "bc63", order: 8 }
+diff --git a/.tableaux/tasks/9f3f.yaml b/.tableaux/tasks/9f3f.yaml
+index e226005..4c6fbdd 100644
+--- a/.tableaux/tasks/9f3f.yaml
++++ b/.tableaux/tasks/9f3f.yaml
+@@ -12,6 +12,7 @@ references:
+ junctions:
+   mockup:    { applies: false }
+   function:  { applies: false }
++  implementation: { reviewer: nbyoung@nbyoung.com }
+   unit:      { applies: false }
+   integrate: { applies: false }
+ parent: { id: "bc63", order: 6 }
+diff --git a/.tableaux/tasks/ac33.yaml b/.tableaux/tasks/ac33.yaml
+index a52d5e2..92b602b 100644
+--- a/.tableaux/tasks/ac33.yaml
++++ b/.tableaux/tasks/ac33.yaml
+@@ -14,6 +14,7 @@ references:
+ junctions:
+   mockup:    { applies: false }
+   function:  { applies: false }
++  implementation: { reviewer: nbyoung@nbyoung.com }
+   unit:      { applies: false }
+   integrate: { applies: false }
+ parent: { id: "bc63", order: 5 }
+diff --git a/PLAN.md b/PLAN.md
+index 02f7054..0f182f2 100644
+--- a/PLAN.md
++++ b/PLAN.md
+@@ -20,7 +20,7 @@ The plan proposes; the owner decides. Each decision that goes the other way chan
+ |----|----------------------------|---------------------------------------------------------------------------------------------|---------------------------------------------------|
+ | D1 | Implementation language    | Go, with CI-built binaries for Linux, macOS and Windows on amd64 and arm64; no user installs Go | The bootstrap task of every subproject            |
+ | D2 | Subproject names and repos | `tablo`, `tabloio`, `tablotui`, `tableaud`, each its own repository under `github.com/nbyoung`, pinned here as submodules under `subprojects/`; see F3 | The four subproject tasks, their charters and `.gitmodules` |
+-| D3 | Agent Git identity         | Agents commit as `noreply@anthropic.com` until task `ac33` decides the rule                 | Every `contributor` and agent `assignee` field    |
++| D3 | Agent Git identity         | Agents commit under their own identity, `noreply@anthropic.com` for every Claude model, which the `Model:` trailer tells apart (F1) | Every `contributor` and agent `assignee` field    |
+ | D4 | Review policy              | The owner reviews mockup, design, validation and release; agents own execution subtrees; see F2 | The root task's junctions and the assignees       |
+ | D5 | Authorise the plan         | Commit `.tableaux/` and this document on `main`                                             | Every task turns from proposed to authorised      |
+ | D7 | Model per gate             | A model family per junction, stated by prefix (F20): `claude-haiku` records `defined`, `claude-sonnet` builds and tests, `claude-opus` designs and draws mockups, `claude-fable` designs the language; see [Review policy](#review-policy) | The root tasks' junctions here and in each subproject, `bc63`, and three `tablo` leaves |
+@@ -134,16 +134,16 @@ The root task states junction defaults that every task inherits.
+ 
+ | Gate                                         | Contributor | Model (D7)                        | Reviewer                                    |
+ |----------------------------------------------|-------------|-----------------------------------|---------------------------------------------|
+-| defined                                      | Agent       | `claude-haiku`                    | None stated; the authorisation stands as the review (F8, resolved) |
++| defined                                      | Agent       | `claude-haiku`                    | None stated, so the nearest person, the owner; the authorisation stands as the review (F8, resolved) |
+ | mockup                                       | Agent       | `claude-opus`                     | The owner                                   |
+ | design                                       | Agent       | `claude-opus`; `claude-fable` under Method | The owner                          |
+-| function, implementation, unit, integrate    | Agent       | `claude-sonnet`; `claude-opus` for tablo's semantics | None stated; the compiler, vet, tests and corpus stand in |
++| function, implementation, unit, integrate    | Agent       | `claude-sonnet`; `claude-opus` for tablo's semantics | Waived with `reviewer: false`; the compiler, vet, tests and corpus stand in; the owner at the implementation of the method decisions |
+ | validate                                     | Agent       | `claude-sonnet`; `claude-opus` under Method | The owner                         |
+ | release                                      | The owner   | —                                 | —                                           |
+ 
+ The model column estimates the least capable model that does each gate's work well, so that the effort's cost follows its difficulty. Recording `defined` is clerical: the criteria already hold once the owner authorises, and `claude-haiku` writes the status. Building, testing and integrating Go against a design and a corpus is bounded work with a compiler and tests as the reviewer, and `claude-sonnet` carries it; `tablo`'s loader, validator, derivation and audit carry the method's semantics, so their implementation goes to `claude-opus`. A design or a mockup fixes what every later gate builds and the owner reviews it by eye, so `claude-opus` draws it. The language itself, the Method branch's design and the abstract views, goes to `claude-fable`, and the Method's validation, which shows that tools and corpus follow the text, goes to `claude-opus`. Each name is a prefix, so a revision within a family needs no plan change, and the `Model:` trailer on every agent commit lets the evidence report test the estimate against what each gate in fact cost.
+ 
+-The method gives an agent contributor with no stated reviewer the assignee as reviewer. The choice of assignee therefore decides where human review falls at the gates the owner leaves unstated. Owner-assigned tasks, which are the method decisions `ac33`, `9f3f` and `7166` and the four subproject roots, get the owner's review at every gate. Agent-assigned subtrees, which are the roles, views, mockups, schemas, corpus, evidence and every subproject leaf, review themselves at the execution gates: the commit that records such a status carries `Reviewed: <id> <gate>`, authored by the agent, so the status passes rule S11 of the corpus without a second commit. Every agent commit also carries `Model:` with the model that ran (F20), and a dispatcher passes the junction's `model` to the agent it spawns. The tableau below shows the result in each cell.
++The method gives an agent contributor with no stated reviewer the nearest person among the task's assignee and its authorities (F2), and in this plan that person is always the owner. The root therefore waives review at the four execution gates with `reviewer: false`, and the method decisions `ac33`, `9f3f` and `7166` restate the owner as reviewer at implementation, so the owner reviews every gate of the tasks the owner is assigned. Agent-assigned subtrees, which are the roles, views, mockups, schemas, corpus and evidence, have no reviewer at the execution gates: the agent records the status and owes no `Reviewed:` commit. The execution gates they passed before the language reached 0.4.0 passed by the agent's own review, which stays accepted. Each subproject's root states the same waiver when its language rises, for every subproject leaf. Every agent commit also carries `Model:` with the model that ran (F20), and a dispatcher passes the junction's `model` to the agent it spawns. The tableau below shows the result in each cell.
+ 
+ | Cell  | Meaning                                       |
+ |-------|-----------------------------------------------|
