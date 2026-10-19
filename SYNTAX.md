@@ -72,7 +72,7 @@ properties:
 ### Example
 
 ```yaml
-tableaux: 0.3.1
+tableaux: 0.4.0
 trunk: main
 ```
 
@@ -593,7 +593,7 @@ The example shows a review that follows the status it accepts, Ada's `mockup` of
 ```yaml
 - { date: 2026-09-17, commit: 2d6b0f4, by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: design, state: nominal, note: Sleep scheduler in progress }
 - { date: 2026-09-18, commit: 3e1f0a2, by: ada@example.org, task: "9f31", event: task }
-- { date: 2026-09-19, commit: 8c44b7d, by: ada@example.org, task: "9f31", event: authorised }
+- { date: 2026-09-19, commit: 8c44b7d, by: ben@example.org, task: "9f31", event: authorised }
 - { date: 2026-09-22, commit: b02e9c1, by: ada@example.org, task: "9f31", event: status, gate: mockup, state: nominal }
 - { date: 2026-09-24, commit: 5d7a3f8, by: ben@example.org, task: "9f31", event: reviewed, gate: mockup }
 - { date: 2026-09-25, commit: e91c604, by: ada@example.org, task: "9f31", event: status, gate: function, state: stalled, reason: blocked, note: Barometer ICs on 14-week backorder }
@@ -614,7 +614,7 @@ A commit message may carry the trailers below, one task per line, among its othe
 | `Model: <identifier>`    | The model that made this commit, or helped its author make it, as the harness reports it; it names no task |
 | `Co-Authored-By: <name> <email>` | An agent that helped the author make this commit, read where the email is an agent's; it names no task |
 
-Example:
+Examples: an authority accepts two tasks and a design, and `opus@example.org`, the agent at the node firmware's `unit` junction, records that gate under its own identity, with no `Reviewed:` line, since Ben, its reviewer, accepts the work in a commit of his own:
 
 ```
 Accept the sensor board and node firmware tasks
@@ -627,7 +627,6 @@ Reviewed: 9f31 design
 ```
 Record the node firmware at its unit gate
 
-Reviewed: c07d unit
-Model: claude-fable-5-1
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Model: claude-opus-5-5
+Co-Authored-By: Opus <opus@example.org>
 ```

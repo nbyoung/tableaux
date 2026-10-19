@@ -516,6 +516,16 @@ The owner ruled on 2026-10-18, on a finding of that day's integrate review of ta
 
 - **The queue lists no reaffirmation of finished work.** A complete status is not stale in the audit, so it owes the person who recorded it no reaffirmation in the queue either. A plan's finished leaves, such as its approved mockups, then leave every queue. The alternative kept them, one item per finished leaf for as long as the plan lasts.
 
+The owner accepted the designs of the language clarifications (`7166`), the subproject linkage (`9f3f`) and the agent identity (`ac33`) on 2026-10-19 with these decisions about the views; the text above agrees with each.
+
+- **A leaf with no status file has a date and no recorder.** The Status fact dates it by its task file, read on the default log, and names nobody, since nobody has recorded a status; a `Reaffirmed:` commit dates nothing there (`7166`, F17).
+- **A history applies no rule.** The History view's status after each event is the status the files at its commit state, so a status recorded before its review shows as recorded, and the reviewer's line carries the acceptance (`7166`, F15).
+- **A subproject's events stand inline.** At detail the History view places the subproject task's events up to the commit each linkage fixes among the project's own, in author-time order, each marked by the subproject's task, as tablo's `8ed1` and the corpus already do; the example's paragraph reads so (`9f3f`).
+- **The audit lists three new findings and two new actions.** An unpinned requirement is information (R14), a `Reaffirmed:` trailer on a task with no status of its own to confirm is a warning (H8), and so is a subproject whose language lags the project's (J19); their actions are to state the `commit` and to raise the subproject's language. H8, like H1, names no action (`9f3f`).
+- **The audit reports an agent's work under a person's identity.** A person's commit at an agent's junction that carries `Model:` or names an agent in `Co-Authored-By:` is a warning (H7) that nothing resolves, as H6 is, and it settles to information when its junction is historical (`ac33`, F1).
+- **The Models fact names the co-author.** Beside the `Model:` trailer, it names the agent a `Co-Authored-By:` trailer names on a person's commit (`ac33`, F1).
+- **An agent commits as itself.** The viewer sentence says so, and a dispatcher still names an agent by `person`, since a tool the agent runs in a person's session may read that person's email (`ac33`, F1).
+
 ## Findings about the method
 
 Defining the views found the following. The owner resolved each at the design review, and the text names what landed.
