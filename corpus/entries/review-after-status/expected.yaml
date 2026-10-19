@@ -1,0 +1,36 @@
+# expected.yaml : pat's R2 records the gate design, which has olive as its reviewer, before olive's
+# R3 carries Reviewed: b2c9 design. S11 reads the commit in view and the history it reaches: at the
+# tip R3 accepts the junction, whichever came first, so S11 stays silent (F15). At the branch
+# recorded, whose tip is R2, no commit accepts it yet. The history replays no rule: the events
+# show the status R2 records and the review R3 gives, in author-time order.
+entry: review-after-status
+language: 0.4.0
+valid: true
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: R1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: pat@example.org, reviewer: olive@example.org, source: "b2c9" }
+    reviews:
+      - { gate: design, reviewer: olive@example.org, commit: R3 }
+    status: { gate: design, state: nominal, note: The design is written, date: 2026-09-02, recorder: pat@example.org, commit: R2 }
+    events:
+      - { date: 2026-09-01, commit: R1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: R1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: R2, by: pat@example.org, task: "b2c9", event: status, gate: design, state: nominal, note: The design is written }
+      - { date: 2026-09-03, commit: R3, by: olive@example.org, task: "b2c9", event: reviewed, gate: design }
+
+refs:
+  recorded:
+    commit: R2
+    tasks:
+      "b2c9":
+        reviews:
+          - { gate: design, reviewer: olive@example.org, commit: null }

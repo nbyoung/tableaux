@@ -201,7 +201,7 @@ reasons:
 
 A task file defines one task and its junctions. The file name carries the task's id; the file holds no `id` field.
 
-An id is four lowercase hexadecimal digits chosen at random when the task is created. Wherever a file names an id, in `parent`, `requires` or `subproject`, it writes the id as a quoted string, because YAML reads an id such as `1000` as an integer and `1e10` as a float. A tool takes an id as a string whatever scalar YAML yields, and a validator warns of an unquoted id.
+An id is four lowercase hexadecimal digits chosen at random when the task is created. Wherever a file names an id, in `parent`, `requires` or `subproject`, it writes the id as a quoted string, because YAML reads an id such as `1000` as an integer and `1e10` as a float. A tool takes an id as the scalar's text as the file writes it, whatever YAML yields, so `0010` stays `0010` and `07e0` stays `07e0`, and it does so before it applies the schema below, whose `id` is a string. A validator then warns of an unquoted id, one the file writes in neither quotes, a block scalar nor `!!str`, whatever type YAML gives it.
 
 ### Schema
 
@@ -524,13 +524,15 @@ items:
 | Event        | Source in the commit                                     |
 |--------------|----------------------------------------------------------|
 | `task`       | A change to `tasks/<id>.yaml`                            |
-| `authorised` | An `Authorised: <id>` trailer                            |
+| `authorised` | An `Authorised: <id>` trailer, or a merge on the trunk's first-parent line that changes `tasks/<id>.yaml` against its first parent ([README.md](README.md#history)) |
 | `status`     | A change to `status/<id>.yaml`                           |
 | `reaffirmed` | A `Reaffirmed: <id>` trailer                             |
 | `reviewed`   | A `Reviewed: <id> <gate>` trailer                        |
 | `pin`        | A change to the commit a linkage reads: a submodule pin moved at the path a junction or requirement of the task names, or a `commit` field changed in `tasks/<id>.yaml`, which is a `task` event too |
 
 ### Example
+
+The example shows a review that follows the status it accepts, Ada's `mockup` of 09-22 and Ben's review of 09-24, so the status is valid from the review on; the order [README.md](README.md#status) gives keeps every commit valid.
 
 ```yaml
 - { date: 2026-09-18, commit: 3e1f0a2, by: ada@example.org, task: "9f31", event: task }

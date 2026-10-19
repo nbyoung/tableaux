@@ -1,0 +1,7 @@
+# tasks/0010.yaml : a parent whose id is all digits with a leading zero
+title: Digits
+description: A parent whose id YAML reads as a number unless quoted.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+parent: { id: "e4a1", order: 2 }

@@ -1,0 +1,19 @@
+# expected.yaml : b2c9 has no status file, so it is undefined at undefined and dated by the newest
+# commit that changes its task file, pat's U2. That commit records no status, so the leaf has no
+# recorder, and pat's Reaffirmed: b2c9 in U3 dates nothing: it is an event and confirms no
+# status (F17). U2 is pat's revision under olive's task, so b2c9 stands proposed.
+entry: undefined-leaf-reaffirmed
+language: 0.4.0
+valid: true
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    authorisation: { state: proposed, commit: U2, by: pat@example.org }
+    status: { gate: undefined, state: undefined, date: 2026-09-02, recorder: null, commit: U2 }
+    events:
+      - { date: 2026-09-01, commit: U1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-02, commit: U2, by: pat@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-05, commit: U3, by: pat@example.org, task: "b2c9", event: reaffirmed }

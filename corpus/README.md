@@ -60,7 +60,7 @@ Reproducibility rests on `lib.sh`:
 
 The test in the scratchpad built the weather station twice and got the same thirteen hashes both times.
 
-`python3 corpus/check.py` (needs `pyyaml` and `jsonschema`) reads the corpus once it is built. It validates every valid entry's `.tableaux` against `schemas/`, taking each id as a string; applies the rules a project tree alone decides and compares its findings with each `expected.yaml`; compares the facts Git supplies (authorisation, status date and recorder, events, pins) with the built repositories; and checks that every rule in RULES.md has an entry and every entry it names exists. It is a small reference reading, not a conforming tool. Rules that need history (P5, S11, J13, R13, H1 to H6) it only checks that an entry states; J17 and the condition of a cross-project requirement it reads from the built repositories.
+`python3 corpus/check.py` (needs `pyyaml` and `jsonschema`) reads the corpus once it is built. It validates every valid entry's `.tableaux` against `schemas/`, taking each id as its source text; applies the rules a project tree alone decides and compares its findings with each `expected.yaml`; compares the facts Git supplies (authorisation, status date and recorder, events, pins) with the built repositories; and checks that every rule in RULES.md has an entry and every entry it names exists. It is a small reference reading, not a conforming tool. Rules that need history (P5, S11, J13, R13, H1 to H6) it only checks that an entry states; J17 and the condition of a cross-project requirement it reads from the built repositories.
 
 Three conventions in `expected.yaml` go beyond the table below. `trunk` states how the trunk resolves: `stated`, `inferred`, `caller` (the caller names the branch) or `undetermined` (the caller names none); a tool passes a branch name only when the file says `caller`. `replace` maps each absolute URL the entry's files name to the subproject tree the entry carries, built as `build/<entry>.<name>`; a tool passes it as its mapping from URL to clone and reads nothing from the network. A finding about a commit (H1 to H3) also carries `commit`, a label, and H1 carries `trailer`, the text that names nothing. A source list, `source: ["a110", "a100"]`, marks a resolved junction whose fields come from several tasks, nearest first.
 
@@ -89,9 +89,9 @@ Per task:
 | `junctions`     | `default` gives the plain default for the task; each other key is a gate whose resolved junction departs from it: `kind`, the resolved fields, and `source`, the task whose entry supplies it |
 | `applicable`    | The gates that apply to the task, in order                                                                           |
 | `requires[]`    | Each requirement with `from` and `to` resolved and its condition: `met`, `due`, and `condition` as `met`, `pending` or `unmet`; a cross-project entry states `subproject` with `url`, `id` and `pin` in place of `id` |
-| `reviews[]`     | The reviewed junctions the status passes and the commit that accepts each                                            |
+| `reviews[]`     | The reviewed junctions the status passes and the commit that accepts each, `null` where no commit in the history of the ref accepts it yet |
 | `subproject`    | For a recursive junction: `url`, `pin` (a label in the subproject's labels: the submodule's pin, or the commit the `commit` field names; absent for a same-repository path), and the task read there |
-| `status`        | `gate`, `state`, `reason`, `note`, `date`, `recorder`, `commit`; `derived: true` and `from` on a parent               |
+| `status`        | `gate`, `state`, `reason`, `note`, `date`, `recorder`, `commit`; `derived: true` and `from` on a parent; `recorder: null` on a leaf with no status file |
 | `events[]`      | The history in the form SYNTAX.md gives, with `commit`, `old` and `new` as labels; `subproject` marks an event taken from a pinned task |
 
 The weather station's file shows every field in use.
@@ -112,6 +112,11 @@ Valid entries, each for what it shows:
 | `requires-commit-behind` | A cross-project requirement by URL whose `commit` lags the other project's trunk: unmet at the commit (R9) and met at the tip (R13), two warnings | `history.sh` |
 | `unmet-requirement`    | A valid project with one R9 warning and one pending requirement                                                                         | default      |
 | `unquoted-id`          | A valid project with `parent: { id: 1000 }`, one T7 warning, and the tree that a tool derives once it takes the id as a string           | default      |
+| `unquoted-id-text`     | Two ids written without quotes, `0010`, a number to every YAML reader, and `07e0`, a float to YAML 1.2 and a string to YAML 1.1: two T7 warnings, and the tree and the requirement a tool derives once it takes each id as its text (F16) | default      |
+| `review-after-status`  | A status recorded past a reviewed junction before the reviewer's `Reviewed:` commit: valid at the tip, where the later commit accepts it, and unaccepted at the branch that stops before it (F15) | `history.sh` |
+| `authorised-by-merge`  | A `--no-ff` merge with no trailer that brings in a task file and a status file: the deciding commit and an `authorised` event by the merger, while the branch's commits keep the task and status events and the status's date and recorder (F11) | `history.sh` |
+| `undefined-leaf-reaffirmed` | A leaf with no status file, dated by its task file's newest commit, with no recorder, and a `Reaffirmed:` commit that dates nothing (F17) | `history.sh` |
+| `status-undefined-with-reason` | A leaf at `undefined` whose file states the reason `blocked` and a note, and the root that rolls the reason up (F9)            | default      |
 | `status-defined-by-authorisation` | A valid project whose leaf stands at `defined` with a reviewer stated there and no `Reviewed:` commit; the authorisation is the review, and S11 stays silent | default      |
 | `siblings-same-order`  | A valid project with two siblings at `order: 1` and one T12 warning; the tree sorts them by id                                           | default      |
 | `trunk-stated`         | `version.yaml` names `trunk: develop`, the repository's default branch is `main`, and authorisation reads `develop`                     | `history.sh` |
