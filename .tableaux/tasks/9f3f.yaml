@@ -8,7 +8,7 @@ description: >
   defined, and whether requirements may cross projects.
 assignee: nbyoung@nbyoung.com
 references:
-  - { url: PLAN.md#findings, text: Findings F3 to F5 }
+  - { url: PLAN.md#findings, text: "Findings F3 to F5, F25 and F26" }
 junctions:
   mockup:    { applies: false }
   function:  { applies: false }
