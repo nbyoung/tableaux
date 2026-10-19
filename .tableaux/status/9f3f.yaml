@@ -1,4 +1,3 @@
 gate: design
 state: nominal
-reason: review
-note: The subproject linkage rule (F3, F5, F12) is on the trunk at language 0.3.0; design/9f3f.md on branch wave/9f3f-design awaits the owner's review for F4, F13, F25, F26 and the two umbrella findings of tablo 8ed1
+note: The subproject linkage rule (F3, F5, F12) is on the trunk at language 0.3.0; design/9f3f.md with the owner's decisions of 2026-10-19 settles F4, F13, F25, F26 and the two umbrella findings of tablo 8ed1, and implementation lands them on wave/language-0.4 at 0.4.0
