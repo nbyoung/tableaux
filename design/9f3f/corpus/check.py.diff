@@ -1,0 +1,153 @@
+diff --git a/corpus/check.py b/corpus/check.py
+index 0f2f1db..7cb87df 100644
+--- a/corpus/check.py
++++ b/corpus/check.py
+@@ -40,18 +40,18 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
+ KEY = re.compile(r"^[a-z][a-z0-9_-]*$")
+ SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+ ABSOLUTE = re.compile(r"^[a-z][a-z0-9+.-]*://|^[^/@:]+@[^/:]+:")   # a scheme, or an scp-like user@host:path
+-TOOL = (0, 3)                      # the language version the schemas define, major.minor
++TOOL = (0, 4)                      # the language version the schemas define, major.minor
+ PLAIN = {"contributor", "model", "reviewer", "references"}
+-TASK_FIELDS = {"title", "description", "assignee", "references", "requires", "junctions", "parent"}
++TASK_FIELDS = {"title", "description", "assignee", "references", "requires", "subproject", "junctions", "parent"}
+ REQ_FIELDS = {"id", "subproject", "from", "to", "text"}
+ SUB_FIELDS = {"url", "id", "commit"}
+-NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3", "H4", "H5", "H6"}
++NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3", "H4", "H5", "H6", "H7"}
+ BUILT = {"J17"}                    # rules the check reads from the built repositories; with no build, only stated
+ # Rules whose violation the schemas alone reject. The rest need more than a schema says.
+ SCHEMA_RULES = {"P3", "G2", "G3", "G4", "G5", "G7", "G8", "G11", "G12", "T2", "T3", "T4", "T5", "T6", "T11",
+                 "R8", "R11", "J2", "J4", "J5", "J6", "J7", "J10", "J11", "J14", "S3", "S4"}
+-WARNINGS = {"P5", "L4", "T7", "T12", "R9", "R12", "R13", "J13", "H1", "H2", "H3", "H5", "H6"}
+-INFORMATION = {"H4"}               # leaves the project valid and marks nothing wrong
++WARNINGS = {"P5", "L4", "T7", "T12", "R9", "R12", "R13", "J13", "J19", "H1", "H2", "H3", "H5", "H6", "H7"}
++INFORMATION = {"H4", "R14"}        # leaves the project valid and marks nothing wrong
+ LENIENT = WARNINGS | INFORMATION   # every rule whose finding is not an error
+ 
+ 
+@@ -313,6 +313,8 @@ class Project:
+         for j in (t.get("junctions") or {}).values():
+             if isinstance(j, dict) and isinstance(j.get("subproject"), dict) and "id" in j["subproject"]:
+                 res.append(j["subproject"]["id"])
++        if isinstance(t.get("subproject"), dict) and "id" in t["subproject"]:
++            res.append(t["subproject"]["id"])
+         return res
+ 
+     def check_tasks(self):
+@@ -441,12 +443,22 @@ class Project:
+     def own_entry(self, tid, gate):
+         return ((self.tasks[tid].get("junctions") or {}).get(gate))
+ 
++    def field(self, tid, gate):
++        """The task's `subproject` field where it stands for a recursive junction: at each gate
++        after the first that follows undefined, where the task's own file states no entry."""
++        sp = self.tasks[tid].get("subproject") if isinstance(self.tasks[tid], dict) else None
++        if sp is None or gate not in self.gates or self.gates.index(gate) < 2 or self.own_entry(tid, gate) is not None:
++            return None
++        return sp
++
+     def resolve_kind(self, tid, gate):
+         if gate == "undefined":
+             return "PLAIN"
+         chain = [tid] + self.ancestors(tid)
+         for i, t in enumerate(chain):
+             j = self.own_entry(t, gate)
++            if j is None and i == 0 and self.field(t, gate) is not None:
++                return "REC"
+             if j is None:
+                 continue
+             k = self.kind(j)
+@@ -506,6 +518,10 @@ class Project:
+             for gate, j in js.items():
+                 if gate == "undefined" and self.kind(j) == "REC":
+                     self.check_recursive(tid, f, gate, j["subproject"], False, quiet=True)
++            if "subproject" in t:                                            # the task-level field
++                if self.children(tid):
++                    self.add("J18", tid, f)
++                self.check_subproject(tid, f, None, t["subproject"])
+             if self.gates_ok and self.gates and not [g for g in self.applicable(tid) if g != "undefined"]:
+                 self.add("J12", tid, f)
+ 
+@@ -529,12 +545,16 @@ class Project:
+             return None
+         url = sp["url"]
+         if ABSOLUTE.match(url) and commit is None:
+-            self.add("J15", tid, f, gate)
+-            return None
++            if not on_requirement:
++                self.add("J15", tid, f, gate)
++                return None
++            self.add("R14", tid, f)                                          # unpinned: read at the trunk's tip
+         sub, kind = self.sub_project(url)
+         if sub is None:
+             self.add("J8", tid, f, gate)
+             return None
++        if not on_requirement and not quiet:
++            self.check_language(tid, f, sub)
+         if kind == "directory" and commit is not None:
+             self.add("J16", tid, f, gate)
+         if kind == "submodule" and commit is not None:
+@@ -547,6 +567,16 @@ class Project:
+             return None
+         return sub, kind, want
+ 
++    def check_language(self, tid, f, sub):
++        """J19: the linked project's language before this one's, patch included; once per task and url."""
++        def semver(v):
++            s = v.get("tableaux") if isinstance(v, dict) else None
++            return tuple(int(x) for x in s.split(".")) if isinstance(s, str) and SEMVER.match(s) else None
++        p = os.path.join(sub, "version.yaml")
++        here, there = semver(self.version), semver(load(p)) if os.path.exists(p) else None
++        if here and there and there < here and ("J19", tid, f, None) not in self.findings:
++            self.add("J19", tid, f)
++
+     def read_tasks_only(self):
+         tdir = os.path.join(self.path, "tasks")
+         for name in sorted(os.listdir(tdir)):
+@@ -607,8 +637,10 @@ class Project:
+             return
+         sub, kind, want = res
+         url = r["subproject"]["url"]
+-        for j in (self.tasks[tid].get("junctions") or {}).values():         # R12: a junction already reads it
+-            jsp = j.get("subproject") if self.kind(j) == "REC" else None
++        named = [j.get("subproject") if self.kind(j) == "REC" else None
++                 for j in (self.tasks[tid].get("junctions") or {}).values()]
++        named.append(self.tasks[tid].get("subproject"))                      # the task-level field reads as a junction
++        for jsp in named:                                                    # R12: a junction already reads it
+             if not isinstance(jsp, dict) or jsp.get("url") != url:
+                 continue
+             if "id" in jsp:
+@@ -706,6 +738,9 @@ class Project:
+         for r in t.get("requires") or []:
+             if isinstance(r, dict) and isinstance(r.get("subproject"), dict) and isinstance(r["subproject"].get("url"), str):
+                 out.append((r["subproject"]["url"], r["subproject"]))
++        sp = t.get("subproject")
++        if isinstance(sp, dict) and isinstance(sp.get("url"), str):
++            out.append((sp["url"], sp))
+         return out
+ 
+     # ---- status
+@@ -866,7 +901,13 @@ def check_history(name, exp, proj, problems):
+     for tid, f, r, sub, kind, want in proj.deferred:
+         sp = r["subproject"]
+         srepo = sub_repo(repo, exp, sp["url"])
+-        commit = sp["commit"] if kind == "url" else gitlink(repo, rev, sp["url"])
++        commit = sp.get("commit") if kind == "url" else gitlink(repo, rev, sp["url"])
++        if commit is None and kind == "url" and srepo:                        # unpinned: the tip of that trunk
++            try:
++                vt = (yaml.safe_load(git(srepo, "show", "HEAD:.tableaux/version.yaml")) or {}).get("trunk") or "HEAD"
++                commit = git(srepo, "rev-parse", "--verify", vt + "^{commit}").strip()
++            except RuntimeError:
++                commit = None
+         try:
+             doc = yaml.safe_load(git(srepo, "show", "%s:.tableaux/status/%s.yaml" % (commit, want))) or {}
+         except RuntimeError:
+@@ -1006,6 +1047,7 @@ def _commit_fields(repo, h, tpath):
+         return out
+     sps = [j.get("subproject") for j in (doc.get("junctions") or {}).values() if isinstance(j, dict)]
+     sps += [r.get("subproject") for r in doc.get("requires") or [] if isinstance(r, dict)]
++    sps.append(doc.get("subproject"))
+     for sp in sps:
+         if isinstance(sp, dict) and isinstance(sp.get("url"), str):
+             out[sp["url"]] = sp.get("commit")

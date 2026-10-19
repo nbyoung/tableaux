@@ -1,0 +1,35 @@
+# expected.yaml : b2c9 hands its design to lib, a directory of the same repository, so its state, note and
+# date come from lib's 5a00; e4a1, the root, is a parent and derives its status. R1 reaffirms both, and
+# neither has a status of its own to confirm: two H7 warnings, two reaffirmed events, and every date and
+# recorder as before R1.
+entry: reaffirmed-snapshot
+language: 0.4.0
+valid: true
+findings:
+  - { rule: H7, severity: warning, task: "b2c9", commit: R1,
+      message: "Reaffirmed: b2c9 confirms nothing: the next junction, design, is recursive, so the status is lib's 5a00" }
+  - { rule: H7, severity: warning, task: "e4a1", commit: R1,
+      message: "Reaffirmed: e4a1 confirms nothing: e4a1 is a parent, so its status derives from its children" }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 2, leaves: 1 }
+
+tasks:
+  "e4a1":
+    status: { gate: defined, state: nominal, note: Shares the parent's commit, date: 2026-09-01, derived: true, from: "b2c9" }
+  "b2c9":
+    subproject: { url: lib, task: "5a00" }       # no pin: the same commit as the parent
+    status:                                      # the gate is the file's; the rest is 5a00's, untouched by R1
+      gate: defined
+      state: nominal
+      note: Shares the parent's commit
+      date: 2026-09-01
+      recorder: olive@example.org
+      commit: only
+    events:                                      # the history keeps the reaffirmation, which changes no fact
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: status, gate: defined }
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: task, subproject: "5a00" }
+      - { date: 2026-09-01, commit: only, by: olive@example.org, task: "b2c9", event: status, subproject: "5a00", gate: design, state: nominal, note: Shares the parent's commit }
+      - { date: 2026-09-08, commit: R1, by: pat@example.org, task: "b2c9", event: reaffirmed }

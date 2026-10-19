@@ -1,0 +1,6 @@
+# tasks/c000.yaml : the root; it exempts its subtree from performance
+title: Subproject field
+description: A project whose one leaf hands every gate after defined to a subproject in one field.
+assignee: olive@example.org
+junctions:
+  performance: { applies: false }

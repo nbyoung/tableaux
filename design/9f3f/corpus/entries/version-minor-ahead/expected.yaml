@@ -1,0 +1,6 @@
+# expected.yaml : The project's minor version, 5, exceeds the tool's, 4.
+entry: version-minor-ahead
+language: 0.4.0
+valid: false
+findings:
+  - { rule: P4, severity: error, file: version.yaml }

@@ -1,0 +1,9 @@
+# tasks/b2c9.yaml : one leaf; the design is the project's under behind, whose language lags this one's
+title: Leaf
+description: A leaf task whose design a project in the same repository does.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { subproject: { url: behind } }
+parent: { id: "e4a1", order: 1 }
