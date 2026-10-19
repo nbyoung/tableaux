@@ -1,0 +1,4 @@
+# tasks/5a00.yaml : the subproject's only task, a root that is also a leaf
+title: Subproject
+description: A small project that an umbrella task delegates a gate to.
+assignee: pat@example.org

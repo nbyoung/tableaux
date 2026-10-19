@@ -293,6 +293,7 @@ properties:
         from: { $ref: "#/$defs/key" }
         to:   { $ref: "#/$defs/key" }
         text: { type: string, minLength: 1 }
+  subproject:  { $ref: "#/$defs/subproject" }
   junctions:
     type: object
     propertyNames:
@@ -318,6 +319,7 @@ properties:
 | `assignee`    | Yes      | The responsible person's email address, as it appears in their Git commits       |
 | `references`  | No       | Links that expand the task                                                       |
 | `requires`    | No       | Tasks whose results this task needs                                              |
+| `subproject`  | No       | The project that does the task's work at every gate after its definition, in the form below; an entry under `junctions` replaces it at its gate ([README.md](README.md#junctions)) |
 | `junctions`   | No       | Per-gate detail, keyed by gate key other than `undefined`; a gate absent here takes the plain default |
 | `parent`      | No       | The task's place in the tree; absent only on the root task                       |
 
@@ -349,13 +351,13 @@ properties:
 | Recursive      | `subproject`  | Yes      | The project that does the work and the task there, in the form below; `id` defaults to that project's root |
 | Not applicable | `applies`     | Yes      | Always `false`; the entry's presence exempts the gate, and `true` would restate the default the file omits |
 
-`subproject`, on a recursive junction or a cross-project requirement. Its `url` fixes the commit the other project is read at ([README.md](README.md#junctions)).
+`subproject`, on a task, a recursive junction or a cross-project requirement. Its `url` fixes the commit the other project is read at ([README.md](README.md#junctions)), or, on a requirement that states no `commit`, the trunk whose tip it is read at ([README.md](README.md#tasks)).
 
 | Field    | Required            | Meaning                                                                          |
 |----------|---------------------|----------------------------------------------------------------------------------|
 | `url`    | Yes                 | The other project's repository: a path relative to this repository's root, which is a submodule read at its pin or a directory of this repository read at the same commit, or an absolute URL |
-| `id`     | On a requirement    | The task in that project; on a junction, defaults to that project's root         |
-| `commit` | On an absolute URL  | The full hash of the commit the project is read at; on a submodule path it restates the pin and must equal it; on a same-repository path it is an error |
+| `id`     | On a requirement    | The task in that project; on a task or a junction, defaults to that project's root |
+| `commit` | On an absolute URL of a task or a junction | The full hash of the commit the project is read at; a requirement on an absolute URL may leave it out until the commit exists, and is then read at its trunk's tip; on a submodule path it restates the pin and must equal it; on a same-repository path it is an error |
 
 `parent`
 
@@ -408,6 +410,17 @@ parent: { id: "4e2b", order: 2 }
 ```
 
 ```yaml
+# tasks/5e6f.yaml — a leaf that hands every gate after defined to one subproject
+title: Gateway software
+description: The receiver and the database service, planned and built in their own repository.
+assignee: ada@example.org
+subproject: { url: gateway }                  # a submodule path: a recursive junction at every gate after defined
+junctions:
+  release: { reviewer: ben@example.org }      # the task's own entry replaces the field at its gate
+parent: { id: "a1c0", order: 4 }
+```
+
+```yaml
 # firmware/.tableaux/tasks/f1a0.yaml — the subproject's task, which requires tasks in two other projects
 title: Weather node image
 description: >
@@ -421,6 +434,8 @@ requires:
   # the parent project, upward: a subproject cannot pin its parent, so it names the parent by URL and commit
   - { subproject: { url: https://example.org/weather-station.git, id: "9f31", commit: 9b3e2d1c0a7f6e5d4c3b2a1908f7e6d5c4b3a291 },
       from: design, to: design, text: Pin map and sensor bus }
+  # a sibling's work that no commit shows yet: unpinned, read at that project's trunk tip until a commit is stated
+  - { subproject: { url: https://example.org/gateway.git, id: "e2c4" }, from: implementation, to: integrate, text: The receiver's frame format }
 parent: { id: "b7d2", order: 1 }
 ```
 
@@ -480,7 +495,7 @@ gate: design
 
 ## History
 
-A history is the sequence of events that Git records for one task, or for the whole project, in author-time order. A tool derives it from the log and emits it in the form below; nothing stores it.
+A history is the sequence of events that Git records for one task, or for the whole project, in author-time order. A tool derives it from the log and emits it in the form below; nothing stores it. A task with a recursive junction takes in the subproject task's events up to the commit its linkage fixes, inline in the same order, after the project's own events of one author time, each marked by `subproject` ([README.md](README.md#history)).
 
 ### Schema
 
@@ -505,6 +520,7 @@ items:
     url:    { type: string, minLength: 1 }
     old:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
     new:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
+    subproject: { type: string, pattern: "^[0-9a-f]{4}$" }
 ```
 
 ### Fields
@@ -519,7 +535,8 @@ items:
 | `gate`   | No       | For `status`, the gate recorded; for `reviewed`, the gate accepted               |
 | `state`, `reason`, `note` | No | For `status`, the values recorded                                        |
 | `url`    | For `pin` | The `url` of the junction or requirement whose commit moved                     |
-| `old`, `new` | For `pin` | The commit the linkage read before and reads now; `old` is absent when the linkage first appears |
+| `old`, `new` | For `pin` | The commit the linkage read before and reads now; `old` is absent when the linkage first appears or first states a `commit` |
+| `subproject` | No     | For an event taken from a subproject's task, that task's id, as a quoted string; `task` names the task here whose linkage reads it |
 
 | Event        | Source in the commit                                     |
 |--------------|----------------------------------------------------------|
@@ -528,13 +545,14 @@ items:
 | `status`     | A change to `status/<id>.yaml`                           |
 | `reaffirmed` | A `Reaffirmed: <id>` trailer                             |
 | `reviewed`   | A `Reviewed: <id> <gate>` trailer                        |
-| `pin`        | A change to the commit a linkage reads: a submodule pin moved at the path a junction or requirement of the task names, or a `commit` field changed in `tasks/<id>.yaml`, which is a `task` event too |
+| `pin`        | A change to the commit a linkage reads: a submodule pin moved at the path a junction, a requirement or the `subproject` field of the task names, or a `commit` field changed or first stated in `tasks/<id>.yaml`, which is a `task` event too |
 
 ### Example
 
 The example shows a review that follows the status it accepts, Ada's `mockup` of 09-22 and Ben's review of 09-24, so the status is valid from the review on; the order [README.md](README.md#status) gives keeps every commit valid.
 
 ```yaml
+- { date: 2026-09-17, commit: 2d6b0f4, by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: design, state: nominal, note: Sleep scheduler in progress }
 - { date: 2026-09-18, commit: 3e1f0a2, by: ada@example.org, task: "9f31", event: task }
 - { date: 2026-09-19, commit: 8c44b7d, by: ada@example.org, task: "9f31", event: authorised }
 - { date: 2026-09-22, commit: b02e9c1, by: ada@example.org, task: "9f31", event: status, gate: mockup, state: nominal }

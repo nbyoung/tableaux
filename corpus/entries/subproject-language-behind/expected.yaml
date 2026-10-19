@@ -1,0 +1,21 @@
+# expected.yaml : the project states 0.3.2. b2c9 hands its design to behind, a directory of the same
+# repository at 0.3.1, a patch behind: one J19 warning. 7d1f hands its design to ahead, at 0.4.0: silent,
+# since only a language behind the parent's warns.
+entry: subproject-language-behind
+language: 0.4.0
+valid: true
+findings:
+  - { rule: J19, severity: warning, task: "b2c9", file: tasks/b2c9.yaml,
+      message: "The project at behind states tableaux 0.3.1, before this project's 0.3.2" }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 3, leaves: 2 }
+
+tasks:
+  "b2c9":
+    subproject: { url: behind, task: "5a00" }    # read at this commit, whatever its language
+    status: { gate: defined, state: nominal, note: Still at 0.3.1, date: 2026-09-01, recorder: olive@example.org, commit: only }
+  "7d1f":
+    subproject: { url: ahead, task: "5a00" }
+    status: { gate: defined, state: nominal, note: Already at 0.4.0, date: 2026-09-01, recorder: olive@example.org, commit: only }
