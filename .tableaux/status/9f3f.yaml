@@ -1,4 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-reason: review
-note: The text of design/9f3f.md, F4, F13, F25, F26 and the history fix, stands on wave/language-0.4 at 0.4.0 and awaits the owner's review at implementation; main merges it once a pinned tablo reads 0.4.0
+note: The text of design/9f3f.md, F4, F13, F25, F26 and the history fix, stands on wave/language-0.4 at 0.4.0, and main merges it once a pinned tablo reads 0.4.0; validate shows that tablo and the corpus follow it
