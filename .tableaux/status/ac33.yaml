@@ -1,3 +1,4 @@
 gate: design
 state: nominal
-note: The model plan-and-record rule (F20) is on the trunk; F1, F2 and F10 remain for design
+reason: review
+note: The model plan-and-record rule (F20) is on the trunk; design/ac33.md on branch wave/ac33-design awaits the owner's review for F1, F2 and F10
