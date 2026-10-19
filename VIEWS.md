@@ -200,7 +200,7 @@ At detail, the owner contributes at release on every task and reviews mockup, de
 1. **Reviews owed.** Tasks whose next junction names the person as reviewer and whose status carries the reason `review`, the hand-off the method reserves that key for.
 2. **Authorisations owed.** Proposed tasks in a subtree the person has authority over.
 3. **Work ready.** Junctions at a task's next gate where the person is the contributor, every due requirement is met, a cross-project one read at the commit its linkage fixes, and no cause of the fifth kind holds.
-4. **Reaffirmations.** Statuses the person recorded and has not reaffirmed for longest, oldest first.
+4. **Reaffirmations.** Statuses the person recorded and has not reaffirmed for longest, oldest first; a complete status is none, since finished work has nothing to reaffirm.
 5. **Work waiting.** Junctions as in 3 that one of four causes holds: an unmet requirement; a reason on the status other than `review`, as `blocked` or `overloaded` in the software gate set; a task that is proposed, which waits for its authority; or a hand-off, which waits for the reviewer. Each item states its causes, so that nobody starts it.
 
 Reviews come first because each one unblocks other people's work; within a kind, items follow display order. Each item draws from resolved junctions, requirement conditions, status, reviews, authorisation, gates and models. A task whose next junction is recursive is no item for anyone in this project but an authorisation, when the task is proposed: the subproject's own queue holds its work. At a ref off the trunk, where every task reads as proposed, an authorisation is owed, and work waits for one, only for the tasks whose file differs from the trunk's, since those are the branch's proposals; with no trunk, for none.
@@ -511,6 +511,10 @@ The owner accepted the design of tablo's Audit (`dada`) on 2026-10-07 with these
 The owner accepted the design of tableaud's Progressive disclosure (`db74`) on 2026-10-07 with this decision about the views; the text above agrees with it.
 
 - **A tableau arrives at a glance where it folds.** "Detail opens for the roles the view serves" gives the owner every row, which scales badly where the owner needs the tableau most. In HTML and in the terminal the global tableau arrives on the root and its children for every role, as PLAN.md, the approved mockup and tablotui's `f394` have it, and every row is one step away.
+
+The owner ruled on 2026-10-18, on a finding of that day's integrate review of tabloio, where the queue and the audit read one status two ways; the text above agrees.
+
+- **The queue lists no reaffirmation of finished work.** A complete status is not stale in the audit, so it owes the person who recorded it no reaffirmation in the queue either. A plan's finished leaves, such as its approved mockups, then leave every queue. The alternative kept them, one item per finished leaf for as long as the plan lasts.
 
 ## Findings about the method
 
