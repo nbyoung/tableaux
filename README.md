@@ -32,6 +32,8 @@ The **trunk** is the branch on which the project accepts tasks and statuses: aut
 
 A tool accepts a project whose major version equals its own and whose minor version does not exceed it. While the language is under development the major version is `0`. Each additional structural dimension raises the minor version.
 
+A subproject follows its parent's language. A validator warns of a project that a recursive junction or a task's `subproject` field names whose `version.yaml`, read at the commit the linkage fixes, states a version before the parent's own, patch included, since a rule a later version adds, such as the trailer that 0.2.1 introduced, otherwise passes the subproject by. The warning reads a submodule, a same-repository path and an absolute URL alike. A cross-project requirement reads one task's gate and delegates no work, so the warning leaves it out.
+
 ## Gates
 
 `gates.yaml` defines the ordered gates every task passes through, the states a task takes with respect to its current gate, and the reasons that explain a state. The first gate is always `undefined`. The states always include `undefined`, the state of a task at the `undefined` gate, and `complete`, the state of a task at its last applicable gate, both with severity 0 so that roll-up sets them aside. The status dimension records which gate and state a task occupies. The reason key `review` is reserved: a project need not define it, but one that does gives it one meaning, that the contributor has handed the next junction's work to its reviewer ([Status](#status)), and the views read it so. Its symbol is 👓 by convention, since 👀 marks the reviewer.

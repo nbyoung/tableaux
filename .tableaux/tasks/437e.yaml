@@ -16,10 +16,10 @@ references:
 junctions:
   defined:        { contributor: noreply@anthropic.com, model: claude-haiku }
   mockup:         { contributor: noreply@anthropic.com, model: claude-opus, reviewer: nbyoung@nbyoung.com }
-  function:       { contributor: noreply@anthropic.com, model: claude-sonnet }
+  function:       { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
   design:         { contributor: noreply@anthropic.com, model: claude-opus, reviewer: nbyoung@nbyoung.com }
-  implementation: { contributor: noreply@anthropic.com, model: claude-sonnet }
-  unit:           { contributor: noreply@anthropic.com, model: claude-sonnet }
-  integrate:      { contributor: noreply@anthropic.com, model: claude-sonnet }
+  implementation: { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
+  unit:           { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
+  integrate:      { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: false }
   validate:       { contributor: noreply@anthropic.com, model: claude-sonnet, reviewer: nbyoung@nbyoung.com }
   release:        { contributor: nbyoung@nbyoung.com }
