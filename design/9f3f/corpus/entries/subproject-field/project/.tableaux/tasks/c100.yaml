@@ -1,0 +1,10 @@
+# tasks/c100.yaml : delegates every gate after defined to the root of the subproject at sub, in one field;
+# its own entries replace the field at reliability and release
+title: Delegating task
+description: A leaf whose work after its definition is another project's, save its release.
+assignee: ben@example.org
+subproject: { url: sub }
+junctions:
+  reliability: { applies: false }
+  release:     { contributor: olive@example.org }
+parent: { id: "c000", order: 1 }

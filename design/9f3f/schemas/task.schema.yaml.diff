@@ -1,0 +1,12 @@
+diff --git a/schemas/task.schema.yaml b/schemas/task.schema.yaml
+index e832ddc..143a058 100644
+--- a/schemas/task.schema.yaml
++++ b/schemas/task.schema.yaml
+@@ -85,6 +85,7 @@ properties:
+         from: { $ref: "#/$defs/key" }
+         to:   { $ref: "#/$defs/key" }
+         text: { type: string, minLength: 1 }
++  subproject:  { $ref: "#/$defs/subproject" }
+   junctions:
+     type: object
+     propertyNames:

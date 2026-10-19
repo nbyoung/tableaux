@@ -1,0 +1,7 @@
+# expected.yaml : The root, a parent, states a task-level subproject field. The subproject, a directory
+# of the same repository, resolves, so the field's one finding is J18; b2c9 takes nothing from it.
+entry: subproject-field-on-parent
+language: 0.4.0
+valid: false
+findings:
+  - { rule: J18, severity: error, task: "e4a1", file: tasks/e4a1.yaml }

@@ -1,0 +1,28 @@
+# expected.yaml : b2c9 requires the library's leaf, 5a00, by URL with no commit: unpinned, so a tool reads
+# the library at the tip of its trunk, main, which is L2, where 5a00 stands at design. The requirement is
+# due and met there: no R9, and no R13, since the commit read is the tip. One R14 item of information
+# marks the entry unpinned, and no pin event exists until a commit is stated.
+entry: requires-unpinned
+language: 0.4.0
+valid: true
+replace: { "https://example.org/lib.git": lib }
+
+findings:
+  - { rule: R14, severity: information, task: "b2c9", file: tasks/b2c9.yaml,
+      message: "The requirement on 5a00 at https://example.org/lib.git states no commit and reads main's tip, L2" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    applicable: [undefined, defined, design, release]
+    requires:                                    # b2c9 stands at design, so its next gate, release, is the requirement's to gate
+      - { subproject: { url: https://example.org/lib.git, id: "5a00", pin: L2 }, from: design, to: release, met: true, due: true, condition: met }
+    status: { gate: design, state: nominal, date: 2026-09-03, recorder: olive@example.org, commit: only }
+    events:                                      # no pin event: the entry names no commit
+      - { date: 2026-09-03, commit: only, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-03, commit: only, by: olive@example.org, task: "b2c9", event: status, gate: design, state: nominal }
