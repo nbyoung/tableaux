@@ -132,7 +132,7 @@ A task's `subproject` field stands for a recursive junction at each gate after t
 | S11 | error            | A gate that passes a reviewed junction other than `defined` has a `Reviewed: <id> <gate>` commit by the reviewer in the history of the commit in view, before or after the commit that records the status; at `defined` the task's authorisation stands as the review | README Status: "A validator rejects a status whose gate passes a reviewed junction that has no such commit." "The `defined` junction is the exception: … the authorisation stands as the review of `defined`"; "The rule reads one commit" | `status-unreviewed-gate`, `status-defined-by-authorisation`, `review-after-status` |
 | S12 | error            | The state `complete` appears only at the last applicable gate              | README Status: "A task at its last applicable gate has the state `complete`, and only there." | `status-complete-early`  |
 
-The design review kept S11 an error (question Q1 in [README.md](README.md#questions-for-review)). An agent that reviews itself carries the `Reviewed:` trailer on the commit that records the status, so a status and its review land together.
+The design review kept S11 an error (question Q1 in [README.md](README.md#questions-for-review)). A contributor who is also the reviewer carries the `Reviewed:` trailer on the commit that records the status, so a status and its review land together.
 
 ## Commit trailers
 
