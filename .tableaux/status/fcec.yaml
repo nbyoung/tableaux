@@ -1,3 +1,3 @@
-gate: implementation
+gate: unit
 state: nominal
-note: The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it
+note: The corpus builds 119 repositories for 102 entries and reads tableaux-tooling in place, check.py reports 103 entries checked and 0 problems, and the tablo conformance test passes all 103 entries on the binary of tablo v0.1.0 and on the binary it builds from tablo main
