@@ -1,3 +1,3 @@
 gate: integrate
 state: nominal
-note: The corpus assembles with the four tools that read it, as tablo's conformance test passes all 103 entries and the whole suites of tablo, tabloio, tablotui and tableaud pass on it with this plan at unit; validate needs an agent on claude-opus to show that the tools and the corpus follow the text, under the owner's review (bc63), and waits on 7166 and 9f3f, whose findings F11, F13 and F15 to F18 the corpus still records
+note: The corpus at 0.4.0 assembles with the four tools that read it, as tablo's conformance test passes all 120 entries at 5ddfb24 and the whole suites of tabloio, tablotui and tableaud pass on it; validate needs an agent on claude-opus to show that the tools and the corpus follow the text, under the owner's review (bc63), and restates tableaux-tooling and moves corpus/tooling once the front ends read 0.4.0 and the four subproject tasks convert to the field

@@ -1,3 +1,3 @@
 gate: implementation
 state: nominal
-note: The text of design/ac33.md, F1, F2 and F10 with the plan choice B, stands on wave/language-0.4 at 0.4.0, and main merges it once a pinned tablo reads 0.4.0; validate shows that tablo and the corpus follow it
+note: The text of design/ac33.md, F1, F2 and F10 with the plan choice B, stands on main at 0.4.0 since 431d2ac, and tablo reads it at 5ddfb24; validate shows that tablo and the corpus follow it
