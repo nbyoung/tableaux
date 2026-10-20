@@ -1,0 +1,47 @@
+# expected.yaml : an agent commits under its own identity (F1). bot is the contributor at design;
+# pat authors C2 and C4, which record bot's design with bot's Model: and Co-Authored-By: trailers.
+# A commit a person authors with an agent's help stays the person's: pat records both statuses and
+# reviews both designs, and olive's C1, which bot co-authored, authorises the plan. C4, at 0.4.0,
+# reads as the agent's work under a person's identity (H7); C2, at 0.3.1, is exempt.
+entry: agent-work-under-person
+language: 0.4.0
+valid: true
+
+findings:
+  - { rule: H7, severity: warning, task: "d3a6", gate: design, commit: C4,
+      message: "pat@example.org authors the agent's work at the design junction, whose contributor is bot@example.org" }
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: C1, by: olive@example.org }   # bot co-authored C1; olive authored it
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org, source: "b2c9" }
+    reviews:
+      - { gate: design, reviewer: pat@example.org, commit: C2 }       # pat's review, though bot co-authored the commit
+    status: { gate: design, state: nominal, date: 2026-09-02, recorder: pat@example.org, commit: C2 }
+    events:
+      - { date: 2026-09-01, commit: C1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: C1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: C2, by: pat@example.org, task: "b2c9", event: status, gate: design, state: nominal }
+      - { date: 2026-09-02, commit: C2, by: pat@example.org, task: "b2c9", event: reviewed, gate: design }
+  "d3a6":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: C1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org, source: "d3a6" }
+    reviews:
+      - { gate: design, reviewer: pat@example.org, commit: C4 }
+    status: { gate: design, state: nominal, date: 2026-09-04, recorder: pat@example.org, commit: C4 }
+    events:
+      - { date: 2026-09-01, commit: C1, by: olive@example.org, task: "d3a6", event: task }
+      - { date: 2026-09-01, commit: C1, by: olive@example.org, task: "d3a6", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-04, commit: C4, by: pat@example.org, task: "d3a6", event: status, gate: design, state: nominal }
+      - { date: 2026-09-04, commit: C4, by: pat@example.org, task: "d3a6", event: reviewed, gate: design }

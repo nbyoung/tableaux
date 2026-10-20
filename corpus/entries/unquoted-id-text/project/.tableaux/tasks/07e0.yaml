@@ -1,0 +1,7 @@
+# tasks/07e0.yaml : names its parent 0010 without quotes (T7)
+title: Exponent
+description: A leaf whose id YAML 1.2 reads as a float unless quoted.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+parent: { id: 0010, order: 1 }

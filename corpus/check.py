@@ -5,7 +5,7 @@ A small reference reading of the method, enough to keep the corpus honest. It is
 not a conforming tool; `tablo` is. For each entry it:
 
   1. validates every file of a valid entry's project/.tableaux (and of a
-     subproject tree) against schemas/, after taking each id as a string (F16);
+     subproject tree) against schemas/, after taking each id as its source text (F16);
   2. applies every rule in RULES.md that a project tree alone decides, and
      compares the findings with `findings` in expected.yaml;
   3. after `sh corpus/build.sh`, compares the derived facts that Git supplies
@@ -40,18 +40,18 @@ HEX40 = re.compile(r"^[0-9a-f]{40}$")
 KEY = re.compile(r"^[a-z][a-z0-9_-]*$")
 SEMVER = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
 ABSOLUTE = re.compile(r"^[a-z][a-z0-9+.-]*://|^[^/@:]+@[^/:]+:")   # a scheme, or an scp-like user@host:path
-TOOL = (0, 3)                      # the language version the schemas define, major.minor
+TOOL = (0, 4)                      # the language version the schemas define, major.minor
 PLAIN = {"contributor", "model", "reviewer", "references"}
-TASK_FIELDS = {"title", "description", "assignee", "references", "requires", "junctions", "parent"}
+TASK_FIELDS = {"title", "description", "assignee", "references", "requires", "subproject", "junctions", "parent"}
 REQ_FIELDS = {"id", "subproject", "from", "to", "text"}
 SUB_FIELDS = {"url", "id", "commit"}
-NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3", "H4", "H5", "H6"}
+NOT_STATIC = {"P5", "S11", "J13", "R13", "H1", "H2", "H3", "H4", "H5", "H6", "H7", "H8"}
 BUILT = {"J17"}                    # rules the check reads from the built repositories; with no build, only stated
 # Rules whose violation the schemas alone reject. The rest need more than a schema says.
-SCHEMA_RULES = {"P3", "G2", "G3", "G4", "G5", "G7", "G8", "G11", "G12", "T2", "T3", "T4", "T5", "T6", "T11",
+SCHEMA_RULES = {"P3", "A1", "G2", "G3", "G4", "G5", "G7", "G8", "G11", "G12", "T2", "T3", "T4", "T5", "T6", "T11",
                 "R8", "R11", "J2", "J4", "J5", "J6", "J7", "J10", "J11", "J14", "S3", "S4"}
-WARNINGS = {"P5", "L4", "T7", "T12", "R9", "R12", "R13", "J13", "H1", "H2", "H3", "H5", "H6"}
-INFORMATION = {"H4"}               # leaves the project valid and marks nothing wrong
+WARNINGS = {"P5", "L4", "T7", "T12", "R9", "R12", "R13", "J13", "J19", "H1", "H2", "H3", "H5", "H6", "H7", "H8"}
+INFORMATION = {"H4", "R14"}        # leaves the project valid and marks nothing wrong
 LENIENT = WARNINGS | INFORMATION   # every rule whose finding is not an error
 
 
@@ -81,6 +81,57 @@ def _first_wins(node):
         return node.value
 
 
+class Id(str):
+    """An id where a task file names one: the scalar's text as the file writes it,
+    whatever YAML reads the scalar as, and whether the file quotes it (F16)."""
+    quoted = True
+
+
+def _get(node, key):
+    """The value node of a key in a mapping node, the first statement winning, or None."""
+    if isinstance(node, yaml.MappingNode):
+        for k, v in node.value:
+            if isinstance(k, yaml.ScalarNode) and k.value == key:
+                return v
+    return None
+
+
+def source_ids(doc, root, text):
+    """Take the id at each of the four places a task file names one as its source text,
+    before any schema applies, as a tool does (F16). T7 then reads `quoted`."""
+    if not isinstance(doc, dict):
+        return doc
+
+    def fix(d, n):
+        v = _get(n, "id")
+        if isinstance(d, dict) and "id" in d and isinstance(v, yaml.ScalarNode):
+            i = Id(v.value)
+            i.quoted = v.style in ("'", '"', "|", ">") or text[v.start_mark.index:v.start_mark.index + 1] == "!"
+            d["id"] = i
+    fix(doc.get("parent"), _get(root, "parent"))
+    reqs = _get(root, "requires")
+    if isinstance(doc.get("requires"), list) and isinstance(reqs, yaml.SequenceNode):
+        for d, n in zip(doc["requires"], reqs.value):
+            fix(d, n)
+            if isinstance(d, dict):
+                fix(d.get("subproject"), _get(n, "subproject"))
+    juncs, seen = _get(root, "junctions"), set()
+    if isinstance(doc.get("junctions"), dict) and isinstance(juncs, yaml.MappingNode):
+        for k, n in juncs.value:
+            if isinstance(k, yaml.ScalarNode) and k.value not in seen and isinstance(doc["junctions"].get(k.value), dict):
+                seen.add(k.value)
+                fix(doc["junctions"][k.value].get("subproject"), _get(n, "subproject"))
+    return doc
+
+
+def load_task(path):
+    """A task file's first document, with each id as its source text."""
+    with open(path, encoding="utf-8") as fh:
+        text = fh.read()
+    docs = list(yaml.compose_all(text))
+    return source_ids(_first_wins(docs[0]), docs[0], text) if docs else None
+
+
 def is_email(v):
     return isinstance(v, str) and re.match(r"^[^@\s]+@[^@\s]+$", v) is not None
 
@@ -104,6 +155,7 @@ class Project:
         self.states = []
         self.reasons = []
         self.version = None
+        self.agents = None                    # the emails agents.yaml lists; None without the file
         self.gates_ok = False
         self.claims = []                      # (task, file, gate, url, commit): a commit restating a submodule pin (J17)
         self.deferred = []                    # (task, file, entry, sub tree, kind, task there): a cross-project requirement read at a pin
@@ -113,9 +165,9 @@ class Project:
         self.findings.append((rule, task, file, gate))
 
     # ---- reading a file (RULES.md, Reading a file: L1 to L4)
-    def read_file(self, rel, task=None):
+    def read_file(self, rel, task=None, ids=False):
         """Read one YAML file under .tableaux, applying L1 to L3. Returns the first
-        document, or None when L1 rejects the file."""
+        document, or None when L1 rejects the file; with ids, each id as its source text."""
         p = os.path.join(self.path, rel)
         try:
             with open(p, encoding="utf-8") as fh:
@@ -160,7 +212,8 @@ class Project:
         if "L3" in seen:
             self.add("L3", task, rel)
         # Build the value from the first document, keeping the first of a repeated key.
-        return _first_wins(docs[0])
+        doc = _first_wins(docs[0])
+        return source_ids(doc, docs[0], text) if ids else doc
 
     def scan_stray(self):
         """L4: every path under .tableaux is one the layout names, each a regular file."""
@@ -174,7 +227,7 @@ class Project:
                 dirs.remove(d)
             for f in files:
                 q = os.path.join(rel, f)
-                named = (rel == "" and f in ("version.yaml", "gates.yaml")) or \
+                named = (rel == "" and f in ("version.yaml", "gates.yaml", "agents.yaml")) or \
                         (rel in ("tasks", "status") and f.endswith(".yaml"))
                 if not named or not os.path.isfile(os.path.join(root, f)) or os.path.islink(os.path.join(root, f)):
                     self.add("L4", file=q)
@@ -187,12 +240,13 @@ class Project:
         self.scan_stray()
         self.read_version()
         self.read_gates()
+        self.read_agents()
         tdir = os.path.join(self.path, "tasks")
         for name in sorted(os.listdir(tdir)) if os.path.isdir(tdir) else []:
             if not name.endswith(".yaml"):
                 continue                      # L4 reported it; the layout does not name it
             tid = name[:-5]
-            doc = self.read_file("tasks/" + name, tid)
+            doc = self.read_file("tasks/" + name, tid, ids=True)
             if doc is None:
                 continue                      # L1 reported it; no task comes from it
             self.tasks[tid] = doc
@@ -246,6 +300,19 @@ class Project:
             major, minor, _ = (int(x) for x in v["tableaux"].split("."))
             if major != TOOL[0] or minor > TOOL[1]:
                 self.add("P4", file="version.yaml")
+
+    def read_agents(self):
+        """A1: agents.yaml, when present, lists distinct email addresses and nothing else."""
+        if not os.path.exists(os.path.join(self.path, "agents.yaml")):
+            return
+        doc = self.read_file("agents.yaml")
+        if doc is None:
+            return                            # L1 reported it; no agent comes from it
+        items = doc.get("agents") if isinstance(doc, dict) else None
+        if not (isinstance(doc, dict) and set(doc) == {"agents"} and isinstance(items, list) and items
+                and all(is_email(e) for e in items) and len(set(items)) == len(items)):
+            self.add("A1", file="agents.yaml")
+        self.agents = {e for e in items if is_email(e)} if isinstance(items, list) else set()
 
     def read_gates(self):
         p = os.path.join(self.path, "gates.yaml")
@@ -313,6 +380,8 @@ class Project:
         for j in (t.get("junctions") or {}).values():
             if isinstance(j, dict) and isinstance(j.get("subproject"), dict) and "id" in j["subproject"]:
                 res.append(j["subproject"]["id"])
+        if isinstance(t.get("subproject"), dict) and "id" in t["subproject"]:
+            res.append(t["subproject"]["id"])
         return res
 
     def check_tasks(self):
@@ -325,21 +394,22 @@ class Project:
                 self.add("T2", tid, f)
             if set(t) - TASK_FIELDS:
                 self.add("T3", tid, f)
-            emails = [t.get("assignee")] if "assignee" in t else []
-            refs = list(t.get("references") or [])
-            for j in (t.get("junctions") or {}).values():
-                if isinstance(j, dict):
-                    emails += [j[k] for k in ("contributor", "reviewer") if k in j]
-                    refs += j.get("references") or []
-            if any(not is_email(e) for e in emails):
+            if "assignee" in t and not is_email(t.get("assignee")):
                 self.add("T4", tid, f)
+            refs = list(t.get("references") or [])
+            for g, j in (t.get("junctions") or {}).items():
+                if isinstance(j, dict):
+                    if any(not is_email(j[k]) for k in ("contributor", "reviewer")
+                           if k in j and not (k == "reviewer" and j[k] is False)):
+                        self.add("T4", tid, f, g)   # reviewer: false waives review
+                    refs += j.get("references") or []
             if any(not (isinstance(r, dict) and r.get("url") and set(r) <= {"url", "text"}
                         and ("text" not in r or r["text"])) for r in refs):
                 self.add("T5", tid, f)
             for i in self.ids(tid):
-                if not isinstance(i, str):
-                    self.add("T7", tid, f)
-                elif not HEX.match(i):
+                if not getattr(i, "quoted", isinstance(i, str)):
+                    self.add("T7", tid, f)          # the writing, not the type YAML gives it (F16)
+                if not HEX.match(str(i)):
                     self.add("T6", tid, f)
 
     def sid(self, v):
@@ -441,12 +511,22 @@ class Project:
     def own_entry(self, tid, gate):
         return ((self.tasks[tid].get("junctions") or {}).get(gate))
 
+    def field(self, tid, gate):
+        """The task's `subproject` field where it stands for a recursive junction: at each gate
+        after the first that follows undefined, where the task's own file states no entry."""
+        sp = self.tasks[tid].get("subproject") if isinstance(self.tasks[tid], dict) else None
+        if sp is None or gate not in self.gates or self.gates.index(gate) < 2 or self.own_entry(tid, gate) is not None:
+            return None
+        return sp
+
     def resolve_kind(self, tid, gate):
         if gate == "undefined":
             return "PLAIN"
         chain = [tid] + self.ancestors(tid)
         for i, t in enumerate(chain):
             j = self.own_entry(t, gate)
+            if j is None and i == 0 and self.field(t, gate) is not None:
+                return "REC"
             if j is None:
                 continue
             k = self.kind(j)
@@ -501,11 +581,17 @@ class Project:
                     self.add("J10", tid, f, gate)
                 elif k == "PLAIN" and "model" in j and "contributor" not in j:
                     self.add("J5", tid, f, gate)
+                elif k == "PLAIN" and "model" in j and self.agents is not None and j["contributor"] not in self.agents:
+                    self.add("A2", tid, f, gate)
                 elif k == "REC":
                     self.check_recursive(tid, f, gate, j["subproject"], bool(self.children(tid)))
             for gate, j in js.items():
                 if gate == "undefined" and self.kind(j) == "REC":
                     self.check_recursive(tid, f, gate, j["subproject"], False, quiet=True)
+            if "subproject" in t:                                            # the task-level field
+                if self.children(tid):
+                    self.add("J18", tid, f)
+                self.check_subproject(tid, f, None, t["subproject"])
             if self.gates_ok and self.gates and not [g for g in self.applicable(tid) if g != "undefined"]:
                 self.add("J12", tid, f)
 
@@ -529,12 +615,16 @@ class Project:
             return None
         url = sp["url"]
         if ABSOLUTE.match(url) and commit is None:
-            self.add("J15", tid, f, gate)
-            return None
+            if not on_requirement:
+                self.add("J15", tid, f, gate)
+                return None
+            self.add("R14", tid, f)                                          # unpinned: read at the trunk's tip
         sub, kind = self.sub_project(url)
         if sub is None:
             self.add("J8", tid, f, gate)
             return None
+        if not on_requirement and not quiet:
+            self.check_language(tid, f, sub)
         if kind == "directory" and commit is not None:
             self.add("J16", tid, f, gate)
         if kind == "submodule" and commit is not None:
@@ -547,10 +637,20 @@ class Project:
             return None
         return sub, kind, want
 
+    def check_language(self, tid, f, sub):
+        """J19: the linked project's language before this one's, patch included; once per task and url."""
+        def semver(v):
+            s = v.get("tableaux") if isinstance(v, dict) else None
+            return tuple(int(x) for x in s.split(".")) if isinstance(s, str) and SEMVER.match(s) else None
+        p = os.path.join(sub, "version.yaml")
+        here, there = semver(self.version), semver(load(p)) if os.path.exists(p) else None
+        if here and there and there < here and ("J19", tid, f, None) not in self.findings:
+            self.add("J19", tid, f)
+
     def read_tasks_only(self):
         tdir = os.path.join(self.path, "tasks")
         for name in sorted(os.listdir(tdir)):
-            self.tasks[name[:-5]] = load(os.path.join(tdir, name))
+            self.tasks[name[:-5]] = load_task(os.path.join(tdir, name))
         roots = [t for t in self.tasks if self.parent(t) is None]
         self.root = roots[0] if len(roots) == 1 else None
 
@@ -607,8 +707,10 @@ class Project:
             return
         sub, kind, want = res
         url = r["subproject"]["url"]
-        for j in (self.tasks[tid].get("junctions") or {}).values():         # R12: a junction already reads it
-            jsp = j.get("subproject") if self.kind(j) == "REC" else None
+        named = [j.get("subproject") if self.kind(j) == "REC" else None
+                 for j in (self.tasks[tid].get("junctions") or {}).values()]
+        named.append(self.tasks[tid].get("subproject"))                      # the task-level field reads as a junction
+        for jsp in named:                                                    # R12: a junction already reads it
             if not isinstance(jsp, dict) or jsp.get("url") != url:
                 continue
             if "id" in jsp:
@@ -706,6 +808,9 @@ class Project:
         for r in t.get("requires") or []:
             if isinstance(r, dict) and isinstance(r.get("subproject"), dict) and isinstance(r["subproject"].get("url"), str):
                 out.append((r["subproject"]["url"], r["subproject"]))
+        sp = t.get("subproject")
+        if isinstance(sp, dict) and isinstance(sp.get("url"), str):
+            out.append((sp["url"], sp))
         return out
 
     # ---- status
@@ -753,27 +858,10 @@ class Project:
 
 
 # ---- schemas
-def id_strings(doc):
-    """Take every id a task file names as a string, as a tool does (F16)."""
-    if not isinstance(doc, dict):
-        return doc
-    if isinstance(doc.get("parent"), dict) and "id" in doc["parent"]:
-        doc["parent"]["id"] = str(doc["parent"]["id"])
-    for r in doc.get("requires") or []:
-        if isinstance(r, dict) and "id" in r:
-            r["id"] = str(r["id"])
-        if isinstance(r, dict) and isinstance(r.get("subproject"), dict) and "id" in r["subproject"]:
-            r["subproject"]["id"] = str(r["subproject"]["id"])
-    for j in (doc.get("junctions") or {}).values():
-        if isinstance(j, dict) and isinstance(j.get("subproject"), dict) and "id" in j["subproject"]:
-            j["subproject"]["id"] = str(j["subproject"]["id"])
-    return doc
-
-
 def schema_problems(tableaux):
     sdir = os.path.join(ROOT, "schemas")
     vals = {}
-    for n in ("version", "gates", "task", "status"):
+    for n in ("version", "gates", "agents", "task", "status"):
         vals[n] = Draft202012Validator(load(os.path.join(sdir, n + ".schema.yaml")), format_checker=FormatChecker())
     bad = []
 
@@ -782,11 +870,13 @@ def schema_problems(tableaux):
             bad.append("%s: %s" % (os.path.relpath(path, CORPUS), e.message))
     one("version", tableaux + "/version.yaml", load(tableaux + "/version.yaml"))
     one("gates", tableaux + "/gates.yaml", load(tableaux + "/gates.yaml"))
+    if os.path.exists(tableaux + "/agents.yaml"):
+        one("agents", tableaux + "/agents.yaml", load(tableaux + "/agents.yaml"))
     for kind, sub in (("task", "tasks"), ("status", "status")):
         d = os.path.join(tableaux, sub)
         for name in sorted(os.listdir(d)) if os.path.isdir(d) else []:
-            doc = load(os.path.join(d, name))
-            one(kind, os.path.join(d, name), id_strings(doc) if kind == "task" else doc)
+            path = os.path.join(d, name)
+            one(kind, path, load_task(path) if kind == "task" else load(path))
     return bad
 
 
@@ -856,6 +946,8 @@ def check_history(name, exp, proj, problems):
     subs = [labels(p) for p in _sublabels(repo)]
     for m in set(re.findall(r"(?:commit|old|new|pin): (\S+)", text)):
         m = m.strip("'\"")
+        if m == "null":
+            continue                           # a fact that no commit holds, such as a review not yet given
         if m not in lab and not any(m in s for s in subs):
             problems.append("%s: label %s is in no labels file" % (name, m))
     # J17: a commit that restates a submodule pin equals it
@@ -866,7 +958,13 @@ def check_history(name, exp, proj, problems):
     for tid, f, r, sub, kind, want in proj.deferred:
         sp = r["subproject"]
         srepo = sub_repo(repo, exp, sp["url"])
-        commit = sp["commit"] if kind == "url" else gitlink(repo, rev, sp["url"])
+        commit = sp.get("commit") if kind == "url" else gitlink(repo, rev, sp["url"])
+        if commit is None and kind == "url" and srepo:                        # unpinned: the tip of that trunk
+            try:
+                vt = (yaml.safe_load(git(srepo, "show", "HEAD:.tableaux/version.yaml")) or {}).get("trunk") or "HEAD"
+                commit = git(srepo, "rev-parse", "--verify", vt + "^{commit}").strip()
+            except RuntimeError:
+                commit = None
         try:
             doc = yaml.safe_load(git(srepo, "show", "%s:.tableaux/status/%s.yaml" % (commit, want))) or {}
         except RuntimeError:
@@ -920,7 +1018,7 @@ def check_history(name, exp, proj, problems):
                 if s.get("recorder") and s["recorder"] != sc["ae"]:
                     problems.append("%s/%s: status recorder %s, expected %s" % (name, tid, sc["ae"], s["recorder"]))
         if t.get("events"):                    # the parent's own events; an event marked subproject comes from the pin
-            got = _events(repo, tid, rev, commits, lab, proj, exp)
+            got = _events(repo, tid, rev, commits, lab, proj, exp, trunk)
             want = [{k: (str(v) if k == "date" else v) for k, v in e.items() if k != "subproject"}
                     for e in t["events"] if "subproject" not in e]
             want = [_norm(e) for e in want]
@@ -990,8 +1088,10 @@ def _status_commit(repo, tid, rev, commits):
         path = ".tableaux/tasks/%s.yaml" % tid       # an undefined leaf is dated by its task file
     changed = git(repo, "log", "--format=%H", rev, "--", path).split()
     for c in commits:
-        if c["hash"] in changed or re.search(r"^Reaffirmed: %s$" % tid, c["body"], re.M):
+        if c["hash"] in changed:
             return c
+        if path.startswith(".tableaux/status/") and re.search(r"^Reaffirmed: %s$" % tid, c["body"], re.M):
+            return c                            # a leaf with no file has recorded nothing to confirm (F17)
     return None
 
 
@@ -1006,19 +1106,28 @@ def _commit_fields(repo, h, tpath):
         return out
     sps = [j.get("subproject") for j in (doc.get("junctions") or {}).values() if isinstance(j, dict)]
     sps += [r.get("subproject") for r in doc.get("requires") or [] if isinstance(r, dict)]
+    sps.append(doc.get("subproject"))
     for sp in sps:
         if isinstance(sp, dict) and isinstance(sp.get("url"), str):
             out[sp["url"]] = sp.get("commit")
     return out
 
 
-def _events(repo, tid, rev, commits, lab, proj, exp):
+def _events(repo, tid, rev, commits, lab, proj, exp, trunk=None):
     rev_lab = {v: k for k, v in lab.items()}
     for p in _sublabels(repo):
         rev_lab.update({v: k for k, v in labels(p).items()})
     tpath, spath = ".tableaux/tasks/%s.yaml" % tid, ".tableaux/status/%s.yaml" % tid
     tch = set(git(repo, "log", "--format=%H", rev, "--", tpath).split())
     sch = set(git(repo, "log", "--format=%H", rev, "--", spath).split())
+    # a merge on the trunk's first-parent line that changes the task file against its first parent (F11)
+    accepts = set()
+    for ref in ([trunk, "origin/" + trunk] if trunk else []):
+        try:
+            accepts = set(git(repo, "log", "--first-parent", "--merges", "--format=%H", ref, "--", tpath).split())
+            break
+        except RuntimeError:
+            continue
     # the linkages the task names, by kind: a submodule's pin moves with the gitlink, a URL's with the commit field
     pins = {}                                   # hash -> [(url, old, new)]: one per url, however many entries name it
     if proj is not None and tid in proj.tasks:
@@ -1047,7 +1156,7 @@ def _events(repo, tid, rev, commits, lab, proj, exp):
         # author, not committer, is the actor: read it again
         if h in tch:
             evs.append(dict(base, event="task"))
-        if re.search(r"^Authorised: %s$" % tid, c["body"], re.M):
+        if h in accepts or re.search(r"^Authorised: %s$" % tid, c["body"], re.M):
             evs.append(dict(base, event="authorised"))
         if h in sch:
             e = dict(base, event="status")

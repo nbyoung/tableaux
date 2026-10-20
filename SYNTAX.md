@@ -5,6 +5,7 @@ This document defines the syntax of each [Tableaux](README.md) file. Each sectio
 - [Layout](#layout)
 - [`version.yaml`](#versionyaml)
 - [`gates.yaml`](#gatesyaml)
+- [`agents.yaml`](#agentsyaml)
 - [`tasks/<id>.yaml`](#tasksidyaml)
 - [`status/<id>.yaml`](#statusidyaml)
 - [History](#history)
@@ -18,6 +19,7 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
 .tableaux/
 ├── version.yaml      # the Tableaux version the other files follow
 ├── gates.yaml        # the gating structure
+├── agents.yaml       # the identities that are agents; optional
 ├── tasks/
 │   ├── a1c0.yaml     # one file per task, named by the task id
 │   ├── 4e2b.yaml
@@ -31,6 +33,7 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
 |-------------------------------|-----------------------------------------------------------------------------|
 | `.tableaux/`                  | Fixed; one per repository                                                   |
 | `version.yaml`, `gates.yaml`  | Fixed                                                                       |
+| `agents.yaml`                 | Fixed; optional                                                             |
 | `tasks/<id>.yaml`             | `<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$` |
 | `status/<id>.yaml`            | `<id>` is the id of a leaf task                                             |
 
@@ -69,7 +72,7 @@ properties:
 ### Example
 
 ```yaml
-tableaux: 0.3.1
+tableaux: 0.4.0
 trunk: main
 ```
 
@@ -197,11 +200,47 @@ reasons:
   - { key: review,     symbol: 👓, synopsis: The work waits for its reviewer }
 ```
 
+## `agents.yaml`
+
+The agents file lists the identities that are agents ([README.md](README.md#roles)). It is optional: without it, an identity is an agent's when a junction states it as contributor beside a `model`. A project that keeps it lists every agent there.
+
+### Schema
+
+```yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+$id: tableaux/agents.schema.yaml
+type: object
+required: [agents]
+additionalProperties: false
+properties:
+  agents:
+    type: array
+    minItems: 1
+    uniqueItems: true
+    items: { type: string, format: email }
+```
+
+### Fields
+
+| Field    | Required | Meaning                                                                          |
+|----------|----------|----------------------------------------------------------------------------------|
+| `agents` | Yes      | The email addresses agents commit with, each once; every other identity in the project is a person's |
+
+The file names identities and no models. One identity may run several models: the junction's `model` states the plan, and the `Model:` trailer records what ran ([Commit trailers](#commit-trailers)).
+
+### Example
+
+```yaml
+# agents.yaml — the identities that are agents
+agents:
+  - noreply@anthropic.com      # every Claude model; the Model: trailer tells them apart
+```
+
 ## `tasks/<id>.yaml`
 
 A task file defines one task and its junctions. The file name carries the task's id; the file holds no `id` field.
 
-An id is four lowercase hexadecimal digits chosen at random when the task is created. Wherever a file names an id, in `parent`, `requires` or `subproject`, it writes the id as a quoted string, because YAML reads an id such as `1000` as an integer and `1e10` as a float. A tool takes an id as a string whatever scalar YAML yields, and a validator warns of an unquoted id.
+An id is four lowercase hexadecimal digits chosen at random when the task is created. Wherever a file names an id, in `parent`, `requires` or `subproject`, it writes the id as a quoted string, because YAML reads an id such as `1000` as an integer and `1e10` as a float. A tool takes an id as the scalar's text as the file writes it, whatever YAML yields, so `0010` stays `0010` and `07e0` stays `07e0`, and it does so before it applies the schema below, whose `id` is a string. A validator then warns of an unquoted id, one the file writes in neither quotes, a block scalar nor `!!str`, whatever type YAML gives it.
 
 ### Schema
 
@@ -257,7 +296,7 @@ $defs:
     properties:
       contributor: { $ref: "#/$defs/email" }
       model:       { type: string, minLength: 1 }
-      reviewer:    { $ref: "#/$defs/email" }
+      reviewer:    { oneOf: [{ $ref: "#/$defs/email" }, { const: false }] }
       references:  { $ref: "#/$defs/references" }
   recursive:
     type: object
@@ -293,6 +332,7 @@ properties:
         from: { $ref: "#/$defs/key" }
         to:   { $ref: "#/$defs/key" }
         text: { type: string, minLength: 1 }
+  subproject:  { $ref: "#/$defs/subproject" }
   junctions:
     type: object
     propertyNames:
@@ -315,9 +355,10 @@ properties:
 |---------------|----------|----------------------------------------------------------------------------------|
 | `title`       | Yes      | A brief synopsis of the activity or deliverable                                  |
 | `description` | Yes      | The task's outcome and scope, in prose                                           |
-| `assignee`    | Yes      | The responsible person's email address, as it appears in their Git commits       |
+| `assignee`    | Yes      | The email address of the person or agent responsible, as it appears in its Git commits |
 | `references`  | No       | Links that expand the task                                                       |
 | `requires`    | No       | Tasks whose results this task needs                                              |
+| `subproject`  | No       | The project that does the task's work at every gate after its definition, in the form below; an entry under `junctions` replaces it at its gate ([README.md](README.md#junctions)) |
 | `junctions`   | No       | Per-gate detail, keyed by gate key other than `undefined`; a gate absent here takes the plain default |
 | `parent`      | No       | The task's place in the tree; absent only on the root task                       |
 
@@ -344,18 +385,18 @@ properties:
 |----------------|---------------|----------|----------------------------------------------------------------------------|
 | Plain          | `contributor` | No       | The email address of who does the work at this gate; defaults to `assignee` |
 |                | `model`       | No       | The model the contributor should run, when the contributor is an agent: an identifier or a prefix of one; stated together with `contributor`, never alone, since a model names no one |
-|                | `reviewer`    | No       | The email address of the person who accepts the work at this gate          |
+|                | `reviewer`    | No       | The email address of whoever accepts the work at this gate, or `false`, which waives review; at an agent's junction it defaults to the nearest person among the assignee and the authorities ([README.md](README.md#junctions)) |
 |                | `references`  | No       | Links that expand the gate's criteria for this task; same form as the task's |
 | Recursive      | `subproject`  | Yes      | The project that does the work and the task there, in the form below; `id` defaults to that project's root |
 | Not applicable | `applies`     | Yes      | Always `false`; the entry's presence exempts the gate, and `true` would restate the default the file omits |
 
-`subproject`, on a recursive junction or a cross-project requirement. Its `url` fixes the commit the other project is read at ([README.md](README.md#junctions)).
+`subproject`, on a task, a recursive junction or a cross-project requirement. Its `url` fixes the commit the other project is read at ([README.md](README.md#junctions)), or, on a requirement that states no `commit`, the trunk whose tip it is read at ([README.md](README.md#tasks)).
 
 | Field    | Required            | Meaning                                                                          |
 |----------|---------------------|----------------------------------------------------------------------------------|
 | `url`    | Yes                 | The other project's repository: a path relative to this repository's root, which is a submodule read at its pin or a directory of this repository read at the same commit, or an absolute URL |
-| `id`     | On a requirement    | The task in that project; on a junction, defaults to that project's root         |
-| `commit` | On an absolute URL  | The full hash of the commit the project is read at; on a submodule path it restates the pin and must equal it; on a same-repository path it is an error |
+| `id`     | On a requirement    | The task in that project; on a task or a junction, defaults to that project's root |
+| `commit` | On an absolute URL of a task or a junction | The full hash of the commit the project is read at; a requirement on an absolute URL may leave it out until the commit exists, and is then read at its trunk's tip; on a submodule path it restates the pin and must equal it; on a same-repository path it is an error |
 
 `parent`
 
@@ -408,6 +449,17 @@ parent: { id: "4e2b", order: 2 }
 ```
 
 ```yaml
+# tasks/5e6f.yaml — a leaf that hands every gate after defined to one subproject
+title: Gateway software
+description: The receiver and the database service, planned and built in their own repository.
+assignee: ada@example.org
+subproject: { url: gateway }                  # a submodule path: a recursive junction at every gate after defined
+junctions:
+  release: { reviewer: ben@example.org }      # the task's own entry replaces the field at its gate
+parent: { id: "a1c0", order: 4 }
+```
+
+```yaml
 # firmware/.tableaux/tasks/f1a0.yaml — the subproject's task, which requires tasks in two other projects
 title: Weather node image
 description: >
@@ -421,6 +473,8 @@ requires:
   # the parent project, upward: a subproject cannot pin its parent, so it names the parent by URL and commit
   - { subproject: { url: https://example.org/weather-station.git, id: "9f31", commit: 9b3e2d1c0a7f6e5d4c3b2a1908f7e6d5c4b3a291 },
       from: design, to: design, text: Pin map and sensor bus }
+  # a sibling's work that no commit shows yet: unpinned, read at that project's trunk tip until a commit is stated
+  - { subproject: { url: https://example.org/gateway.git, id: "e2c4" }, from: implementation, to: integrate, text: The receiver's frame format }
 parent: { id: "b7d2", order: 1 }
 ```
 
@@ -480,7 +534,7 @@ gate: design
 
 ## History
 
-A history is the sequence of events that Git records for one task, or for the whole project, in author-time order. A tool derives it from the log and emits it in the form below; nothing stores it.
+A history is the sequence of events that Git records for one task, or for the whole project, in author-time order. A tool derives it from the log and emits it in the form below; nothing stores it. A task with a recursive junction takes in the subproject task's events up to the commit its linkage fixes, inline in the same order, after the project's own events of one author time, each marked by `subproject` ([README.md](README.md#history)).
 
 ### Schema
 
@@ -505,6 +559,7 @@ items:
     url:    { type: string, minLength: 1 }
     old:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
     new:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
+    subproject: { type: string, pattern: "^[0-9a-f]{4}$" }
 ```
 
 ### Fields
@@ -519,22 +574,26 @@ items:
 | `gate`   | No       | For `status`, the gate recorded; for `reviewed`, the gate accepted               |
 | `state`, `reason`, `note` | No | For `status`, the values recorded                                        |
 | `url`    | For `pin` | The `url` of the junction or requirement whose commit moved                     |
-| `old`, `new` | For `pin` | The commit the linkage read before and reads now; `old` is absent when the linkage first appears |
+| `old`, `new` | For `pin` | The commit the linkage read before and reads now; `old` is absent when the linkage first appears or first states a `commit` |
+| `subproject` | No     | For an event taken from a subproject's task, that task's id, as a quoted string; `task` names the task here whose linkage reads it |
 
 | Event        | Source in the commit                                     |
 |--------------|----------------------------------------------------------|
 | `task`       | A change to `tasks/<id>.yaml`                            |
-| `authorised` | An `Authorised: <id>` trailer                            |
+| `authorised` | An `Authorised: <id>` trailer, or a merge on the trunk's first-parent line that changes `tasks/<id>.yaml` against its first parent ([README.md](README.md#history)) |
 | `status`     | A change to `status/<id>.yaml`                           |
 | `reaffirmed` | A `Reaffirmed: <id>` trailer                             |
 | `reviewed`   | A `Reviewed: <id> <gate>` trailer                        |
-| `pin`        | A change to the commit a linkage reads: a submodule pin moved at the path a junction or requirement of the task names, or a `commit` field changed in `tasks/<id>.yaml`, which is a `task` event too |
+| `pin`        | A change to the commit a linkage reads: a submodule pin moved at the path a junction, a requirement or the `subproject` field of the task names, or a `commit` field changed or first stated in `tasks/<id>.yaml`, which is a `task` event too |
 
 ### Example
 
+The example shows a review that follows the status it accepts, Ada's `mockup` of 09-22 and Ben's review of 09-24, so the status is valid from the review on; the order [README.md](README.md#status) gives keeps every commit valid.
+
 ```yaml
+- { date: 2026-09-17, commit: 2d6b0f4, by: ben@example.org, task: "c07d", event: status, subproject: "f1a0", gate: design, state: nominal, note: Sleep scheduler in progress }
 - { date: 2026-09-18, commit: 3e1f0a2, by: ada@example.org, task: "9f31", event: task }
-- { date: 2026-09-19, commit: 8c44b7d, by: ada@example.org, task: "9f31", event: authorised }
+- { date: 2026-09-19, commit: 8c44b7d, by: ben@example.org, task: "9f31", event: authorised }
 - { date: 2026-09-22, commit: b02e9c1, by: ada@example.org, task: "9f31", event: status, gate: mockup, state: nominal }
 - { date: 2026-09-24, commit: 5d7a3f8, by: ben@example.org, task: "9f31", event: reviewed, gate: mockup }
 - { date: 2026-09-25, commit: e91c604, by: ada@example.org, task: "9f31", event: status, gate: function, state: stalled, reason: blocked, note: Barometer ICs on 14-week backorder }
@@ -545,16 +604,17 @@ items:
 
 ## Commit trailers
 
-A commit message may carry the trailers below, one task per line, among its other trailers. A task trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it. `Model:` names no task: it records what ran, beside the `Co-Authored-By:` trailer an agent leaves when it commits under a person's identity, and a tool reads the two together to see agent work whoever the author is.
+A commit message may carry the trailers below, one task per line, among its other trailers. A task trailer names a task in the project and, for `Reviewed:`, a gate in `gates.yaml` that applies to that task; a validator warns of a trailer that names neither, since Git keeps it and the method cannot read it. `Model:` and `Co-Authored-By:` name no task. `Model:` records the model that ran, on every commit an agent makes and on a commit a person makes with an agent's help. `Co-Authored-By:`, Git's convention, names on a person's commit the agent that helped; the method reads it only where its email is an agent's ([README.md](README.md#roles)), and a tool reads the two together to see agent work whoever the author is.
 
 | Trailer                  | Meaning                                                              |
 |--------------------------|----------------------------------------------------------------------|
 | `Authorised: <id>`       | The committer, as one of the task's authorities, accepts it as it stands |
 | `Reviewed: <id> <gate>`  | The committer accepts the task's work at the gate                    |
 | `Reaffirmed: <id>`       | The committer confirms the task's status as it stands, on this date  |
-| `Model: <identifier>`    | The model the agent that made this commit ran, as the harness reports it; it names no task |
+| `Model: <identifier>`    | The model that made this commit, or helped its author make it, as the harness reports it; it names no task |
+| `Co-Authored-By: <name> <email>` | An agent that helped the author make this commit, read where the email is an agent's; it names no task |
 
-Example:
+Examples: an authority accepts two tasks and a design, and `opus@example.org`, the agent at the node firmware's `unit` junction, records that gate under its own identity, with no `Reviewed:` line, since Ben, its reviewer, accepts the work in a commit of his own:
 
 ```
 Accept the sensor board and node firmware tasks
@@ -567,7 +627,6 @@ Reviewed: 9f31 design
 ```
 Record the node firmware at its unit gate
 
-Reviewed: c07d unit
-Model: claude-fable-5-1
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Model: claude-opus-5-5
+Co-Authored-By: Opus <opus@example.org>
 ```

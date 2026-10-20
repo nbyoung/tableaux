@@ -1,0 +1,9 @@
+# tasks/b2c9.yaml : one leaf; pat does the work and olive reviews its design
+title: Leaf
+description: A leaf task whose design olive reviews.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { reviewer: olive@example.org }
+parent: { id: "e4a1", order: 1 }

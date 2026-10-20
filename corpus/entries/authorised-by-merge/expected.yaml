@@ -1,0 +1,29 @@
+# expected.yaml : olive's --no-ff merge A4 brings in c3d4's task file and status file and carries
+# no trailer. On the trunk's first-parent line A4 changes the task file against its first parent,
+# so it is the deciding commit and an authorised event by olive (F11). The default log keeps pat's
+# A2 as the task event and A3 as the status event, and A3 dates the status and names its recorder,
+# since the merge takes the branch's file and changes nothing of its own.
+entry: authorised-by-merge
+language: 0.4.0
+valid: true
+
+owner: olive@example.org
+root: "e4a1"
+order: ["e4a1", "b2c9", "c3d4"]
+
+tasks:
+  "c3d4":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: A4, by: olive@example.org }
+    status: { gate: defined, state: nominal, date: 2026-09-03, recorder: pat@example.org, commit: A3 }
+    events:
+      - { date: 2026-09-02, commit: A2, by: pat@example.org, task: "c3d4", event: task }
+      - { date: 2026-09-03, commit: A3, by: pat@example.org, task: "c3d4", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-04, commit: A4, by: olive@example.org, task: "c3d4", event: authorised }
+
+refs:
+  leaf:
+    commit: A3
+    tasks:
+      "c3d4": { authorisation: { state: proposed } }

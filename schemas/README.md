@@ -1,11 +1,12 @@
 # Tableaux schemas
 
-This directory holds the five JSON Schema 2020-12 schemas that [SYNTAX.md](../SYNTAX.md) embeds, as files that tools load. SYNTAX.md is the source; each file here is a byte-for-byte copy of one fenced YAML block there, and a test keeps them equal.
+This directory holds the six JSON Schema 2020-12 schemas that [SYNTAX.md](../SYNTAX.md) embeds, as files that tools load. SYNTAX.md is the source; each file here is a byte-for-byte copy of one fenced YAML block there, and a test keeps them equal.
 
 | File                  | Schema for                     | SYNTAX.md section                          |
 |-----------------------|--------------------------------|--------------------------------------------|
 | `version.schema.yaml` | `.tableaux/version.yaml`       | [`version.yaml`](../SYNTAX.md#versionyaml) |
 | `gates.schema.yaml`   | `.tableaux/gates.yaml`         | [`gates.yaml`](../SYNTAX.md#gatesyaml)     |
+| `agents.schema.yaml`  | `.tableaux/agents.yaml`        | [`agents.yaml`](../SYNTAX.md#agentsyaml)   |
 | `task.schema.yaml`    | `.tableaux/tasks/<id>.yaml`    | [`tasks/<id>.yaml`](../SYNTAX.md#tasksidyaml) |
 | `status.schema.yaml`  | `.tableaux/status/<id>.yaml`   | [`status/<id>.yaml`](../SYNTAX.md#statusidyaml) |
 | `history.schema.yaml` | The history a tool emits       | [History](../SYNTAX.md#history)            |
@@ -24,7 +25,7 @@ A compiled tool embeds this directory and ships it inside its binary; a scripted
 `version.yaml` states the version of the Tableaux language that the schemas beside it define. It has the same form as a project's `.tableaux/version.yaml`, so `version.schema.yaml` validates it:
 
 ```yaml
-tableaux: 0.3.2
+tableaux: 0.4.0
 ```
 
 A tool reads this file when it loads the schemas and compares it with the project's `.tableaux/version.yaml` by the rule in [README.md](../README.md#version): the tool accepts the project when the major versions are equal and the project's minor version does not exceed the schemas' minor version. The patch version does not affect acceptance.

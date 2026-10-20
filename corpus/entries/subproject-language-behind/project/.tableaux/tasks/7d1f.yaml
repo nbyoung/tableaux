@@ -1,0 +1,9 @@
+# tasks/7d1f.yaml : a second leaf; the design is the project's under ahead, whose language is later
+title: Second leaf
+description: A leaf task whose design a project ahead of this one's language does.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { subproject: { url: ahead } }
+parent: { id: "e4a1", order: 2 }

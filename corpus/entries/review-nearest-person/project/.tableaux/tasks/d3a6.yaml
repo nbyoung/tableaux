@@ -1,0 +1,9 @@
+# tasks/d3a6.yaml : an agent under a person; the assignee is the nearest person
+title: Person leaf
+description: A leaf whose assignee is a person and whose design an agent contributes.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { contributor: bot@example.org, model: claude-fable }
+parent: { id: "c5f0", order: 2 }

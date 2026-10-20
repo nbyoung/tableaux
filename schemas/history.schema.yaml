@@ -18,3 +18,4 @@ items:
     url:    { type: string, minLength: 1 }
     old:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
     new:    { type: string, pattern: "^[0-9a-f]{7,40}$" }
+    subproject: { type: string, pattern: "^[0-9a-f]{4}$" }

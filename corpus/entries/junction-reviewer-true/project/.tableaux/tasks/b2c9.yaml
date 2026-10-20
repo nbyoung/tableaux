@@ -1,0 +1,9 @@
+# tasks/b2c9.yaml : a reviewer that is true; only false waives review
+title: Leaf
+description: A leaf task with a status.
+assignee: pat@example.org
+references:
+  - { url: README.md }
+junctions:
+  design: { reviewer: true }
+parent: { id: "e4a1", order: 1 }

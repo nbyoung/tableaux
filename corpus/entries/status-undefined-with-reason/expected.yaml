@@ -1,0 +1,30 @@
+# expected.yaml : a leaf at undefined whose status file states a reason and a note. The state
+# stays undefined, as S4 requires, and the reason says why the work towards defined waits (F9).
+# The file has a recorder, as every status file does. The root rolls up from its one child: the
+# state has severity 0, so every child is considered, and the reason and note come with it.
+entry: status-undefined-with-reason
+language: 0.4.0
+valid: true
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "e4a1":
+    status:
+      gate: undefined
+      state: undefined
+      reason: blocked
+      note: The definition waits for the sensor datasheet
+      date: 2026-09-01
+      derived: true
+      from: "b2c9"
+  "b2c9":
+    status:
+      gate: undefined
+      state: undefined
+      reason: blocked
+      note: The definition waits for the sensor datasheet
+      date: 2026-09-01
+      recorder: olive@example.org
+      commit: only

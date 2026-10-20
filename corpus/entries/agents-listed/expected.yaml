@@ -1,0 +1,19 @@
+# expected.yaml : agents.yaml lists opus, and no junction pairs opus with a model. opus is an agent
+# all the same (F10), so its plain default is an agent's junction: the nearest person among the
+# assignee and the authorities, olive, reviews it (F2).
+entry: agents-listed
+language: 0.4.0
+valid: true
+findings: []
+
+owner: olive@example.org
+root: "e4a1"
+
+tasks:
+  "b2c9":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: only, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: opus@example.org, reviewer: olive@example.org }   # an agent's default: the nearest person reviews
+    status: { gate: defined, state: nominal, date: 2026-09-01, recorder: olive@example.org, commit: only }

@@ -1,3 +1,3 @@
-gate: design
+gate: implementation
 state: nominal
-note: The trunk clarification (F19) and the exemption rule (F7) are on the trunk; design/7166.md with the owner's decisions of 2026-10-19 settles F11, F15 to F18, F9 and F8, and implementation lands them on wave/language-0.4 at 0.4.0
+note: The text of design/7166.md, F11, F15 to F18, F9 and F8, stands on wave/language-0.4 at 0.4.0, and main merges it once a pinned tablo reads 0.4.0; validate shows that tablo and the corpus follow it

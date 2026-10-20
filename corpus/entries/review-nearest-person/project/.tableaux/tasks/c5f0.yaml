@@ -1,0 +1,7 @@
+# tasks/c5f0.yaml : a parent assigned to an agent
+title: Agent subtree
+description: A parent whose assignee is an agent, so it is an authority that is no person.
+assignee: bot@example.org
+references:
+  - { url: README.md }
+parent: { id: "e4a1", order: 1 }

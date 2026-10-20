@@ -49,7 +49,7 @@ $defs:
     properties:
       contributor: { $ref: "#/$defs/email" }
       model:       { type: string, minLength: 1 }
-      reviewer:    { $ref: "#/$defs/email" }
+      reviewer:    { oneOf: [{ $ref: "#/$defs/email" }, { const: false }] }
       references:  { $ref: "#/$defs/references" }
   recursive:
     type: object
@@ -85,6 +85,7 @@ properties:
         from: { $ref: "#/$defs/key" }
         to:   { $ref: "#/$defs/key" }
         text: { type: string, minLength: 1 }
+  subproject:  { $ref: "#/$defs/subproject" }
   junctions:
     type: object
     propertyNames:

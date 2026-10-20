@@ -1,0 +1,3 @@
+gate: design
+state: nominal
+note: Shares the parent's commit

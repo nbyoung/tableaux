@@ -1,0 +1,58 @@
+# expected.yaml : the nearest person reviews an agent that states no reviewer (F2), and a junction
+# that pairs bot with a model makes bot an agent wherever it appears (F10), since the project keeps
+# no agents.yaml.
+#   b2c9 : bot is the assignee and bot assigns its parent, so olive, the root's assignee, reviews
+#          its design. bot's own review at N2 accepts it: at N2 the language is 0.3.1, whose
+#          default makes the assignee the reviewer, and the files at a commit judge the commit.
+#          Its release junction is bot's too, an agent's with no model, so olive reviews there,
+#          and N2, the contributor's, is the newest event: the hand-off the history implies (H4).
+#   d3a6 : pat is the assignee and a person, so pat reviews bot's design, at N5.
+entry: review-nearest-person
+language: 0.4.0
+valid: true
+
+findings:
+  - { rule: H4, severity: information, task: "b2c9", gate: release, commit: N2,
+      message: "The newest event is the contributor's and the status states no review; olive may have a release to review" }
+
+owner: olive@example.org
+root: "e4a1"
+count: { tasks: 4, leaves: 2 }
+order: ["e4a1", "c5f0", "b2c9", "d3a6"]
+
+tasks:
+  "c5f0":
+    parent: "e4a1"
+    authorities: [olive@example.org]
+    authorisation: { state: authorised, commit: N1, by: olive@example.org }
+  "b2c9":
+    parent: "c5f0"
+    authorities: [bot@example.org, olive@example.org]
+    authorisation: { state: authorised, commit: N1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: bot@example.org, reviewer: olive@example.org }   # bot is an agent, so its own junctions have the nearest person
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: olive@example.org, source: "b2c9" }   # skips bot, the parent's assignee
+    reviews:
+      - { gate: defined, reviewer: olive@example.org, commit: N1 }     # the authorisation stands as the review of defined
+      - { gate: design, reviewer: olive@example.org, commit: N2 }      # bot's review, judged by the files at N2, where bot was the reviewer
+    status: { gate: design, state: nominal, date: 2026-09-02, recorder: bot@example.org, commit: N2 }
+    events:
+      - { date: 2026-09-01, commit: N1, by: olive@example.org, task: "b2c9", event: task }
+      - { date: 2026-09-01, commit: N1, by: olive@example.org, task: "b2c9", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-02, commit: N2, by: bot@example.org, task: "b2c9", event: status, gate: design, state: nominal }
+      - { date: 2026-09-02, commit: N2, by: bot@example.org, task: "b2c9", event: reviewed, gate: design }
+  "d3a6":
+    parent: "c5f0"
+    authorities: [bot@example.org, olive@example.org]
+    authorisation: { state: authorised, commit: N1, by: olive@example.org }
+    junctions:
+      default: { kind: plain, contributor: pat@example.org }
+      design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: pat@example.org, source: "d3a6" }   # the assignee is a person
+    reviews:
+      - { gate: design, reviewer: pat@example.org, commit: N5 }
+    status: { gate: design, state: nominal, date: 2026-09-04, recorder: bot@example.org, commit: N4 }
+    events:
+      - { date: 2026-09-01, commit: N1, by: olive@example.org, task: "d3a6", event: task }
+      - { date: 2026-09-01, commit: N1, by: olive@example.org, task: "d3a6", event: status, gate: defined, state: nominal }
+      - { date: 2026-09-04, commit: N4, by: bot@example.org, task: "d3a6", event: status, gate: design, state: nominal }
+      - { date: 2026-09-05, commit: N5, by: pat@example.org, task: "d3a6", event: reviewed, gate: design }
