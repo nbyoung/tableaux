@@ -33,6 +33,7 @@ tasks:
       default: { kind: plain, contributor: bot@example.org, reviewer: olive@example.org }   # bot is an agent, so its own junctions have the nearest person
       design:  { kind: plain, contributor: bot@example.org, model: claude-fable, reviewer: olive@example.org, source: "b2c9" }   # skips bot, the parent's assignee
     reviews:
+      - { gate: defined, reviewer: olive@example.org, commit: N1 }     # the authorisation stands as the review of defined
       - { gate: design, reviewer: olive@example.org, commit: N2 }      # bot's review, judged by the files at N2, where bot was the reviewer
     status: { gate: design, state: nominal, date: 2026-09-02, recorder: bot@example.org, commit: N2 }
     events:
