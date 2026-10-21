@@ -1,4 +1,3 @@
-gate: implementation
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review and shows the text of each decision on main at 5a10a76, sh corpus/build.sh and check.py clean over 120 entries, 7166's nine entries passing among the 120 on tablo v0.2.0, tablo's ownEvents and historyCommands with their tests for F11, and tabloio's drawing of the merge's authorised event
+note: The tools and the corpus follow the text of design/7166.md, under the owner's review (95d7fec); each decision stands on main, its nine entries pass among the 120 on tablo v0.2.0, tablo's ownEvents and historyCommands carry F11, and tabloio draws the merge's authorised event
