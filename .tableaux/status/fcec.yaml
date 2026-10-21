@@ -1,4 +1,3 @@
-gate: integrate
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; on the merge the corpus builds, check.py passes, tablo v0.2.0 passes all 120 entries with tableaux-tooling restated at 0.4.0, every rule in RULES.md names an entry, 84 of its 88 sources read as the texts and schemas do and four quote a sentence the text now extends (P1, J2, J3, S8), the whole suites of tablotui and tableaud pass, and tabloio's passes but for TestRealBrief and TestRealMockups, which read this plan at the tag, pass at 50a373b and follow the tag when tabloio's corpus lock moves; the owner moves corpus/tooling to the merge
+note: The tools and the corpus follow the text, under the owner's review (2bb6262); at b678789, where corpus/tooling stands, the corpus builds, check.py passes, tablo v0.2.0 passes all 120 entries and confirms all 88 rules, 84 of the 88 sources in RULES.md read as the texts and schemas do and four quote a sentence the text now extends (P1, J2, J3, S8), and the whole suites of tabloio, tablotui and tableaud pass, tabloio reading the tooling plan at its lock's tooling since 1879db2
