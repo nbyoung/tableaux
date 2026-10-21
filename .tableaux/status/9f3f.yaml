@@ -1,4 +1,3 @@
-gate: implementation
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; each decision of design/9f3f.md stands in the text on main, the corpus builds and check.py passes its 120 entries, tablo v0.2.0 passes all 120 with 9f3f's seven entries among them and T8's 18 subproject events fit the history schema, tablo's code and tests carry the field, J18, J19, R14 and H8, and tabloio draws the field, the subproject's events beneath their pins as d5d4902 lets a renderer, and H8
+note: The tools and the corpus follow the text of design/9f3f.md, under the owner's review (b7618c6); each decision stands on main, its seven entries pass among the 120 on tablo v0.2.0 and its subproject events fit the history schema, tablo's code and tests carry the field, J18, J19, R14 and H8, and tabloio draws them, a subproject's events beneath their pins as d5d4902 lets a renderer
