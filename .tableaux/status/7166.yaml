@@ -1,3 +1,4 @@
 gate: implementation
 state: nominal
-note: The text of design/7166.md, F11, F15 to F18, F9 and F8, stands on main at 0.4.0 since 431d2ac, and tablo reads it at 5ddfb24; validate shows that tablo and the corpus follow it
+reason: review
+note: Validate awaits the owner's review and shows the text of each decision on main at 5a10a76, sh corpus/build.sh and check.py clean over 120 entries, 7166's nine entries passing among the 120 on tablo v0.2.0, tablo's ownEvents and historyCommands with their tests for F11, and tabloio's drawing of the merge's authorised event
