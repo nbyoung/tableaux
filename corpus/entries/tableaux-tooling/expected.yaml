@@ -4,28 +4,38 @@
 # a later commit that changes them updates the facts, and the owner moves the
 # tag to that commit in the same step.
 entry: tableaux-tooling
-language: 0.3.2
+language: 0.4.0
 trunk: { stated: main }
 source: { repository: ../../.., ref: corpus/tooling }   # a tag the owner moves; see README.md
 valid: true
 findings:
-  - { rule: R9, severity: warning, task: "595e", file: tasks/595e.yaml }       # 595e, 6103 and c6e8 each wait for 77b2, at function
-  - { rule: R9, severity: warning, task: "6103", file: tasks/6103.yaml }
-  - { rule: R9, severity: warning, task: "c6e8", file: tasks/c6e8.yaml }
-  - { rule: J19, severity: warning, task: "77b2", file: tasks/77b2.yaml }       # each pin states 0.3.1, a patch behind this 0.3.2 (F25)
-  - { rule: J19, severity: warning, task: "6103", file: tasks/6103.yaml }
-  - { rule: J19, severity: warning, task: "c6e8", file: tasks/c6e8.yaml }
-  - { rule: J19, severity: warning, task: "595e", file: tasks/595e.yaml }
-  - { rule: H3, severity: warning, task: "7166", gate: implementation }        # opus recorded a note where the junction states sonnet
-  - { rule: H3, severity: warning, task: "e9c6", gate: implementation }        # opus recorded the gate where the junction states sonnet
-  - { rule: H4, severity: information, task: "7166", file: status/7166.yaml, gate: implementation }   # the next junction has a reviewer
+  # H3, one per commit: opus ran where the junction states sonnet. A status commit is at the junction
+  # of the gate it records, or, where the gate stays, at the next applicable one (README Junctions).
+  # No R9 and no J19: 77b2 stands at implementation, and every subproject states 0.4.0 at its pin.
+  - { rule: H3, severity: warning, task: "7166", gate: implementation }        # five: a note, the design hand-off and record, the implementation hand-off and record
+  - { rule: H3, severity: warning, task: "7166", gate: implementation }
+  - { rule: H3, severity: warning, task: "7166", gate: implementation }
+  - { rule: H3, severity: warning, task: "7166", gate: implementation }
+  - { rule: H3, severity: warning, task: "7166", gate: implementation }
+  - { rule: H3, severity: warning, task: "9f3f", gate: implementation }        # four: the design hand-off and record, the implementation hand-off and record
+  - { rule: H3, severity: warning, task: "9f3f", gate: implementation }
+  - { rule: H3, severity: warning, task: "9f3f", gate: implementation }
+  - { rule: H3, severity: warning, task: "9f3f", gate: implementation }
+  - { rule: H3, severity: warning, task: "ac33", gate: implementation }        # four, as 9f3f
+  - { rule: H3, severity: warning, task: "ac33", gate: implementation }
+  - { rule: H3, severity: warning, task: "ac33", gate: implementation }
+  - { rule: H3, severity: warning, task: "ac33", gate: implementation }
+  - { rule: H3, severity: warning, task: "e9c6", gate: implementation }        # opus recorded the gate
+  - { rule: H3, severity: warning, task: "fcec", gate: unit }                  # opus recorded the gate
+  - { rule: H3, severity: warning, task: "fcec", gate: integrate }             # opus recorded the gate
+  # H4: the next junction, validate, has the owner as reviewer and no Reviewed: commit, the newest
+  # event is the agent contributor's, and the status states no review. 7166, 9f3f, ac33 and fcec
+  # draw none: the owner's note of the language 0.4 is the newest event of the first three, and
+  # fcec states review. H5: none, since no status states review after its reviewer's Reviewed: commit.
   - { rule: H4, severity: information, task: "7861", file: status/7861.yaml, gate: validate }
-  - { rule: H4, severity: information, task: "9f3f", file: status/9f3f.yaml, gate: implementation }
-  - { rule: H4, severity: information, task: "ac33", file: status/ac33.yaml, gate: implementation }
   - { rule: H4, severity: information, task: "c2ad", file: status/c2ad.yaml, gate: validate }
   - { rule: H4, severity: information, task: "e3cb", file: status/e3cb.yaml, gate: validate }
   - { rule: H4, severity: information, task: "e9c6", file: status/e9c6.yaml, gate: validate }
-  - { rule: H4, severity: information, task: "fcec", file: status/fcec.yaml, gate: unit }
 
 owner: nbyoung@nbyoung.com
 root: "437e"
@@ -36,13 +46,13 @@ tasks:
     parent: null
     authorities: []
     authorisation: { state: authorised, by: nbyoung@nbyoung.com }
-    status:                                                         # derived: 77b2 holds the earliest gate, function
-      gate: function
-      state: nominal
-      note: "prototype/8ed1 derives the history and a stand-in audit between two refs from one git log pass and one cat-file batch, on the weather station"
+    status:                                                         # derived: every child stands at implementation and nominal,
+      gate: implementation                                          # so the first in display order, bc63, decides, and it takes
+      state: nominal                                                # its state and note from its own first, c2ad
+      note: "The Roles text is on the trunk and covers all seven roles; the validate gate awaits the owner"
       date: 2026-09-30                                              # the oldest of the children considered
       derived: true
-      from: "77b2"
+      from: "bc63"
   "fcec":
     parent: "bc63"
     authorities: [nbyoung@nbyoung.com, nbyoung@nbyoung.com]
@@ -50,38 +60,39 @@ tasks:
     junctions:
       default:        { kind: plain, contributor: noreply@anthropic.com }
       defined:        { kind: plain, contributor: noreply@anthropic.com, model: claude-haiku,
-                        reviewer: noreply@anthropic.com, source: "437e" }   # the agent reviews itself; see F2 and F8
+                        reviewer: nbyoung@nbyoung.com, source: "437e" }   # no reviewer stated: the agent takes the nearest person
       mockup:         { kind: not_applicable, source: "fcec" }
       function:       { kind: not_applicable, source: "fcec" }
       design:         { kind: plain, contributor: noreply@anthropic.com, model: claude-fable,
                         reviewer: nbyoung@nbyoung.com, source: ["bc63", "437e"] }   # bc63 names the model, 437e the reviewer
       implementation: { kind: plain, contributor: noreply@anthropic.com, model: claude-sonnet,
-                        reviewer: noreply@anthropic.com, source: "437e" }   # the agent reviews itself
+                        source: "437e" }                                  # waived: the root states reviewer: false
       unit:           { kind: plain, contributor: noreply@anthropic.com, model: claude-sonnet,
-                        reviewer: noreply@anthropic.com, source: "437e" }
+                        source: "437e" }                                  # waived
       integrate:      { kind: plain, contributor: noreply@anthropic.com, model: claude-sonnet,
-                        reviewer: noreply@anthropic.com, source: "437e" }
+                        source: "437e" }                                  # waived
       validate:       { kind: plain, contributor: noreply@anthropic.com, model: claude-opus,
-                        reviewer: nbyoung@nbyoung.com, source: ["bc63", "437e"] }
+                        reviewer: nbyoung@nbyoung.com, source: ["bc63", "437e"] }   # bc63 names the model, 437e the reviewer
       release:        { kind: plain, contributor: nbyoung@nbyoung.com, source: "437e" }
     applicable: [undefined, defined, design, implementation, unit, integrate, validate, release]
     requires:
-      - { id: "e3cb", from: implementation, to: implementation, met: true, due: true, condition: met }   # e3cb stands at unit; fcec's next gate is unit
-    status:
-      gate: implementation
+      - { id: "e3cb", from: implementation, to: implementation, met: true, due: true, condition: met }   # e3cb stands at unit; fcec's next gate is validate
+    status:                                                         # the hand-off of validate to the owner
+      gate: integrate
       state: nominal
-      note: "The corpus builds and checks clean, with 85 entries on the trunk; all three corrections from the tablo prototypes are in; the unit gate runs the tablo conformance test against it"
-      date: 2026-09-30
+      reason: review
+      note: "Validate awaits the owner's review; on the merge the corpus builds, check.py passes, tablo v0.2.0 passes all 120 entries with tableaux-tooling restated at 0.4.0, every rule in RULES.md names an entry, 84 of its 88 sources read as the texts and schemas do and four quote a sentence the text now extends (P1, J2, J3, S8), the whole suites of tablotui and tableaud pass, and tabloio's passes but for TestRealBrief and TestRealMockups, which read this plan at the tag, pass at 50a373b and follow the tag when tabloio's corpus lock moves; the owner moves corpus/tooling to the merge"
+      date: 2026-10-21
       recorder: noreply@anthropic.com
   "77b2":
     parent: "437e"
     authorities: [nbyoung@nbyoung.com]
     junctions:
       default: { kind: plain, contributor: nbyoung@nbyoung.com }   # the assignee
-      design:  { kind: recursive, subproject: { url: subprojects/tablo }, source: "77b2" }   # id defaults to that project's root
-    subproject: { url: subprojects/tablo, pin: f7c3190c7f8b1ad5a0e8157349f136022e62c6b1 }
+      design:  { kind: recursive, subproject: { url: subprojects/tablo }, source: "77b2" }   # the task-level field stands for it at each gate after defined; id defaults to that project's root
+    subproject: { url: subprojects/tablo, pin: 21d423c4bdc1323125f2fffc41133435ea010764 }
     status:                                                         # the gate is the file's; the rest is the root of tablo's plan at the pin
-      gate: function
+      gate: implementation
       state: nominal
-      note: "prototype/8ed1 derives the history and a stand-in audit between two refs from one git log pass and one cat-file batch, on the weather station"
+      note: "The skeleton is on the trunk and passes vet and test locally and in CI run 36673445640 on e416c19; formatting, lint and the release workflow are in place"
       date: 2026-09-30
