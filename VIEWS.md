@@ -391,7 +391,7 @@ In this project both emails hold most of the tree, so the task form serves them;
 **Levels.**
 
 - glance: one line per event: date, actor, event, task, gate and state, or for a pin the `url` and the commits.
-- detail: the status after each event, the note, the model, the committer where it differs from the author, and the subproject's own events up to the commit each linkage fixes, inline in author-time order, each marked by the subproject's task.
+- detail: the status after each event, the note, the model, the committer where it differs from the author, and the subproject's own events up to the commit each linkage fixes, inline in author-time order, each marked by the subproject's task. A renderer may draw a subproject's events beneath the pin event whose commit fixes them, as a nested list, and draws inline those that no pin fixes, as a same-repository subproject's.
 - provenance: the hash, subject, trailers and files of each commit, and the `git log` commands that produce the list, with the submodule path added for a task whose linkage is a submodule.
 
 **Example.** `77b2` tablo on `main`, whose recursive junctions name the submodule `subprojects/tablo`:
