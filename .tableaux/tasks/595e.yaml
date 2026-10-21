@@ -12,13 +12,5 @@ references:
 requires:
   - { id: "77b2", from: implementation, to: implementation, text: The library it embeds }
   - { id: "5fe3", from: mockup, to: design, text: The HTML mockups it reproduces }
-junctions:
-  mockup:         { subproject: { url: subprojects/tableaud } }
-  function:       { subproject: { url: subprojects/tableaud } }
-  design:         { subproject: { url: subprojects/tableaud } }
-  implementation: { subproject: { url: subprojects/tableaud } }
-  unit:           { subproject: { url: subprojects/tableaud } }
-  integrate:      { subproject: { url: subprojects/tableaud } }
-  validate:       { subproject: { url: subprojects/tableaud } }
-  release:        { subproject: { url: subprojects/tableaud } }
+subproject: { url: subprojects/tableaud }
 parent: { id: "437e", order: 5 }

@@ -12,13 +12,5 @@ references:
 requires:
   - { id: "77b2", from: implementation, to: implementation, text: The library and plumbing it calls }
   - { id: "bc86", from: mockup, to: design, text: The Markdown mockups it reproduces }
-junctions:
-  mockup:         { subproject: { url: subprojects/tabloio } }
-  function:       { subproject: { url: subprojects/tabloio } }
-  design:         { subproject: { url: subprojects/tabloio } }
-  implementation: { subproject: { url: subprojects/tabloio } }
-  unit:           { subproject: { url: subprojects/tabloio } }
-  integrate:      { subproject: { url: subprojects/tabloio } }
-  validate:       { subproject: { url: subprojects/tabloio } }
-  release:        { subproject: { url: subprojects/tabloio } }
+subproject: { url: subprojects/tabloio }
 parent: { id: "437e", order: 3 }

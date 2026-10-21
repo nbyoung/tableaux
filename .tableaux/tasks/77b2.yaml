@@ -13,13 +13,5 @@ requires:
   - { id: "e3cb", from: implementation, to: implementation, text: The schema files it embeds }
   - { id: "e9c6", from: implementation, to: design, text: The abstract views it derives }
   - { id: "fcec", from: implementation, to: unit, text: The corpus it conforms to }
-junctions:
-  mockup:         { subproject: { url: subprojects/tablo } }
-  function:       { subproject: { url: subprojects/tablo } }
-  design:         { subproject: { url: subprojects/tablo } }
-  implementation: { subproject: { url: subprojects/tablo } }
-  unit:           { subproject: { url: subprojects/tablo } }
-  integrate:      { subproject: { url: subprojects/tablo } }
-  validate:       { subproject: { url: subprojects/tablo } }
-  release:        { subproject: { url: subprojects/tablo } }
+subproject: { url: subprojects/tablo }
 parent: { id: "437e", order: 2 }

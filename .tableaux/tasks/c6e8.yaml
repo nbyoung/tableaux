@@ -13,13 +13,5 @@ requires:
   - { id: "77b2", from: implementation, to: implementation, text: The library it embeds }
   - { id: "bc86", from: mockup, to: design, text: The Markdown mockups that fix the textual layout }
   - { id: "5fe3", from: mockup, to: design, text: The HTML mockups that fix the disclosure levels }
-junctions:
-  mockup:         { subproject: { url: subprojects/tablotui } }
-  function:       { subproject: { url: subprojects/tablotui } }
-  design:         { subproject: { url: subprojects/tablotui } }
-  implementation: { subproject: { url: subprojects/tablotui } }
-  unit:           { subproject: { url: subprojects/tablotui } }
-  integrate:      { subproject: { url: subprojects/tablotui } }
-  validate:       { subproject: { url: subprojects/tablotui } }
-  release:        { subproject: { url: subprojects/tablotui } }
+subproject: { url: subprojects/tablotui }
 parent: { id: "437e", order: 4 }
