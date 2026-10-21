@@ -1,3 +1,4 @@
 gate: integrate
 state: nominal
-note: The corpus at 0.4.0 assembles with the four tools that read it, as tablo's conformance test passes all 120 entries at 5ddfb24 and the whole suites of tabloio, tablotui and tableaud pass on it; validate needs an agent on claude-opus to show that the tools and the corpus follow the text, under the owner's review (bc63), and restates tableaux-tooling and moves corpus/tooling once the front ends read 0.4.0 and the four subproject tasks convert to the field
+reason: review
+note: Validate awaits the owner's review; on the merge the corpus builds, check.py passes, tablo v0.2.0 passes all 120 entries with tableaux-tooling restated at 0.4.0, every rule in RULES.md names an entry, 84 of its 88 sources read as the texts and schemas do and four quote a sentence the text now extends (P1, J2, J3, S8), the whole suites of tablotui and tableaud pass, and tabloio's passes but for TestRealBrief and TestRealMockups, which read this plan at the tag, pass at 50a373b and follow the tag when tabloio's corpus lock moves; the owner moves corpus/tooling to the merge
