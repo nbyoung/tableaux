@@ -1,3 +1,4 @@
 gate: implementation
 state: nominal
-note: The text of design/ac33.md, F1, F2 and F10 with the plan choice B, stands on main at 0.4.0 since 431d2ac, and tablo reads it at 5ddfb24; validate shows that tablo and the corpus follow it
+reason: review
+note: Validate awaits the owner's review; it shows the text of decisions 1 to 10 and the landing on main at 34a7239, choice B included, a clean build, check.py and the schema checks, ac33's eight entries passing among the 120 on tablo v0.2.0, tablo's code and tests for the kind, the waiver, the nearest person, A1, A2 and H7, the plan's reviewers under choice B, and tabloio's drawing of the nearest person, the waiver, the co-author and H7
