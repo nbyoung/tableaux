@@ -1,4 +1,3 @@
-gate: implementation
+gate: validate
 state: nominal
-reason: review
-note: Validate awaits the owner's review; it shows the text of decisions 1 to 10 and the landing on main at 34a7239, choice B included, a clean build, check.py and the schema checks, ac33's eight entries passing among the 120 on tablo v0.2.0, tablo's code and tests for the kind, the waiver, the nearest person, A1, A2 and H7, the plan's reviewers under choice B, and tabloio's drawing of the nearest person, the waiver, the co-author and H7
+note: The tools and the corpus follow the text of design/ac33.md, under the owner's review (0fb3648); each decision stands on main with choice B, in the umbrella and the four subproject roots, its eight entries pass among the 120 on tablo v0.2.0, tablo's code and tests carry the kind, the waiver, the nearest person, A1, A2 and H7, and tabloio draws the nearest person, the waiver, the co-author and H7
