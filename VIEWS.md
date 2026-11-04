@@ -91,7 +91,7 @@ A tableau is the exception in a format that folds. Its rows are a tree a reader 
 - detail: each gate's criteria, each state's severity and synopsis, each reason's synopsis, with the reserved meaning of `review`; for a task, the references that expand each gate.
 - provenance: the language version, and the commit that last changed `gates.yaml` and `version.yaml`.
 
-**Example.** This project's `gates.yaml` drops the performance and reliability gates from the set SYNTAX.md shows.
+**Example.** This project's `gates.yaml` is the software gate set SYNTAX.md shows.
 
 | ❔ undefined | 📝 defined | 📌 mockup | 🔧 function | 📐 design | 🧱 implementation | 📏 unit | 🔗 integrate | 🌍 validate | 🚀 release |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
