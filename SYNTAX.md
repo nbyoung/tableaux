@@ -31,7 +31,7 @@ A Tableaux project is the `.tableaux` directory at the root of its Git repositor
 
 | Path                          | Naming                                                                      |
 |-------------------------------|-----------------------------------------------------------------------------|
-| `.tableaux/`                  | Fixed; one per repository                                                   |
+| `.tableaux/`                  | Fixed; one per project, at the repository's root or under a directory of it |
 | `version.yaml`, `gates.yaml`  | Fixed                                                                       |
 | `agents.yaml`                 | Fixed; optional                                                             |
 | `tasks/<id>.yaml`             | `<id>` is the task id: four lowercase hexadecimal digits chosen at random, `^[0-9a-f]{4}$` |
@@ -169,23 +169,23 @@ The key `review` is reserved. A project need not define it, but one that does gi
 
 A symbol is best one code point that a terminal draws as an emoji by itself, as every symbol of the gate sets below is. A symbol that needs the variation selector U+FE0F after a narrow character, as ⚙️ does, has no width that terminals agree on, so a tool that draws text in columns writes it without the selector, as the plain character.
 
-### Example
+### Examples
+
+The software gate set suits a project whose deliverable is software, as most are. Copy it as `.tableaux/gates.yaml`.
 
 ```yaml
-# gates.yaml — the gating structure
+# gates.yaml — the software gate set
 gates:
-  - { key: undefined,      symbol: ❔, name: Undefined,             criteria: No one has started work on the definition }
-  - { key: defined,        symbol: 📝, name: Defined,               criteria: "Title, description, assignee and references exist" }
-  - { key: mockup,         symbol: 📌, name: Mockup,                criteria: A non-technical mockup of the outcome exists }
-  - { key: function,       symbol: 🔧, name: Functional prototype,  criteria: A technical demonstration of function exists }
-  - { key: performance,    symbol: ⚡, name: Performance prototype, criteria: Target performance shown in the deliverable's technology }
-  - { key: reliability,    symbol: ⚓, name: Reliability prototype, criteria: Target reliability shown in the fundamental technology }
-  - { key: design,         symbol: 📐, name: Design,                criteria: A model and sufficient tests exist }
-  - { key: implementation, symbol: 🧱, name: Implementation,        criteria: "Artifacts suffice for unit, integration and validation tests" }
-  - { key: unit,           symbol: 📏, name: Unit test,             criteria: All prescribed tests pass }
-  - { key: integrate,      symbol: 🔗, name: Integration,           criteria: Assembled with neighbouring components }
-  - { key: validate,       symbol: 🌍, name: Validation,            criteria: Passes user and field tests }
-  - { key: release,        symbol: 🚀, name: Release,               criteria: All variants documented and approved }
+  - { key: undefined,      symbol: ❔, name: Undefined,            criteria: No one has started work on the definition }
+  - { key: defined,        symbol: 📝, name: Defined,              criteria: "Title, description, assignee and references exist" }
+  - { key: mockup,         symbol: 📌, name: Mockup,               criteria: A non-technical mockup of the outcome exists }
+  - { key: function,       symbol: 🔧, name: Functional prototype, criteria: A technical demonstration of function exists }
+  - { key: design,         symbol: 📐, name: Design,               criteria: A model and sufficient tests exist }
+  - { key: implementation, symbol: 🧱, name: Implementation,       criteria: "Artifacts suffice for unit, integration and validation tests" }
+  - { key: unit,           symbol: 📏, name: Unit test,            criteria: All prescribed tests pass }
+  - { key: integrate,      symbol: 🔗, name: Integration,          criteria: Assembled with neighbouring components }
+  - { key: validate,       symbol: 🌍, name: Validation,           criteria: Passes user and field tests }
+  - { key: release,        symbol: 🚀, name: Release,              criteria: All variants documented and approved }
 
 states:
   - { key: undefined, symbol: ⚪, severity: 0, synopsis: The work has not yet been defined }
@@ -198,6 +198,13 @@ reasons:
   - { key: overloaded, symbol: 🪫, synopsis: The assigned resource is overloaded }
   - { key: blocked,    symbol: ⛔, synopsis: An external resource is unavailable }
   - { key: review,     symbol: 👓, synopsis: The work waits for its reviewer }
+```
+
+**Physical gates.** A project whose deliverable has physical properties to prove, such as a circuit's power budget, a structure's load or a component's service life, adds either or both of these gates after `function`. Each proves a target in a prototype before design commits to it. A software project leaves them out, and a task that needs neither sets `{ applies: false }` at the gate.
+
+```yaml
+  - { key: performance,    symbol: ⚡, name: Performance prototype, criteria: Target performance shown in the deliverable's technology }
+  - { key: reliability,    symbol: ⚓, name: Reliability prototype, criteria: Target reliability shown in the fundamental technology }
 ```
 
 ## `agents.yaml`
@@ -406,6 +413,8 @@ properties:
 | `order` | No       | The task's rank among its siblings, a strictly positive integer; lower sorts first |
 
 ### Examples
+
+The examples plan a weather station, whose circuit board has physical targets, so its `gates.yaml` adds both physical gates.
 
 ```yaml
 # tasks/a1c0.yaml — the root task
