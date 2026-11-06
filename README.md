@@ -6,6 +6,10 @@ contribution and attribution.
 
 This document gives the meaning of each Tableaux structure. [SYNTAX.md](SYNTAX.md) gives its form.
 
+- [Getting started](#getting-started)
+  - [Installation](#installation)
+  - [Participants](#participants)
+  - [Owners](#owners)
 - [Project](#project)
 - [Version](#version)
 - [Gates](#gates)
@@ -15,6 +19,74 @@ This document gives the meaning of each Tableaux structure. [SYNTAX.md](SYNTAX.m
 - [Status](#status)
 - [History](#history)
 - [Roles](#roles)
+
+## Getting started
+
+A Tableaux project keeps its plan in its Git repository, beside the work it plans, and four tools read it. `tablo`, the backend, writes every view as JSON or YAML for scripts. Three front ends present the views to people: `tabloio` on the command line, `tablotui` in a terminal and `tableaud` in a browser. `tabloio` and `tablotui` also make the commits that operate the method.
+
+### Installation
+
+Each tool is one binary that runs `git`, so Git stands on the `PATH` beside it. Each tool publishes an archive for Linux, macOS and Windows, on amd64 and arm64, with each release: download the archive for your platform from the release page, extract the binary and place it on your `PATH`.
+
+- [tablo releases](https://github.com/nbyoung/tablo/releases)
+- [tabloio releases](https://github.com/nbyoung/tabloio/releases)
+- [tablotui releases](https://github.com/nbyoung/tablotui/releases)
+- [tableaud releases](https://github.com/nbyoung/tableaud/releases)
+
+With Go 1.27 or later, `go install` builds any of the four from source instead:
+
+```
+go install github.com/nbyoung/tablo/cmd/tablo@latest
+go install github.com/nbyoung/tabloio/cmd/tabloio@latest
+go install github.com/nbyoung/tablotui/cmd/tablotui@latest
+go install github.com/nbyoung/tableaud/cmd/tableaud@latest
+```
+
+`tabloio help` lists the commands, and `tabloio <command> --help` gives the options of one.
+
+### Participants
+
+A participant holds a role wherever the plan names the email they commit with ([Roles](#roles)). The tools read that email from Git's `user.email` and need no account, so a participant sets it in their clone to the email the plan names.
+
+`tabloio queue` answers "What do I do next?": the work ready at the participant's junctions, the reviews and authorisations they owe, and the statuses due for reaffirmation. `tabloio task <id>` shows one task, its criteria at each gate and its status; `tabloio gates` explains the columns and symbols; `tabloio context` shows the participant's corner of the tableau. `tablotui` and `tableaud serve` show the same views interactively.
+
+Each write command plans one commit, shows it and asks before it commits; `--dry-run` shows the plan alone. A status names the gate the task has last completed and its state towards the next ([Status](#status)). Where the next junction has a reviewer, the contributor hands the work over, the reviewer accepts it, and the contributor then records the gate:
+
+```
+tabloio record 9f31 --gate defined --state nominal               # the contributor records a completed gate
+tabloio record 9f31 --reason review                              # and hands the next gate's work to its reviewer
+tabloio review 9f31 mockup                                       # the reviewer accepts that work
+tabloio record 9f31 --gate mockup --state nominal --no-reason    # the contributor records the gate
+tabloio reaffirm 9f31                                            # the contributor confirms that a status stands
+tabloio propose --parent 4e2b --title 'Gateway enclosure'        # anyone proposes a task under a parent
+tabloio authorise 6d2e                                           # an authority accepts a proposed task
+```
+
+An agent commits under its own identity, never a person's, and adds `--model <identifier>`, or sets `TABLOIO_MODEL`, so that each commit carries the `Model:` trailer ([SYNTAX.md](SYNTAX.md#commit-trailers)). A person who works with an agent's help commits as themselves and adds `--co-author 'Name <email>'`. `tabloio queue --brief <id> <gate>` writes one item of the queue as a brief to hand to an agent's session.
+
+### Owners
+
+The owner is the root task's assignee ([Roles](#roles)). No command starts a project yet, so the owner writes three files under `.tableaux/` at the repository's root ([SYNTAX.md](SYNTAX.md#layout)):
+
+- `version.yaml` names the language version and the trunk:
+
+  ```yaml
+  tableaux: 0.4.0
+  trunk: main
+  ```
+
+- `gates.yaml` copies the software gate set from [SYNTAX.md](SYNTAX.md#gatesyaml). A project whose deliverable has physical properties to prove adds the performance or reliability gate there.
+- `tasks/<id>.yaml` holds the root task, under four random hexadecimal digits that `openssl rand -hex 2` gives. Its assignee is the owner's email:
+
+  ```yaml
+  title: Weather station
+  description: A solar-powered sensor node, a gateway and a dashboard.
+  assignee: ada@example.org
+  ```
+
+A project with agents also lists their identities in `agents.yaml` ([SYNTAX.md](SYNTAX.md#agentsyaml)). The owner commits the files to the trunk, and that commit authorises the root, since the owner is its assignee. The owner then proposes the root's children with `tabloio propose`; each proposal the owner commits on the trunk is authorised at once, since the owner is an authority of every task. A child's assignee becomes an authority of its subtree and plans it in turn ([Proposed and authorised tasks](#proposed-and-authorised-tasks)).
+
+`tabloio tableau` shows how the whole project stands, and `tabloio audit` shows where the files and the history disagree. Continuous integration can publish the tableau for observers with `tabloio tableau > TABLEAUX.md`, or as a static site with `tableaud export --out public/`. A task that hands its work to another Tableaux project names it in a `subproject` field ([Junctions](#junctions)).
 
 ## Project
 
