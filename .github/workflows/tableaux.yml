@@ -1,0 +1,22 @@
+# tableaux's own Tableaux workflow: the consumer workflow of the snapshot
+# action (design 1422), as snapshot/consumer.yml of nbyoung/tabloio gives it.
+# It validates the plan on every push and pull request and regenerates
+# TABLEAUX.md on main. The recursive checkout fetches the four subprojects
+# that the junctions read at their pins.
+name: Tableaux
+on:
+  push:
+  pull_request:
+permissions:
+  contents: write
+concurrency:
+  group: tableaux-${{ github.ref }}
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0          # history: authorisation, reviews, dates
+          submodules: recursive   # pins: recursive junctions read subprojects
+      - uses: nbyoung/tabloio/snapshot@v0.2.0
